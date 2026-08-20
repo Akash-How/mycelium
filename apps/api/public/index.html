@@ -6,19 +6,20 @@
 <title>Mycelium — living data network</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #121212; --bg2: #0d0d0d; --panel: #191919; --panel2: #212121;
-    --line: #2a2a2a; --line2: #3c3c3c;
-    --ink: #ededed; --ink2: #b3b3b3; --ink3: #787878;
-    --accent: #e2e2e2; --accent2: #8f8f8f;
+    --bg: #131210; --bg2: #0d0c0a; --panel: #1a1917; --panel2: #23211e;
+    --line: #2c2a26; --line2: #3e3b35;
+    --ink: #efede8; --ink2: #b7b3ab; --ink3: #7d796f;
+    --accent: #e5e3dd; --accent2: #918d84;
     --ok: #4fd39a; --warn: #e6b23c; --bad: #f06060; --quar: #6f6f6f;
     --okbg: rgba(79,211,154,.1); --warnbg: rgba(230,178,60,.1);
     --badbg: rgba(240,96,96,.1); --quarbg: rgba(120,120,120,.14);
     --display: "Bricolage Grotesque", system-ui, sans-serif;
     --body: system-ui, "Segoe UI", sans-serif;
     --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    --serif: "Instrument Serif", Georgia, serif;
   }
   * { box-sizing: border-box; margin: 0; }
   html { scroll-behavior: smooth; }
@@ -69,7 +70,8 @@
   }
   .organism canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   .organism .caption { position: absolute; left: 1.2rem; top: 1.1rem; z-index: 2; }
-  .caption h1 { font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
+  .caption h1 { font-family: var(--display); font-size: clamp(1.7rem, 3.2vw, 2.4rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.06; }
+  .caption h1 em, .sec-head h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
   .caption p { color: var(--ink2); font-size: .86rem; max-width: 26ch; margin-top: .35rem; }
   .node-tip {
     position: absolute; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .15s;
@@ -98,14 +100,26 @@
   section { margin-top: 4.5rem; position: relative; }
   section .ghost {
     position: absolute; top: -2.6rem; right: -.5rem; z-index: 0; pointer-events: none;
-    font-family: var(--display); font-weight: 800; font-size: clamp(4rem, 9vw, 7rem);
-    letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.05);
+    font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(4.5rem, 10vw, 8rem);
+    letter-spacing: -.02em; color: rgba(255,255,255,.045);
     user-select: none; line-height: 1;
   }
   .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.2rem; position: relative; z-index: 1; }
   .sec-head h2 { font-family: var(--display); font-size: clamp(1.5rem, 2.6vw, 1.9rem); font-weight: 700; letter-spacing: -.025em; }
   .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--ink3); letter-spacing: .1em; text-transform: uppercase; }
   .sec-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); align-self: center; }
+
+  /* ---------- doctrine strip ---------- */
+  .doctrine {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    margin-top: 3.5rem; padding: .4rem 0;
+  }
+  @media (max-width: 56rem) { .doctrine { grid-template-columns: 1fr; } .doc-col + .doc-col { border-left: 0 !important; border-top: 1px solid var(--line); } }
+  .doc-col { padding: 1.4rem 1.6rem 1.4rem 0; }
+  .doc-col + .doc-col { border-left: 1px solid var(--line); padding-left: 1.6rem; }
+  .doc-col h3 { font-family: var(--display); font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
+  .doc-col h3 em { font-family: var(--serif); font-style: italic; color: var(--ok); }
+  .doc-col p { color: var(--ink3); font-size: .88rem; max-width: 34ch; margin-top: .4rem; line-height: 1.6; }
 
   /* ---------- fleet ---------- */
   .fleet { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: .9rem; }
@@ -275,7 +289,7 @@
   <div class="hero">
     <div class="organism">
       <div class="caption">
-        <h1>A data network<br>that keeps itself alive</h1>
+        <h1>A data network<br><em>that keeps itself alive.</em></h1>
         <p>Every node is a Scraper Studio collector. Watched, verified, self-repairing.</p>
       </div>
       <canvas id="net"></canvas>
@@ -284,15 +298,21 @@
     <div class="kpis" id="kpis"></div>
   </div>
 
+  <section class="doctrine" aria-label="doctrine">
+    <div class="doc-col"><h3>Watch<em>.</em></h3><p>Every run is scored against its contract and a rolling baseline of itself. Nothing drifts silently.</p></div>
+    <div class="doc-col"><h3>Heal<em>.</em></h3><p>A break becomes a repair order — written by the machine, executed by Bright Data, same collector.</p></div>
+    <div class="doc-col"><h3>Verify<em>.</em></h3><p>Three gates before any fix is believed. A system that serves data must know when to bench itself.</p></div>
+  </section>
+
   <section id="fleet" class="reveal">
     <span class="ghost" aria-hidden="true">01</span>
-    <div class="sec-head"><span class="tag">01 · Network</span><h2>The fleet</h2></div>
+    <div class="sec-head"><span class="tag">01 · Network</span><h2>The fleet, <em>self-built.</em></h2></div>
     <div class="fleet" id="fleetGrid"></div>
   </section>
 
   <section id="incidents" class="reveal">
     <span class="ghost" aria-hidden="true">02</span>
-    <div class="sec-head"><span class="tag">02 · Survive</span><h2>Detect · diagnose · heal · verify</h2></div>
+    <div class="sec-head"><span class="tag">02 · Survive</span><h2>Detect, diagnose, <em>heal, verify.</em></h2></div>
     <div class="inc-toolbar">
       <span class="inc-stats" id="incStats"></span>
       <button class="fbtn on" data-f="all">All</button>
@@ -305,7 +325,7 @@
 
   <section id="divergence" class="reveal">
     <span class="ghost" aria-hidden="true">03</span>
-    <div class="sec-head"><span class="tag">03 · Markets</span><h2>Price signals by market</h2></div>
+    <div class="sec-head"><span class="tag">03 · Markets</span><h2>Same page, <em>different market.</em></h2></div>
     <div class="matrix-wrap"><table class="matrix" id="matrix"></table>
       <p class="matrix-note">Daily page probes through Bright Data's unlocker, one per market (<code style="font-family:var(--mono);font-size:.9em">scrape --country</code>).
       Cell = count of price tokens found, with the currencies seen. Uniform counts and currencies across a row are themselves a finding: that vendor prices globally.</p>
@@ -314,7 +334,7 @@
 
   <section id="dataset" class="reveal">
     <span class="ghost" aria-hidden="true">04</span>
-    <div class="sec-head"><span class="tag">04 · Serve</span><h2>Latest verified dataset</h2></div>
+    <div class="sec-head"><span class="tag">04 · Serve</span><h2>The dataset, <em>served.</em></h2></div>
     <div class="data-grid" id="dsGrid"></div>
   </section>
 
@@ -632,9 +652,9 @@ const COL = {
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0d0d0d, 0.05);
-const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-camera.position.set(0, 1.6, 11);
+scene.fog = new THREE.FogExp2(0x0d0d0d, 0.03);
+const camera = new THREE.PerspectiveCamera(27, 1, 0.1, 100);
+camera.position.set(0, 1.1, 17);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 const key = new THREE.PointLight(0xffffff, 30, 40); key.position.set(4, 6, 6); scene.add(key);
@@ -648,7 +668,7 @@ const hubCore = new THREE.Mesh(
     emissive: 0xffffff, emissiveIntensity: .06 }));
 const hubWire = new THREE.LineSegments(
   new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.86, 1)),
-  new THREE.LineBasicMaterial({ color: 0xdddddd, transparent: true, opacity: .32 }));
+  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .5 }));
 hub.add(hubCore, hubWire); world.add(hub);
 
 {
@@ -661,7 +681,7 @@ hub.add(hubCore, hubWire); world.add(hub);
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
   world.add(new THREE.Points(geo, new THREE.PointsMaterial({
-    color: 0xbbbbbb, size: 0.02, transparent: true, opacity: .35, depthWrite: false })));
+    color: 0xaaaaaa, size: 0.018, transparent: true, opacity: .22, depthWrite: false })));
 }
 
 const glowTex = (() => {
@@ -674,6 +694,19 @@ const glowTex = (() => {
   return new THREE.CanvasTexture(c);
 })();
 
+function makeLabel(text) {
+  const c = document.createElement("canvas"); c.width = 512; c.height = 96;
+  const g = c.getContext("2d");
+  g.font = "500 40px 'JetBrains Mono', monospace";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = "rgba(200,200,205,.92)";
+  g.fillText(text, 256, 48);
+  const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+  sp.scale.set(2.3, 0.43, 1);
+  return sp;
+}
+
 let nodeGroup = new THREE.Group(); world.add(nodeGroup);
 let flows = [];
 let NODES3 = [];
@@ -683,30 +716,30 @@ function buildNodes(list) {
   flows = []; NODES3 = [];
   const N = Math.max(list.length, 1);
   list.forEach((n, i) => {
-    const a = (i / N) * Math.PI * 2 + 0.4;
-    const r = 4.4 + (i % 2) * 1.1;
-    const y = ((i % 3) - 1) * 1.5;
-    const p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.72);
+    const a = (i / N) * Math.PI * 2 + 0.55;
+    const r = 4.8 + (i % 2) * 0.4;
+    const y = ((i % 3) - 1) * 0.7;
+    const p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.6);
     const col = COL[n.status] ?? 0x555555;
 
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.17, 24, 24),
+      new THREE.SphereGeometry(0.21, 28, 28),
       new THREE.MeshStandardMaterial({ color: 0x101010, roughness: .35, metalness: .5,
         emissive: col, emissiveIntensity: n.status === "quarantined" ? .35 : .9 }));
     mesh.position.copy(p);
     mesh.userData = n;
 
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTex, color: col, transparent: true, opacity: n.status === "quarantined" ? .16 : .38,
+      map: glowTex, color: col, transparent: true, opacity: n.status === "quarantined" ? .1 : .26,
       depthWrite: false, blending: THREE.AdditiveBlending }));
-    glow.scale.setScalar(1.5); glow.position.copy(p);
+    glow.scale.setScalar(0.95); glow.position.copy(p);
 
     const mid = p.clone().multiplyScalar(.5).add(new THREE.Vector3(
       Math.sin(i * 2.7) * .9, Math.cos(i * 1.9) * .9 + .4, Math.sin(i) * .6));
     const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0, 0), mid, p);
     const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 40, 0.012, 6, false),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .13 }));
+      new THREE.TubeGeometry(curve, 48, 0.016, 6, false),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .22 }));
 
     nodeGroup.add(tube, glow, mesh);
 
@@ -714,11 +747,14 @@ function buildNodes(list) {
       const dot = new THREE.Sprite(new THREE.SpriteMaterial({
         map: glowTex, color: col, transparent: true, opacity: .9,
         depthWrite: false, blending: THREE.AdditiveBlending }));
-      dot.scale.setScalar(0.22);
+      dot.scale.setScalar(0.16);
       nodeGroup.add(dot);
       flows.push({ dot, curve, off: Math.random() });
     }
-    NODES3.push({ mesh, glow, base: p.clone(), seed: i * 1.31 });
+    const label = makeLabel(n.label);
+    label.position.copy(p).add(new THREE.Vector3(0, -0.62, 0));
+    nodeGroup.add(label);
+    NODES3.push({ mesh, glow, label, base: p.clone(), seed: i * 1.31 });
   });
   if (reduced) renderer.render(scene, camera);
 }
@@ -772,7 +808,7 @@ function frame(t) {
   requestAnimationFrame(frame);
   if (!visible) return;
   const tt = t * 0.001;
-  world.rotation.y = tt * 0.05;
+  world.rotation.y = tt * 0.032;
   world.rotation.x += (targetRX - world.rotation.x) * .04;
   camera.position.x += (targetPan - camera.position.x) * .03;
   camera.lookAt(0, 0, 0);
@@ -780,8 +816,9 @@ function frame(t) {
   const b = 1 + Math.sin(tt * 1.4) * .04; hubCore.scale.setScalar(b);
   hubWire.material.opacity = .26 + Math.sin(tt * 1.4) * .08;
   for (const n of NODES3) {
-    n.mesh.position.y = n.base.y + Math.sin(tt * .8 + n.seed) * .09;
+    n.mesh.position.y = n.base.y + Math.sin(tt * .8 + n.seed) * .05;
     n.glow.position.copy(n.mesh.position);
+    n.label.position.set(n.mesh.position.x, n.mesh.position.y - 0.62, n.mesh.position.z);
   }
   for (const f of flows) {
     const p = (tt * .07 + f.off) % 1;

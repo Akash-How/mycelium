@@ -92,9 +92,44 @@
           { "name": "unit", "type": "string", "required": true, "description": "The billing unit the price applies to, like per second or per hour", "sample": "per second" }
         ]
       }
+    },
+    {
+      "key": "novita",
+      "url": "https://novita.ai/pricing",
+      "proposedBy": "seed",
+      "probeScore": 500,
+      "collectorId": "c_mt15odasl4u2srtsi",
+      "contract": {
+        "minRows": 10,
+        "fields": [
+          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed on the pricing page", "sample": "deepseek-v3" },
+          { "name": "input_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only", "sample": "0.28" },
+          { "name": "output_price_per_1m", "type": "number", "required": false, "description": "Price in USD per 1 million output tokens, numeric only", "sample": "1.14" },
+          { "name": "category", "type": "string", "required": false, "description": "The model category or section if shown, like LLM or image", "sample": "LLM" }
+        ]
+      }
+    },
+    {
+      "key": "replicate",
+      "url": "https://replicate.com/pricing",
+      "proposedBy": "seed",
+      "probeScore": 87,
+      "collectorId": "c_mt15of1jbcdjcdlxa",
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          { "name": "name", "type": "string", "required": true, "description": "The hardware or model name in the pricing table, like Nvidia A100 or a public model", "sample": "Nvidia A100 (80GB) GPU" },
+          { "name": "price", "type": "number", "required": true, "description": "The listed price in USD as a number without the dollar sign", "sample": "0.001400" },
+          { "name": "unit", "type": "string", "required": true, "description": "The billing unit the price applies to, like per second or per 1M tokens", "sample": "per second" }
+        ]
+      }
     }
   ],
   "discarded": [
+    { "url": "https://groq.com/pricing", "reason": "probe returned near-empty page (1 price signal)", "probeScore": 1 },
+    { "url": "https://mistral.ai/pricing", "reason": "marketing page, only 7 price signals — pricing lives in gated docs", "probeScore": 7 },
+    { "url": "https://api-docs.deepseek.com/quick_start/pricing", "reason": "probe found 0 price signals", "probeScore": 0 },
+    { "url": "https://openrouter.ai/models", "reason": "only 20 signals on first page — model list is lazy-loaded", "probeScore": 20 },
     { "url": "https://render.com/pricing", "reason": "probe returned near-empty page (1 price signal) — client-rendered", "probeScore": 1 },
     { "url": "https://www.runpod.io/pricing", "reason": "scraper create failed twice: 600-poll timeout, then AI generation error — reserve promoted in its place", "probeScore": 84 }
   ]

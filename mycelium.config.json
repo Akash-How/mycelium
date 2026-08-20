@@ -1,5 +1,5 @@
 {
-  "fleet": { "maxCollectors": 6 },
+  "fleet": { "maxCollectors": 8 },
   "countries": ["us", "gb", "de", "in", "br", "jp", "au", "ca"],
   "schedule": { "sweepsPerDay": 3, "jitterSeconds": 120 },
   "heal": {

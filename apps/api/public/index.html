@@ -17,6 +17,10 @@
   --disp:'Anton',Impact,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
+:root{--ease:cubic-bezier(.16,1,.3,1)}
+.hw,.stat,.organism canvas,.foot-mark{will-change:transform}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
 html{background:var(--bg);scroll-behavior:smooth}
 body{font-family:var(--sans);color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::selection{background:var(--txt);color:#000}
@@ -63,8 +67,8 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .hw-wrap{position:absolute;inset:0;pointer-events:none}
 .hw{position:absolute;font-family:var(--disp);font-size:clamp(64px,12.5vw,196px);line-height:.9;letter-spacing:-.01em;user-select:none;white-space:nowrap}
 .hw1{left:0;top:2%;z-index:2;mix-blend-mode:screen}
-.hw2{left:36%;top:31%;z-index:0;color:#aeb4ba;filter:blur(.5px)}
-.hw3{right:0;top:64%;z-index:2;mix-blend-mode:screen}
+.hw2{left:0;top:32%;z-index:0;color:#aeb4ba;filter:blur(.5px)}
+.hw3{left:0;top:63%;z-index:2;mix-blend-mode:screen}
 .organism canvas{position:absolute;inset:0;width:100%;height:100%}
 .node-tip{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(6,7,8,.94);border:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;max-width:250px}
 .node-tip b{font-weight:500}
@@ -83,8 +87,8 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 
 /* ============ phases ============ */
 .phases{display:flex;margin:10vh 5vw 0;border-top:1px solid var(--line)}
-.phase{flex:1;padding:20px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);position:relative;transition:color .4s}
-.phase::before{content:"";position:absolute;top:-1px;left:0;width:0;height:1px;background:var(--txt);transition:width .5s}
+.phase{flex:1;padding:20px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);position:relative;transition:color .4s var(--ease)}
+.phase::before{content:"";position:absolute;top:-1px;left:0;width:0;height:1px;background:var(--txt);transition:width .5s var(--ease)}
 .phase.on{color:var(--txt)}.phase.on::before{width:88%}
 .phase .n{display:block;opacity:.5;margin-bottom:6px}
 
@@ -101,8 +105,8 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .stat .u{font-family:var(--mono);font-size:13px;color:var(--dim);margin-left:6px}
 .stat.cool .v{color:var(--ok)}
 .stat.hot .v{color:var(--pink)}
-.stat .q{margin-top:18px;font-family:var(--mono);font-size:11.5px;color:var(--dim);line-height:1.8;max-width:240px;border-left:1px solid var(--line);padding-left:12px;opacity:0;transition:opacity .3s}
-.stat:hover .q{opacity:1}
+.stat .q{margin-top:18px;font-family:var(--mono);font-size:11.5px;color:var(--dim);line-height:1.8;max-width:240px;border-left:1px solid var(--line);padding-left:12px;opacity:0;transition:opacity .45s var(--ease),transform .45s var(--ease);transform:translateY(4px)}
+.stat:hover .q{opacity:1;transform:none}
 
 /* ============ fleet ============ */
 .fleethead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5vh}
@@ -112,7 +116,7 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .fsrc>summary:hover .dom{color:var(--ok)}
 .fsrc[open]>summary .dom{color:var(--ok)}
 .fleet-rows .frow{display:grid;grid-template-columns:200px 1fr auto auto;gap:24px;align-items:center;padding:17px 0}
-.frow .dom{transition:color .3s}
+.frow .dom{transition:color .35s var(--ease)}
 .fsrc-body{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding:8px 0 40px}
 .fsrc-col{border-left:1px solid var(--line);padding-left:22px;min-width:0}
 .fsrc-col:nth-child(1){grid-column:1/5}
@@ -407,6 +411,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 
 </div>
 
+<script src="/vendor/lenis.min.js"></script>
 <script src="/vendor/gsap.min.js"></script>
 <script src="/vendor/ScrollTrigger.min.js"></script>
 <script>
@@ -453,6 +458,16 @@ new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
 
 /* ============ data ============ */
 $("copyEp").onclick=()=>{navigator.clipboard.writeText(location.origin+"/export.json");$("copyEp").textContent="COPIED ✓";setTimeout(()=>$("copyEp").textContent="GET /export.json ⧉",1200);};
+
+const TWEENED=new Set();
+function tweenText(el,target,{decimals=0,suffix=""}={}){
+  const fmt=(v)=>v.toFixed(decimals)+suffix;
+  if(reduced||!window.gsap||TWEENED.has(el.id)){el.textContent=fmt(target);return;}
+  TWEENED.add(el.id);
+  const o={v:0};
+  gsap.to(o,{v:target,duration:1.4,ease:"power3.out",delay:.25,
+    onUpdate:()=>{el.textContent=fmt(o.v);},onComplete:()=>{el.textContent=fmt(target);}});
+}
 
 let NODES=[];
 function syncOrganism(){ window.NODES=NODES; if(window.__net3d)window.__net3d.setNodes(NODES); }
@@ -520,11 +535,11 @@ async function load(){
   const uptime=rel.runs.total?(rel.runs.healthy/rel.runs.total)*100:0;
   const mttr=rel.heals.mean_recovery_s?Math.round(rel.heals.mean_recovery_s/60):null;
   const rowsServing=exp.filter(e=>e.country==="global").reduce((a,e)=>a+e.rows.length,0)||exp.reduce((a,e)=>a+e.rows.length,0);
-  $("s-up").textContent=uptime.toFixed(1)+"%";
-  $("s-rows").textContent=rowsServing;
+  tweenText($("s-up"),uptime,{decimals:1,suffix:"%"});
+  tweenText($("s-rows"),rowsServing,{});
   $("s-heals").textContent=rel.heals.approved+"/"+rel.heals.incidents;
   $("s-mttr").innerHTML=(mttr??"—")+'<span class="u">min</span>';
-  $("s-quar").textContent=rel.fleet.quarantined??0;
+  tweenText($("s-quar"),rel.fleet.quarantined??0,{});
   $("hm-fleet").textContent=(rel.fleet.active??0)+" / "+rel.fleet.total;
   $("hm-rows").textContent=rowsServing;
   $("fleetCount").textContent=`${rel.fleet.active} ACTIVE · ${rel.fleet.quarantined} QUARANTINED · ${rel.fleet.total-rel.fleet.active-rel.fleet.quarantined} BENCHED`;
@@ -607,21 +622,36 @@ async function load(){
     :`<div class="empty" style="grid-column:1/13">NO VERIFIED ROWS YET.</div>`;
 }
 /* ============ scroll choreography ============ */
+let lenis=null;
+function initLenis(){
+  if(reduced||!window.Lenis||lenis)return;
+  lenis=new Lenis({duration:1.15,easing:(t)=>1-Math.pow(1-t,3),smoothWheel:true});
+  lenis.on("scroll",()=>window.ScrollTrigger&&ScrollTrigger.update());
+  gsap.ticker.add((t)=>lenis.raf(t*1000));
+  gsap.ticker.lagSmoothing(0);
+  /* anchor links glide through lenis */
+  document.querySelectorAll('a[href^="#"]').forEach((a)=>a.addEventListener("click",(e)=>{
+    const el=document.querySelector(a.getAttribute("href"));
+    if(!el)return; e.preventDefault();
+    lenis.scrollTo(el,{offset:0,duration:1.4});
+  }));
+}
+
 let FX=false;
 function initFX(){
   if(FX||reduced||!window.gsap)return; FX=true;
   gsap.registerPlugin(ScrollTrigger);
+  initLenis();
 
-  /* hero: staircase words shear apart at different rates; organism recedes */
-  gsap.from(".hw",{yPercent:60,opacity:0,duration:1.1,stagger:.12,ease:"power3.out"});
-  gsap.to(".hw1",{yPercent:-110,ease:"none",
-    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.4}});
-  gsap.to(".hw2",{yPercent:-60,ease:"none",
-    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.55}});
-  gsap.to(".hw3",{yPercent:-22,ease:"none",
-    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.7}});
-  gsap.to(".organism",{y:70,scale:.98,ease:"none",
-    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.8}});
+  /* hero: words load flush-left, then STAIRCASE OUT as you scroll —
+     INTO slides to center, PROOF to the right edge, PAGES holds the left */
+  gsap.from(".hw",{x:-60,opacity:0,duration:1.1,stagger:.14,ease:"power3.out"});
+  const heroScrub={trigger:".hero",start:"top top",end:"bottom top"};
+  gsap.to(".hw2",{x:()=>innerWidth*.34,ease:"none",scrollTrigger:{...heroScrub,scrub:.5}});
+  gsap.to(".hw3",{x:()=>Math.max(0,innerWidth*.9-(document.querySelector(".hw3")?.offsetWidth??0)),
+    ease:"none",scrollTrigger:{...heroScrub,scrub:.65}});
+  gsap.to(".hw1",{yPercent:-40,ease:"none",scrollTrigger:{...heroScrub,scrub:.4}});
+  gsap.to(".organism",{y:70,scale:.97,ease:"none",scrollTrigger:{...heroScrub,scrub:.8}});
   gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.2});
 
   /* phases: draw in */
@@ -692,7 +722,7 @@ const COL={active:0x39ffb4,healthy:0x39ffb4,degraded:0xffb224,broken:0xff2a6d,qu
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.15;
+renderer.toneMappingExposure=1.0;
 const scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x060708,0.03);
 const camera=new THREE.PerspectiveCamera(34,1,0.1,100);
@@ -702,15 +732,15 @@ scene.add(new THREE.AmbientLight(0xffffff,0.25));
 const key=new THREE.PointLight(0xffffff,40,50);key.position.set(5,7,7);scene.add(key);
 const coreLight=new THREE.PointLight(0xffffff,12,14);scene.add(coreLight);
 
-const world=new THREE.Group();scene.add(world);
+const world=new THREE.Group();world.scale.setScalar(0.86);world.position.y=-0.2;scene.add(world);
 
 const hub=new THREE.Group();
 const hubCore=new THREE.Mesh(new THREE.IcosahedronGeometry(0.34,2),
   new THREE.MeshStandardMaterial({color:0x0a0a0a,roughness:.25,metalness:.9,emissive:0xffffff,emissiveIntensity:.5}));
 const shellA=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.72,1)),
-  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.55}));
+  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));
 const shellB=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.06,1)),
-  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.14}));
+  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.09}));
 const ringG=new THREE.Group();
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1.7,0.006,8,160),
   new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3}));
@@ -723,7 +753,7 @@ hub.add(hubCore,shellA,shellB,ringG);world.add(hub);
 { const n=700,pos=new Float32Array(n*3);
   for(let i=0;i<n;i++){pos[i*3]=(Math.random()-.5)*26;pos[i*3+1]=(Math.random()-.5)*14;pos[i*3+2]=(Math.random()-.5)*18-3;}
   const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
-  world.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xaaaaaa,size:0.018,transparent:true,opacity:.22,depthWrite:false}))); }
+  world.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xaaaaaa,size:0.016,transparent:true,opacity:.12,depthWrite:false}))); }
 
 const glowTex=(()=>{ const c=document.createElement("canvas");c.width=c.height=64;
   const g=c.getContext("2d");
@@ -735,7 +765,7 @@ const glowTex=(()=>{ const c=document.createElement("canvas");c.width=c.height=6
 function makeLabel(text){ const c=document.createElement("canvas");c.width=512;c.height=96;
   const g=c.getContext("2d");
   g.font="500 38px 'JetBrains Mono', monospace";g.textAlign="center";g.textBaseline="middle";
-  g.fillStyle="rgba(190,196,202,.9)";g.fillText(text.toUpperCase(),256,48);
+  g.fillStyle="rgba(170,176,182,.8)";g.fillText(text.toUpperCase(),256,48);
   const tex=new THREE.CanvasTexture(c);tex.anisotropy=4;
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
   sp.scale.set(2.9,0.54,1); return sp; }
@@ -755,22 +785,22 @@ function buildNodes(list){
     const dim=n.status==="quarantined";
 
     const mesh=new THREE.Mesh(new THREE.SphereGeometry(0.16,28,28),
-      new THREE.MeshStandardMaterial({color:0x141414,roughness:.3,metalness:.6,emissive:col,emissiveIntensity:dim?.3:1.5}));
+      new THREE.MeshStandardMaterial({color:0x141414,roughness:.3,metalness:.6,emissive:col,emissiveIntensity:dim?.25:1.1}));
     mesh.position.copy(p);mesh.userData=n;
 
     const halo=new THREE.Mesh(new THREE.RingGeometry(0.27,0.283,48),
-      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:dim?.18:.5,side:THREE.DoubleSide,depthWrite:false}));
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:dim?.14:.38,side:THREE.DoubleSide,depthWrite:false}));
     halo.position.copy(p);
 
     const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:col,transparent:true,opacity:dim?.06:.16,depthWrite:false,blending:THREE.AdditiveBlending}));
-    glow.scale.setScalar(0.7);glow.position.copy(p);
+    glow.scale.setScalar(0.6);glow.position.copy(p);
     nodeGroup.add(halo);
 
     const c1=p.clone().multiplyScalar(.3).add(new THREE.Vector3(0,.9+Math.sin(i*2.1)*.3,0));
     const c2=p.clone().multiplyScalar(.72).add(new THREE.Vector3(Math.sin(i*2.7)*.6,-.5+Math.cos(i*1.9)*.3,Math.sin(i)*.4));
     const curve=new THREE.CubicBezierCurve3(new THREE.Vector3(0,0,0),c1,c2,p);
     const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,64,0.011,6,false),
-      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.26}));
+      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.17}));
     nodeGroup.add(tube,glow,mesh);
 
     if(n.status==="active"){
@@ -825,8 +855,8 @@ function frame(t){
   if(!visible)return;
   const tt=t*0.001;
   world.rotation.y=Math.sin(tt*0.11)*0.32;
-  world.rotation.x+=(targetRX-world.rotation.x)*.04;
-  camera.position.x+=(targetPan-camera.position.x)*.03;
+  world.rotation.x+=(targetRX-world.rotation.x)*.028;
+  camera.position.x+=(targetPan-camera.position.x)*.022;
   camera.lookAt(0,0,0);
   hubCore.rotation.y=tt*.3;
   const b=1+Math.sin(tt*1.3)*.05;hubCore.scale.setScalar(b);

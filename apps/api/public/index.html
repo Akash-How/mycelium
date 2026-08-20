@@ -229,6 +229,15 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .ds td.n{text-align:right;color:var(--txt);font-variant-numeric:tabular-nums}
 .ds .more{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);padding-top:12px}
 
+/* ============ product showcase ============ */
+.show{position:relative;height:280vh}
+.show-pin{position:sticky;top:0;height:100vh;overflow:hidden}
+.show-pin canvas{position:absolute;inset:0;width:100%;height:100%}
+.show-copy{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:9vh;pointer-events:none;z-index:2}
+.show-line{font-family:var(--disp);font-size:clamp(34px,5.6vw,88px);line-height:1.02;text-align:center;letter-spacing:-.01em;opacity:0}
+.show-cta{pointer-events:auto;margin-top:4vh;font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--bg)!important;background:var(--txt);padding:16px 34px;border-radius:999px;opacity:0;transition:background .3s var(--ease),transform .3s var(--ease)}
+.show-cta:hover{background:var(--ok);transform:translateY(-2px)}
+
 /* ============ footer ============ */
 .foot{padding-top:12vh;padding-bottom:3vh;border-top:1px solid var(--line)}
 .foot-main{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding-bottom:9vh}
@@ -293,6 +302,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <a href="#loop"><span class="rail-name">The loop</span><span class="rail-mark"></span></a>
   <a href="#markets"><span class="rail-name">Markets</span><span class="rail-mark"></span></a>
   <a href="#dataset"><span class="rail-name">Dataset</span><span class="rail-mark"></span></a>
+  <a href="#showcase"><span class="rail-name">The API</span><span class="rail-mark"></span></a>
   <a href="#end"><span class="rail-name">End</span><span class="rail-mark"></span></a>
 </nav>
 
@@ -383,6 +393,16 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <div class="ds-grid" id="dsGrid"></div>
 </section>
 
+<section class="show" id="showcase" aria-label="product">
+  <div class="show-pin">
+    <canvas id="prodCv"></canvas>
+    <div class="show-copy">
+      <h2 class="show-line">THE DATASET IS ONLY<br>THE BEGINNING</h2>
+      <a class="show-cta" href="/export.json">OPEN THE API</a>
+    </div>
+  </div>
+</section>
+
 <footer class="sec foot" id="end">
   <div class="foot-main">
     <div class="foot-brand">
@@ -440,11 +460,11 @@ const SC={active:"var(--ok)",healthy:"var(--ok)",approved:"var(--ok)",degraded:"
 
 /* ============ rail highlight ============ */
 const railLinks=[...document.querySelectorAll(".section-rail a")];
-const railMap={top:0,loop:1,markets:2,dataset:3,end:4};
+const railMap={top:0,loop:1,markets:2,dataset:3,showcase:4,end:5};
 new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
   const i=railMap[e.target.id]; if(i==null)return;
   railLinks.forEach((a,j)=>a.classList.toggle("on",j===i)); }); },{rootMargin:"-40% 0px -50% 0px"})
-  .observe($("top")), ["loop","markets","dataset","end"].forEach((id)=>{
+  .observe($("top")), ["loop","markets","dataset","showcase","end"].forEach((id)=>{
   new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
     railLinks.forEach((a,j)=>a.classList.toggle("on",j===railMap[id])); }); },{rootMargin:"-40% 0px -50% 0px"}).observe($(id)); });
 
@@ -676,6 +696,15 @@ function initFX(){
   gsap.from(".mkt-title",{opacity:0,y:26,duration:.9,ease:"power3.out",
     scrollTrigger:{trigger:".mkt",start:"top 78%",once:true}});
 
+  /* product showcase: scrub drives the 3D card via a shared progress value */
+  window.SHOW={p:0};
+  gsap.to(window.SHOW,{p:1,ease:"none",
+    scrollTrigger:{trigger:".show",start:"top top",end:"bottom bottom",scrub:.4}});
+  gsap.to(".show-line",{opacity:1,y:0,duration:.1,ease:"none",
+    scrollTrigger:{trigger:".show",start:"62% bottom",end:"78% bottom",scrub:true}});
+  gsap.to(".show-cta",{opacity:1,duration:.1,ease:"none",
+    scrollTrigger:{trigger:".show",start:"72% bottom",end:"86% bottom",scrub:true}});
+
   /* foot-mark: rises through the footer like the hero in reverse */
   gsap.from(".foot-mark",{yPercent:40,opacity:0,duration:1.1,ease:"power3.out",
     scrollTrigger:{trigger:".foot",start:"top 80%",once:true}});
@@ -881,6 +910,101 @@ function frame(t){
 }
 if(reduced){world.rotation.y=.6;renderer.render(scene,camera);}
 else requestAnimationFrame(frame);
+
+/* ============ product showcase scene ============ */
+(function(){
+  const cv=document.getElementById("prodCv");
+  if(!cv)return;
+  const R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  R.setPixelRatio(Math.min(devicePixelRatio,2));
+  R.toneMapping=THREE.ACESFilmicToneMapping;
+  const SC=new THREE.Scene();
+  SC.fog=new THREE.FogExp2(0x060708,0.045);
+  const CAM=new THREE.PerspectiveCamera(30,1,0.1,60);
+  CAM.position.set(0,0,8.4);
+  SC.add(new THREE.AmbientLight(0xffffff,0.32));
+  const k1=new THREE.PointLight(0xffffff,60,40);k1.position.set(6,5,6);SC.add(k1);
+  const k2=new THREE.PointLight(0x39ffb4,14,30);k2.position.set(-6,-3,4);SC.add(k2);
+
+  function texCanvas(w,h,draw){const c=document.createElement("canvas");c.width=w;c.height=h;
+    draw(c.getContext("2d"));const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t;}
+
+  /* card front: the API as a physical object */
+  const front=texCanvas(1024,640,(g)=>{
+    g.fillStyle="#0c0d0f";g.fillRect(0,0,1024,640);
+    g.strokeStyle="rgba(255,255,255,.14)";g.lineWidth=2;g.strokeRect(26,26,972,588);
+    g.fillStyle="#f2f3f4";g.font="700 92px Anton, Impact, sans-serif";
+    g.fillText("MYCELIUM",56,150);
+    g.fillStyle="#39ffb4";g.fillRect(56,190,180,3);
+    g.font="500 34px 'JetBrains Mono', monospace";g.fillStyle="#e8eaec";
+    g.fillText("GET /export.json",56,320);
+    g.font="400 24px 'JetBrains Mono', monospace";g.fillStyle="#9aa0a7";
+    g.fillText("LIVE · VERIFIED · SELF-HEALING",56,380);
+    g.fillText("7 COLLECTORS · 3 GATES · 0 HUMANS",56,426);
+    g.font="400 20px 'JetBrains Mono', monospace";g.fillStyle="#767d86";
+    g.fillText("BUILT ON BRIGHT DATA SCRAPER STUDIO",56,566);
+    g.textAlign="right";g.fillText("EST. 2026",968,566);});
+  const back=texCanvas(1024,640,(g)=>{
+    g.fillStyle="#0a0b0c";g.fillRect(0,0,1024,640);
+    g.fillStyle="#17181a";g.fillRect(0,70,1024,90);
+    g.font="500 30px 'JetBrains Mono', monospace";g.fillStyle="#e8eaec";g.textAlign="left";
+    g.fillText("CONTRACT ....... PASS",56,280);
+    g.fillText("GOLDEN ......... PASS",56,340);
+    g.fillText("CONTINUITY ..... PASS",56,400);
+    g.fillStyle="#39ffb4";g.font="400 24px 'JetBrains Mono', monospace";
+    g.fillText("AUTO-APPROVE IS BANNED",56,500);});
+  const side=new THREE.MeshStandardMaterial({color:0x2a2d30,roughness:.4,metalness:.9});
+  const mf=new THREE.MeshPhysicalMaterial({map:front,roughness:.34,metalness:.72,clearcoat:.6,clearcoatRoughness:.25});
+  const mb=new THREE.MeshPhysicalMaterial({map:back,roughness:.4,metalness:.72,clearcoat:.4});
+  const card=new THREE.Mesh(new THREE.BoxGeometry(4.6,2.875,0.055),
+    [side,side,side,side,mf,mb]);
+  const cardG=new THREE.Group();cardG.add(card);SC.add(cardG);
+
+  /* floating gallery: dimmed data panels in depth */
+  const panels=[];
+  const SNIPS=[["deepinfra","142 ROWS"],["together.ai","76 ROWS"],["fireworks","31 ROWS"],["lambda","22 ROWS"],["railway","4 ROWS"],["novita","PROBE 500"],["replicate","PROBE 87"],["modal","QUARANTINED"]];
+  SNIPS.forEach((sn,i)=>{
+    const t=texCanvas(512,320,(g)=>{
+      g.fillStyle="#0b0c0d";g.fillRect(0,0,512,320);
+      g.strokeStyle="rgba(255,255,255,.1)";g.strokeRect(10,10,492,300);
+      g.font="500 34px 'JetBrains Mono', monospace";g.fillStyle="#9aa0a7";
+      g.fillText(sn[0],36,120);
+      g.font="400 26px 'JetBrains Mono', monospace";g.fillStyle="#5c6268";
+      g.fillText(sn[1],36,190);});
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(1.9,1.19),
+      new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.34,depthWrite:false}));
+    const col=i%4, row=Math.floor(i/4);
+    m.position.set((col-1.5)*3.4,(row-.5)*2.6,-2.2-(i%3));
+    m.userData={y0:m.position.y,seed:i*1.7};
+    SC.add(m);panels.push(m);
+  });
+
+  function sizeP(){const r=cv.parentElement.getBoundingClientRect();
+    R.setSize(r.width,r.height,false);CAM.aspect=r.width/r.height;CAM.updateProjectionMatrix();}
+  addEventListener("resize",sizeP);sizeP();
+
+  let vis=false;
+  new IntersectionObserver((es)=>{vis=es[0].isIntersecting;}).observe(cv.parentElement);
+
+  function loop(t){
+    requestAnimationFrame(loop);
+    if(!vis)return;
+    const tt=t*0.001;
+    const p=(window.SHOW?window.SHOW.p:1);
+    /* edge-on → face-on with a full extra turn, slight settle tilt */
+    cardG.rotation.y=(1-p)*(Math.PI*2.5)+Math.PI*0.04;
+    cardG.rotation.x=(1-p)*0.5+Math.sin(tt*.7)*.02;
+    cardG.position.y=Math.sin(tt*.8)*.06+(1-p)*1.2;
+    CAM.position.z=8.4-p*1.6;
+    for(const m of panels){
+      m.position.y=m.userData.y0+Math.sin(tt*.4+m.userData.seed)*.12;
+      m.material.opacity=.1+p*.26;
+    }
+    R.render(SC,CAM);
+  }
+  if(reduced){window.SHOW={p:1};sizeP();R.render(SC,CAM);}
+  else requestAnimationFrame(loop);
+})();
 </script>
 </body>
 </html>

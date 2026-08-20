@@ -94,7 +94,34 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 
 /* ============ fleet ============ */
 .fleethead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5vh}
-.fleet-rows .frow{display:grid;grid-template-columns:200px 1fr auto auto;gap:24px;align-items:center;padding:17px 0;border-bottom:1px solid var(--line)}
+.fsrc{border-bottom:1px solid var(--line)}
+.fsrc>summary{list-style:none;cursor:pointer}
+.fsrc>summary::-webkit-details-marker{display:none}
+.fsrc>summary:hover .dom{color:var(--ok)}
+.fsrc[open]>summary .dom{color:var(--ok)}
+.fleet-rows .frow{display:grid;grid-template-columns:200px 1fr auto auto;gap:24px;align-items:center;padding:17px 0}
+.frow .dom{transition:color .3s}
+.fsrc-body{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding:8px 0 40px}
+.fsrc-col{border-left:1px solid var(--line);padding-left:22px;min-width:0}
+.fsrc-col:nth-child(1){grid-column:1/5}
+.fsrc-col:nth-child(2){grid-column:5/9}
+.fsrc-col:nth-child(3){grid-column:9/13}
+.fsrc-col .clbl{font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:14px}
+.fsrc-col .clbl .n{color:var(--dim)}
+.crow{display:grid;grid-template-columns:1fr auto auto;gap:14px;font-family:var(--mono);font-size:11px;color:var(--dim);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.crow .ty{color:var(--faint)}
+.crow .req{color:var(--warn);font-size:9px;letter-spacing:.12em}
+.crow .req.opt{color:var(--faint)}
+.rrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;font-family:var(--mono);font-size:10.5px;color:var(--faint);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.rrow .rv{min-width:70px}
+.xrow{display:grid;grid-template-columns:1fr auto;gap:14px;font-family:var(--mono);font-size:11px;color:var(--dim);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.xrow td{color:var(--faint)}
+.xrow .xv{color:var(--txt);font-variant-numeric:tabular-nums}
+.xrow .xn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fsrc-meta{grid-column:1/13;font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em;border-top:1px solid var(--line);padding-top:14px;display:flex;gap:34px;flex-wrap:wrap}
+.fsrc-meta a{color:var(--dim);border-bottom:1px solid var(--line)}
+.fsrc-meta a:hover{color:var(--txt)}
+@media (max-width:1000px){.fsrc-body{display:block}.fsrc-col{border-left:0;padding-left:0;margin-bottom:5vh}}
 .frow .dom{font-size:clamp(15px,1.4vw,19px);font-weight:400}
 .frow .cid{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
 .frow .ticks{display:flex;gap:3px;align-items:flex-end;height:18px;justify-self:end}
@@ -491,17 +518,48 @@ async function load(){
     rows:exp.find(e=>e.source_id===s.id)?.rows.length,seed:i*.37+.1 }));
   syncOrganism();
 
+  const openSrc=new Set([...document.querySelectorAll(".fsrc[open]")].map((d)=>d.dataset.id));
   $("fleetRows").innerHTML=sources.map((s)=>{
-    const hist=(runsBySource[s.id]??[]).slice(0,16).reverse();
-    const ticks=hist.map((r)=>{ const c=SC[r.verdict]??"var(--line)";
+    const hist=(runsBySource[s.id]??[]).slice(0,16);
+    const ticks=[...hist].reverse().map((r)=>{ const c=SC[r.verdict]??"var(--line)";
       const h=r.verdict==="healthy"?18:r.verdict==="degraded"?11:6;
       return `<span class="tick" style="background:${c};height:${h}px" title="${esc(r.started_at)} · ${esc(r.verdict??"run")} · ${r.row_count??0} rows"></span>`; }).join("");
-    return `<div class="frow">
-      <span class="dom">${esc(s.domain.replace("www.",""))}</span>
-      <span class="cid">${s.collector_id?esc(s.collector_id)+" — live Bright Data endpoint":"no collector — "+esc(s.status)}</span>
-      <span class="ticks">${ticks}</span>
-      <span class="st ${esc(s.status)}">${esc(s.status)}</span>
-    </div>`; }).join("");
+
+    /* expanded body: contract · run log · latest extraction */
+    const contract=s.contract;
+    const cRows=contract?.fields?.map((f)=>
+      `<div class="crow"><span class="xn" title="${esc(f.description)}">${esc(f.name)}</span><span class="ty">${esc(f.type)}</span><span class="req ${f.required?"":"opt"}">${f.required?"REQUIRED":"optional"}</span></div>`).join("")
+      ??`<div class="empty">no contract yet — ${esc(s.status)}</div>`;
+    const rRows=hist.slice(0,8).map((r)=>
+      `<div class="rrow"><span>${esc((r.started_at??"").slice(5,16))}</span><span class="st ${esc(r.verdict??"")}" style="text-align:left;min-width:0">${esc(r.verdict??"run")}</span><span>${r.row_count??0} rows</span><span>${esc(r.trigger_kind??"")}</span></div>`).join("")
+      ||`<div class="empty">no runs yet</div>`;
+    const ex=exp.find((e)=>e.source_id===s.id&&e.country==="global")??exp.find((e)=>e.source_id===s.id);
+    const first=ex?.rows?.[0]??{};
+    const nameF=Object.keys(first).find((k)=>typeof first[k]==="string");
+    const numF=Object.keys(first).find((k)=>typeof first[k]==="number");
+    const xRows=ex?.rows?.slice(0,6).map((r)=>
+      `<div class="xrow"><span class="xn">${esc(r[nameF])}</span><span class="xv">${r[numF]??"—"}</span></div>`).join("")
+      ??`<div class="empty">no verified rows yet</div>`;
+
+    return `<details class="fsrc" data-id="${s.id}" ${openSrc.has(String(s.id))?"open":""}>
+      <summary><div class="frow">
+        <span class="dom">${esc(s.domain.replace("www.",""))}</span>
+        <span class="cid">${s.collector_id?esc(s.collector_id)+" — live Bright Data endpoint":"no collector — "+esc(s.status)}</span>
+        <span class="ticks">${ticks}</span>
+        <span class="st ${esc(s.status)}">${esc(s.status)}</span>
+      </div></summary>
+      <div class="fsrc-body">
+        <div class="fsrc-col"><span class="clbl"><span class="n">01</span> THE CONTRACT — WHAT THIS SOURCE PROMISES</span>${cRows}</div>
+        <div class="fsrc-col"><span class="clbl"><span class="n">02</span> RUN LOG — SCORED BY THE SENTINEL</span>${rRows}</div>
+        <div class="fsrc-col"><span class="clbl"><span class="n">03</span> LATEST VERIFIED EXTRACTION</span>${xRows}
+          ${ex?`<div class="fsrc-meta" style="border:0;padding-top:12px"><a href="/export.json?source=${s.id}">FULL DATASET → /export.json?source=${s.id}</a></div>`:""}</div>
+        <div class="fsrc-meta">
+          <span>TARGET ${esc(s.url)}</span>
+          ${s.birth_certified_at?`<span>CERTIFIED ${esc(s.birth_certified_at.slice(0,16))}</span>`:"<span>UNCERTIFIED</span>"}
+          ${s.quarantined_at?`<span style="color:var(--pink)">QUARANTINED ${esc(s.quarantined_at.slice(0,16))}</span>`:""}
+        </div>
+      </div>
+    </details>`; }).join("");
 
   LAST_INCIDENTS=incidents; renderIncidents();
 

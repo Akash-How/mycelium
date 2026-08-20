@@ -15,13 +15,19 @@ app.get("/sources", (c) => {
   const rows = db
     .prepare(
       `SELECT s.id, s.url, s.domain, s.collector_id, s.status,
-              s.birth_certified_at, s.quarantined_at,
+              s.birth_certified_at, s.quarantined_at, s.contract_json,
               (SELECT verdict FROM run r WHERE r.source_id = s.id
                ORDER BY r.started_at DESC LIMIT 1) AS last_verdict
        FROM source s ORDER BY s.id`,
     )
-    .all();
-  return c.json(rows);
+    .all() as any[];
+  return c.json(
+    rows.map((r) => ({
+      ...r,
+      contract: JSON.parse(r.contract_json ?? "null"),
+      contract_json: undefined,
+    })),
+  );
 });
 
 app.get("/runs", (c) => {

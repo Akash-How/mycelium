@@ -674,25 +674,45 @@ const COL = {
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x0d0d0d, 0.03);
 const camera = new THREE.PerspectiveCamera(27, 1, 0.1, 100);
 camera.position.set(0, 1.1, 17);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-const key = new THREE.PointLight(0xffffff, 30, 40); key.position.set(4, 6, 6); scene.add(key);
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+const key = new THREE.PointLight(0xffffff, 40, 50); key.position.set(5, 7, 7); scene.add(key);
+const coreLight = new THREE.PointLight(0xffffff, 12, 14); scene.add(coreLight);
 
 const world = new THREE.Group(); scene.add(world);
 
 const hub = new THREE.Group();
 const hubCore = new THREE.Mesh(
-  new THREE.IcosahedronGeometry(0.62, 1),
-  new THREE.MeshStandardMaterial({ color: 0x1c1c1c, roughness: .4, metalness: .7,
-    emissive: 0xffffff, emissiveIntensity: .06 }));
-const hubWire = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.86, 1)),
-  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .5 }));
-hub.add(hubCore, hubWire); world.add(hub);
+  new THREE.IcosahedronGeometry(0.34, 2),
+  new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: .25, metalness: .9,
+    emissive: 0xffffff, emissiveIntensity: .5 }));
+const shellA = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.72, 1)),
+  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55 }));
+const shellB = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.06, 1)),
+  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .14 }));
+const ringG = new THREE.Group();
+const ring = new THREE.Mesh(
+  new THREE.TorusGeometry(1.7, 0.006, 8, 160),
+  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .3 }));
+const ringDot = new THREE.Mesh(
+  new THREE.SphereGeometry(0.045, 12, 12),
+  new THREE.MeshBasicMaterial({ color: 0xffffff }));
+ringDot.position.set(1.7, 0, 0);
+ringG.add(ring, ringDot);
+ringG.rotation.x = Math.PI * 0.42; ringG.rotation.y = 0.25;
+const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: null, color: 0xffffff, transparent: true, opacity: .12,
+  depthWrite: false, blending: THREE.AdditiveBlending }));
+coreGlow.scale.setScalar(2.6);
+hub.add(hubCore, shellA, shellB, ringG, coreGlow); world.add(hub);
 
 {
   const n = 700, pos = new Float32Array(n * 3);
@@ -730,6 +750,8 @@ function makeLabel(text) {
   return sp;
 }
 
+coreGlow.material.map = glowTex; coreGlow.material.needsUpdate = true;
+
 let nodeGroup = new THREE.Group(); world.add(nodeGroup);
 let flows = [];
 let NODES3 = [];
@@ -739,30 +761,39 @@ function buildNodes(list) {
   flows = []; NODES3 = [];
   const N = Math.max(list.length, 1);
   list.forEach((n, i) => {
-    const a = (i / N) * Math.PI * 2 + 0.55;
-    const r = 4.8 + (i % 2) * 0.4;
-    const y = ((i % 3) - 1) * 0.7;
-    const p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.6);
+    const a = (i / N) * Math.PI * 2 + 0.9;
+    const r = 5.0;
+    const y = Math.sin(a * 2) * 0.55;
+    const p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.55);
     const col = COL[n.status] ?? 0x555555;
 
+    const dim = n.status === "quarantined";
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.21, 28, 28),
-      new THREE.MeshStandardMaterial({ color: 0x101010, roughness: .35, metalness: .5,
-        emissive: col, emissiveIntensity: n.status === "quarantined" ? .35 : .9 }));
+      new THREE.SphereGeometry(0.16, 28, 28),
+      new THREE.MeshStandardMaterial({ color: 0x141414, roughness: .3, metalness: .6,
+        emissive: col, emissiveIntensity: dim ? .3 : 1.5 }));
     mesh.position.copy(p);
     mesh.userData = n;
 
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTex, color: col, transparent: true, opacity: n.status === "quarantined" ? .1 : .26,
-      depthWrite: false, blending: THREE.AdditiveBlending }));
-    glow.scale.setScalar(0.95); glow.position.copy(p);
+    const halo = new THREE.Mesh(
+      new THREE.RingGeometry(0.27, 0.283, 48),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true,
+        opacity: dim ? .18 : .5, side: THREE.DoubleSide, depthWrite: false }));
+    halo.position.copy(p);
 
-    const mid = p.clone().multiplyScalar(.5).add(new THREE.Vector3(
-      Math.sin(i * 2.7) * .9, Math.cos(i * 1.9) * .9 + .4, Math.sin(i) * .6));
-    const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0, 0), mid, p);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: col, transparent: true, opacity: dim ? .06 : .16,
+      depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.setScalar(0.7); glow.position.copy(p);
+    nodeGroup.add(halo);
+
+    const c1 = p.clone().multiplyScalar(.3).add(new THREE.Vector3(0, .9 + Math.sin(i * 2.1) * .3, 0));
+    const c2 = p.clone().multiplyScalar(.72).add(new THREE.Vector3(
+      Math.sin(i * 2.7) * .6, -.5 + Math.cos(i * 1.9) * .3, Math.sin(i) * .4));
+    const curve = new THREE.CubicBezierCurve3(new THREE.Vector3(0, 0, 0), c1, c2, p);
     const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 48, 0.016, 6, false),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .22 }));
+      new THREE.TubeGeometry(curve, 64, 0.011, 6, false),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .26 }));
 
     nodeGroup.add(tube, glow, mesh);
 
@@ -775,9 +806,9 @@ function buildNodes(list) {
       flows.push({ dot, curve, off: Math.random() });
     }
     const label = makeLabel(n.label);
-    label.position.copy(p).add(new THREE.Vector3(0, -0.62, 0));
+    label.position.copy(p).add(new THREE.Vector3(0, -0.58, 0));
     nodeGroup.add(label);
-    NODES3.push({ mesh, glow, label, base: p.clone(), seed: i * 1.31 });
+    NODES3.push({ mesh, glow, halo, label, base: p.clone(), seed: i * 1.31 });
   });
   if (reduced) renderer.render(scene, camera);
 }
@@ -835,13 +866,19 @@ function frame(t) {
   world.rotation.x += (targetRX - world.rotation.x) * .04;
   camera.position.x += (targetPan - camera.position.x) * .03;
   camera.lookAt(0, 0, 0);
-  hub.rotation.y = tt * .12; hub.rotation.x = Math.sin(tt * .2) * .15;
-  const b = 1 + Math.sin(tt * 1.4) * .04; hubCore.scale.setScalar(b);
-  hubWire.material.opacity = .26 + Math.sin(tt * 1.4) * .08;
+  hubCore.rotation.y = tt * .3;
+  const b = 1 + Math.sin(tt * 1.3) * .05; hubCore.scale.setScalar(b);
+  hubCore.material.emissiveIntensity = .4 + Math.sin(tt * 1.3) * .18;
+  shellA.rotation.y = tt * .16; shellA.rotation.z = tt * .05;
+  shellB.rotation.y = -tt * .07; shellB.rotation.x = Math.sin(tt * .15) * .2;
+  ringG.rotation.z = tt * .1;
+  const rd = tt * .5; ringDot.position.set(Math.cos(rd) * 1.7, Math.sin(rd) * 1.7, 0);
   for (const n of NODES3) {
     n.mesh.position.y = n.base.y + Math.sin(tt * .8 + n.seed) * .05;
     n.glow.position.copy(n.mesh.position);
-    n.label.position.set(n.mesh.position.x, n.mesh.position.y - 0.62, n.mesh.position.z);
+    n.halo.position.copy(n.mesh.position);
+    n.halo.quaternion.copy(camera.quaternion);
+    n.label.position.set(n.mesh.position.x, n.mesh.position.y - 0.58, n.mesh.position.z);
   }
   for (const f of flows) {
     const p = (tt * .07 + f.off) % 1;

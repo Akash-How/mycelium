@@ -39,6 +39,12 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 #pre .bar{position:absolute;left:0;bottom:0;height:2px;width:0%;background:var(--txt);transition:width .3s}
 #pre.done{transition:transform .7s cubic-bezier(.7,0,.3,1);transform:translateY(-100%)}
 
+/* ============ top gaussian dissolve ============ */
+#topblur{position:fixed;top:0;left:0;right:0;height:150px;z-index:90;pointer-events:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 22%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 22%,transparent 100%)}
+
 /* ============ section rail ============ */
 .section-rail{position:fixed;right:24px;top:50%;z-index:80;display:grid;gap:7px;transform:translateY(-50%)}
 .section-rail a{height:20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;color:var(--faint)}
@@ -50,9 +56,15 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 
 /* ============ hero ============ */
 .hero{min-height:97vh;display:flex;flex-direction:column;padding-top:4vh;padding-bottom:5vh}
-.hero .topbar{display:flex;justify-content:space-between;align-items:baseline}
-.hero .mark{font-family:var(--disp);font-size:clamp(54px,11vw,170px);line-height:.92;letter-spacing:-.015em;margin-top:2vh;user-select:none;position:relative;z-index:2;pointer-events:none;mix-blend-mode:screen}
-.organism{position:relative;height:58vh;margin-top:-8vh;cursor:crosshair;z-index:1}
+.hero .topbar{display:flex;justify-content:space-between;align-items:baseline;position:relative;z-index:3}
+.hero .brand{font-family:var(--disp);font-size:19px;letter-spacing:.04em}
+.stage{position:relative;margin-top:1vh;height:72vh}
+.organism{position:absolute;inset:0;cursor:crosshair;z-index:1}
+.hw-wrap{position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:screen}
+.hw{position:absolute;font-family:var(--disp);font-size:clamp(64px,12.5vw,196px);line-height:.9;letter-spacing:-.01em;user-select:none;white-space:nowrap}
+.hw1{left:0;top:2%}
+.hw2{left:38%;top:33%}
+.hw3{right:0;top:64%}
 .organism canvas{position:absolute;inset:0;width:100%;height:100%}
 .node-tip{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(6,7,8,.94);border:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;max-width:250px}
 .node-tip b{font-weight:500}
@@ -270,6 +282,8 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <div class="bar" id="preBar"></div>
 </div>
 
+<div id="topblur"></div>
+
 <nav class="section-rail" aria-label="sections">
   <a href="#top" class="on"><span class="rail-name">Network</span><span class="rail-mark"></span></a>
   <a href="#loop"><span class="rail-name">The loop</span><span class="rail-mark"></span></a>
@@ -281,13 +295,20 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 <div id="app">
 
 <header class="sec hero" id="top">
-  <div class="topbar" style="justify-content:flex-end">
+  <div class="topbar">
+    <span class="brand">MYCELIUM</span>
     <span class="label">Built on Bright Data Scraper Studio</span>
   </div>
-  <h1 class="mark">MYCELIUM</h1>
-  <div class="organism">
-    <canvas id="net"></canvas>
-    <div class="node-tip" id="tip"></div>
+  <div class="stage">
+    <div class="organism">
+      <canvas id="net"></canvas>
+      <div class="node-tip" id="tip"></div>
+    </div>
+    <h1 class="hw-wrap" aria-label="Pages into proof">
+      <span class="hw hw1">PAGES</span>
+      <span class="hw hw2">INTO</span>
+      <span class="hw hw3">PROOF</span>
+    </h1>
   </div>
   <div class="strap">
     <div class="hero-meta">
@@ -591,12 +612,17 @@ function initFX(){
   if(FX||reduced||!window.gsap)return; FX=true;
   gsap.registerPlugin(ScrollTrigger);
 
-  /* hero: wordmark drifts slower than the page; organism separates */
-  gsap.to(".hero .mark",{yPercent:34,ease:"none",
-    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.5}});
-  gsap.to(".organism",{y:60,ease:"none",
+  /* hero: staircase words shear apart at different rates; organism recedes */
+  gsap.from(".hw",{yPercent:60,opacity:0,duration:1.1,stagger:.12,ease:"power3.out"});
+  gsap.to(".hw1",{yPercent:-110,ease:"none",
+    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.4}});
+  gsap.to(".hw2",{yPercent:-60,ease:"none",
+    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.55}});
+  gsap.to(".hw3",{yPercent:-22,ease:"none",
     scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.7}});
-  gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.15});
+  gsap.to(".organism",{y:70,scale:.98,ease:"none",
+    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.8}});
+  gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.2});
 
   /* phases: draw in */
   gsap.from(".phase",{opacity:0,y:14,stagger:.1,duration:.7,ease:"power3.out",

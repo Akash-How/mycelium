@@ -9,13 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #14111c; --bg2: #0f0d16; --panel: #1b1726; --panel2: #241e33;
-    --line: #322b45; --line2: #443a5e;
-    --ink: #efecf6; --ink2: #b6adca; --ink3: #7e7494;
-    --accent: #a78ce0; --accent2: #7a5fc4;
-    --ok: #4fd39a; --warn: #e6b23c; --bad: #f06060; --quar: #6d6482;
-    --okbg: rgba(79,211,154,.12); --warnbg: rgba(230,178,60,.12);
-    --badbg: rgba(240,96,96,.12); --quarbg: rgba(109,100,130,.18);
+    --bg: #121212; --bg2: #0d0d0d; --panel: #191919; --panel2: #212121;
+    --line: #2a2a2a; --line2: #3c3c3c;
+    --ink: #ededed; --ink2: #b3b3b3; --ink3: #787878;
+    --accent: #e2e2e2; --accent2: #8f8f8f;
+    --ok: #4fd39a; --warn: #e6b23c; --bad: #f06060; --quar: #6f6f6f;
+    --okbg: rgba(79,211,154,.1); --warnbg: rgba(230,178,60,.1);
+    --badbg: rgba(240,96,96,.1); --quarbg: rgba(120,120,120,.14);
     --display: "Bricolage Grotesque", system-ui, sans-serif;
     --body: system-ui, "Segoe UI", sans-serif;
     --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
@@ -24,18 +24,17 @@
   html { scroll-behavior: smooth; }
   body {
     background:
-      radial-gradient(1200px 600px at 70% -10%, rgba(122,95,196,.14), transparent 60%),
-      radial-gradient(900px 500px at 10% 110%, rgba(79,211,154,.05), transparent 60%),
+      radial-gradient(1100px 550px at 70% -10%, rgba(255,255,255,.045), transparent 60%),
       var(--bg);
     color: var(--ink); font: 15.5px/1.6 var(--body);
     -webkit-font-smoothing: antialiased; min-height: 100vh;
   }
-  ::selection { background: var(--accent2); color: #fff; }
+  ::selection { background: #3a3a3a; color: #fff; }
 
   /* ---------- header ---------- */
   .top {
     position: sticky; top: 0; z-index: 50;
-    backdrop-filter: blur(14px); background: rgba(15,13,22,.72);
+    backdrop-filter: blur(14px); background: rgba(13,13,13,.75);
     border-bottom: 1px solid var(--line);
   }
   .top-in {
@@ -93,7 +92,7 @@
   section { margin-top: 3rem; }
   .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.1rem; }
   .sec-head h2 { font-family: var(--display); font-size: 1.35rem; font-weight: 650; letter-spacing: -.02em; }
-  .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--accent); letter-spacing: .1em; text-transform: uppercase; }
+  .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--ink3); letter-spacing: .1em; text-transform: uppercase; }
   .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
   .reveal.in { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) {
@@ -127,29 +126,29 @@
 
   /* ---------- incidents ---------- */
   .timeline { position: relative; padding-left: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
-  .timeline::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(var(--accent2), var(--line)); border-radius: 2px; }
+  .timeline::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 1px; background: var(--line2); }
   .inc {
     position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.05rem 1.25rem;
     display: grid; grid-template-columns: 1fr auto; gap: .8rem 1.4rem; transition: border-color .25s;
   }
   .inc:hover { border-color: var(--line2); }
-  .inc::before { content: ""; position: absolute; left: -1.6rem; top: 1.35rem; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 3px solid var(--accent); margin-left: 1px; }
-  .inc.q::before { border-color: var(--quar); }
+  .inc::before { content: ""; position: absolute; left: -1.6rem; top: 1.35rem; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); border: 2px solid var(--ink3); margin-left: 2px; }
+  .inc.q::before { border-color: var(--line2); }
   .inc-head { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; grid-column: 1 / -1; }
   .inc-head .when { font-family: var(--mono); font-size: .72rem; color: var(--ink3); }
   .inc-head .who { font-weight: 650; font-size: .95rem; }
   .inc-head .sym { font-family: var(--mono); font-size: .74rem; color: var(--ink2); }
   .prompt {
     grid-column: 1; font-family: var(--mono); font-size: .76rem; line-height: 1.65; color: var(--ink2);
-    background: var(--bg2); border: 1px solid var(--line); border-left: 3px solid var(--accent2);
+    background: var(--bg2); border: 1px solid var(--line);
     border-radius: 8px; padding: .7rem .9rem; max-width: 60ch;
   }
-  .prompt .lbl { display: block; font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: .3rem; }
+  .prompt .lbl { display: block; font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); margin-bottom: .3rem; }
   .inc-side { display: flex; flex-direction: column; gap: .55rem; align-items: flex-end; justify-content: center; }
   .gates { display: flex; gap: .4rem; }
-  .gate { font-family: var(--mono); font-size: .64rem; letter-spacing: .05em; padding: .2rem .5rem; border-radius: 5px; border: 1px solid var(--line); color: var(--ink3); }
-  .gate.pass { color: var(--ok); border-color: rgba(79,211,154,.35); background: var(--okbg); }
-  .gate.fail { color: var(--bad); border-color: rgba(240,96,96,.35); background: var(--badbg); }
+  .gate { font-family: var(--mono); font-size: .64rem; letter-spacing: .05em; padding: .2rem .5rem; border-radius: 5px; border: 1px solid var(--line2); color: var(--ink2); background: transparent; }
+  .gate.pass { color: var(--ok); border-color: rgba(79,211,154,.3); }
+  .gate.fail { color: var(--bad); border-color: rgba(240,96,96,.3); }
   .recovery { font-family: var(--mono); font-size: .74rem; color: var(--ink2); }
   .note { grid-column: 1 / -1; font-size: .8rem; color: var(--ink3); border-top: 1px dashed var(--line); padding-top: .6rem; }
 
@@ -301,14 +300,14 @@ function draw(t) {
   const cx = W * .5, cy = H * .58;
   // hub glow
   const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90);
-  g.addColorStop(0, "rgba(167,140,224,.28)"); g.addColorStop(1, "transparent");
+  g.addColorStop(0, "rgba(255,255,255,.10)"); g.addColorStop(1, "transparent");
   ctx.fillStyle = g; ctx.fillRect(cx - 90, cy - 90, 180, 180);
 
   for (const n of NODES) {
     const col = cvar(STATUS[n.status] ?? "--ink3");
     const { midx, midy } = filament(n, reduced ? 0 : t);
     // filament
-    ctx.strokeStyle = "rgba(167,140,224,.22)"; ctx.lineWidth = 1.4;
+    ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo(midx, midy, n.x, n.y); ctx.stroke();
     // traveling pulse (skip when reduced or benched)
     if (!reduced && (n.status === "active")) {
@@ -469,8 +468,8 @@ async function load() {
         countries.map((c) => {
           const p = m.get(c);
           if (!p) return `<td class="cell" style="background:var(--bg2)">—</td>`;
-          const a = .12 + .55 * (p.signal_count / maxSig);
-          return `<td class="cell" style="background:rgba(167,140,224,${a.toFixed(2)})"
+          const a = .06 + .3 * (p.signal_count / maxSig);
+          return `<td class="cell" style="background:rgba(255,255,255,${a.toFixed(2)})"
             title="${esc(p.top_signals.slice(0, 8).join("  "))}">${p.signal_count}<small>${esc(p.currency_set.join(" ") || "–")}</small></td>`;
         }).join("") + "</tr>").join("")
     : `<tr><td class="empty" style="display:block">No geo probes yet — each source is probed from every market daily.</td></tr>`;

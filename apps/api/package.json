@@ -1,0 +1,12 @@
+{
+  "name": "@mycelium/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/main.ts",
+  "dependencies": {
+    "@mycelium/contracts": "*",
+    "@mycelium/orchestrator": "*",
+    "hono": "^4.6.0",
+    "@hono/node-server": "^1.13.0"
+  }
+}

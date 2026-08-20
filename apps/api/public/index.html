@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mycelium</title>
+<style>
+  :root {
+    --bg: #12101a; --panel: #1a1725; --panel2: #221e30;
+    --line: #322c44; --ink: #ece9f4; --ink2: #b3abc6; --ink3: #7d7590;
+    --accent: #a globalization
+    --accent: #a08ce0; --ok: #6ec695; --warn: #dcae5e; --bad: #e0836c;
+    --okbg: #1a2b22; --warnbg: #2c2518; --badbg: #2e1f1b; --quar: #4a4458;
+    --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.6 system-ui, "Segoe UI", sans-serif;
+    padding: 2rem clamp(1rem, 4vw, 3rem); max-width: 74rem; margin: 0 auto;
+  }
+  header { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+  h1 { font-size: 1.5rem; font-weight: 650; letter-spacing: -.01em; }
+  h1::before { content: "⌘"; color: var(--accent); margin-right: .5rem; }
+  .sub { color: var(--ink3); font-size: .85rem; }
+  .endpoint {
+    margin-left: auto; font-family: var(--mono); font-size: .75rem;
+    color: var(--ink2); background: var(--panel); border: 1px solid var(--line);
+    padding: .3rem .7rem; border-radius: 6px; cursor: pointer;
+  }
+  .endpoint:hover { border-color: var(--accent); }
+  h2 { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 2.25rem 0 .9rem; font-weight: 600; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .7rem; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: .85rem 1rem; }
+  .tile .k { font-size: .72rem; color: var(--ink3); letter-spacing: .04em; }
+  .tile .v { font-size: 1.55rem; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: .1rem; }
+  .tile .v small { font-size: .8rem; color: var(--ink3); font-weight: 400; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .tblwrap { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+  th { text-align: left; font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); font-weight: 500; padding: .6rem .9rem; background: var(--panel2); }
+  td { padding: .55rem .9rem; border-top: 1px solid var(--line); vertical-align: top; }
+  .mono { font-family: var(--mono); font-size: .8rem; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
+  .pill { display: inline-block; font-family: var(--mono); font-size: .66rem; letter-spacing: .05em; text-transform: uppercase; padding: .13rem .5rem; border-radius: 4px; }
+  .pill.healthy { background: var(--okbg); color: var(--ok); }
+  .pill.degraded, .pill.pending { background: var(--warnbg); color: var(--warn); }
+  .pill.broken, .pill.error, .pill.rejected { background: var(--badbg); color: var(--bad); }
+  .pill.quarantined { background: var(--quar); color: var(--ink2); }
+  .pill.approved { background: var(--okbg); color: var(--ok); }
+  .pill.creating, .pill.unproven { background: var(--panel2); color: var(--ink3); }
+  .pill.active { background: var(--okbg); color: var(--ok); }
+  .gates { font-family: var(--mono); font-size: .74rem; }
+  .gates b { font-weight: 500; }
+  .gates .pass { color: var(--ok); } .gates .fail { color: var(--bad); }
+  .empty { color: var(--ink3); padding: 1.1rem; font-size: .88rem; }
+  .prompt { color: var(--ink2); font-size: .78rem; font-family: var(--mono); max-width: 34rem; white-space: pre-wrap; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--ink3); font-size: .78rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Mycelium</h1>
+  <span class="sub">self-growing, self-healing web data network</span>
+  <code class="endpoint" onclick="navigator.clipboard.writeText(location.origin + '/export.json')" title="Click to copy">GET /export.json ⧉</code>
+</header>
+
+<section>
+  <h2>Reliability</h2>
+  <div class="tiles" id="tiles"></div>
+</section>
+
+<section>
+  <h2>Network — the fleet</h2>
+  <div class="tblwrap"><table id="fleet"></table></div>
+</section>
+
+<section>
+  <h2>Incidents — detect · diagnose · heal · verify</h2>
+  <div class="tblwrap"><table id="incidents"></table></div>
+</section>
+
+<section>
+  <h2>Divergence — latest verified rows by market</h2>
+  <div class="tblwrap"><table id="divergence"></table></div>
+</section>
+
+<footer>
+  <span>Built on Bright Data Scraper Studio · every repair passes three gates before approval · auto-approve is banned</span>
+  <span><a href="/export.csv">export.csv</a> · <a href="/reliability">reliability.json</a></span>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pill = (v) => `<span class="pill ${esc(v)}">${esc(v ?? "—")}</span>`;
+
+async function load() {
+  const [rel, sources, incidents, exp] = await Promise.all([
+    fetch("/reliability").then((r) => r.json()),
+    fetch("/sources").then((r) => r.json()),
+    fetch("/incidents").then((r) => r.json()),
+    fetch("/export.json").then((r) => r.json()),
+  ]);
+
+  const mttr = rel.heals.mean_recovery_s ? Math.round(rel.heals.mean_recovery_s / 60) + "<small> min</small>" : "—";
+  const healRate = rel.heals.incidents ? Math.round((rel.heals.approved / rel.heals.incidents) * 100) + "<small>%</small>" : "—";
+  const uptime = rel.runs.total ? ((rel.runs.healthy / rel.runs.total) * 100).toFixed(1) + "<small>%</small>" : "—";
+  $("tiles").innerHTML = [
+    ["Collectors", `${rel.fleet.active ?? 0}<small> / ${rel.fleet.total}</small>`],
+    ["Healthy runs", uptime],
+    ["Incidents", rel.heals.incidents ?? 0],
+    ["Heal success", healRate],
+    ["Mean recovery", mttr],
+    ["Quarantined", rel.fleet.quarantined ?? 0],
+  ].map(([k, v]) => `<div class="tile"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  $("fleet").innerHTML =
+    `<tr><th>Source</th><th>Collector</th><th>Status</th><th>Last run</th><th>Certified</th></tr>` +
+    sources.map((s) => `<tr>
+      <td>${esc(s.domain)}</td>
+      <td class="mono">${esc(s.collector_id ?? "creating…")}</td>
+      <td>${pill(s.status)}</td>
+      <td>${pill(s.last_verdict)}</td>
+      <td class="mono">${s.birth_certified_at ? esc(s.birth_certified_at.slice(0, 16)) : "—"}</td>
+    </tr>`).join("");
+
+  $("incidents").innerHTML = incidents.length
+    ? `<tr><th>Detected</th><th>Source</th><th>Symptom</th><th>Heal prompt (auto-written)</th><th>Gates</th><th>Decision</th><th>Recovery</th></tr>` +
+      incidents.map((i) => {
+        const g = i.gates;
+        const gates = g
+          ? `<span class="gates"><b class="${g.contract ? "pass" : "fail"}">contract</b> · <b class="${g.golden ? "pass" : "fail"}">golden</b> · <b class="${g.continuity ? "pass" : "fail"}">continuity</b></span>`
+          : "—";
+        return `<tr>
+          <td class="mono">${esc((i.detected_at ?? "").slice(0, 16))}</td>
+          <td>${esc(i.domain)} <span class="mono">${esc(i.country)}</span></td>
+          <td class="mono">${esc((i.symptom?.brokenFields ?? []).join(", "))} · rows ${i.symptom?.rowsBefore ?? "?"}→${i.symptom?.rowsAfter ?? "?"}</td>
+          <td><div class="prompt">${esc(i.prompt ?? "")}</div></td>
+          <td>${gates}</td>
+          <td>${pill(i.decision)}</td>
+          <td class="num">${i.time_to_recovery_s ? Math.round(i.time_to_recovery_s / 60) + " min" : "—"}</td>
+        </tr>`;
+      }).join("")
+    : `<tr><td class="empty">No incidents yet. The fleet is sweeping on schedule — breaks will appear here with their full audit trail.</td></tr>`;
+
+  const byDomain = new Map();
+  for (const e of exp) {
+    if (!byDomain.has(e.domain)) byDomain.set(e.domain, new Map());
+    byDomain.get(e.domain).set(e.country, e.rows);
+  }
+  const countries = [...new Set(exp.map((e) => e.country))].sort();
+  $("divergence").innerHTML = exp.length
+    ? `<tr><th>Source</th><th>Sample row</th>${countries.map((c) => `<th class="num">${esc(c)}</th>`).join("")}</tr>` +
+      [...byDomain.entries()].map(([domain, markets]) => {
+        const first = markets.values().next().value?.[0] ?? {};
+        const numField = Object.keys(first).find((k) => typeof first[k] === "number");
+        const nameField = Object.keys(first).find((k) => typeof first[k] === "string");
+        const name = first[nameField] ?? "—";
+        return `<tr>
+          <td>${esc(domain)}</td>
+          <td class="mono">${esc(String(name).slice(0, 40))}</td>
+          ${countries.map((c) => {
+            const rows = markets.get(c);
+            const row = rows?.find((r) => r[nameField] === name) ?? rows?.[0];
+            const v = row?.[numField];
+            return `<td class="num mono">${v == null ? "—" : esc(v)}</td>`;
+          }).join("")}
+        </tr>`;
+      }).join("")
+    : `<tr><td class="empty">No verified rows yet. Once collectors are birth-certified and the first sweep completes, the latest per-market values land here.</td></tr>`;
+}
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>

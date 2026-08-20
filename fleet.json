@@ -1,0 +1,102 @@
+{
+  "intent": "Track what AI APIs, GPU clouds and developer platforms actually cost across regions: models, plans, per-unit prices, currencies and limits.",
+  "sources": [
+    {
+      "key": "deepinfra",
+      "url": "https://deepinfra.com/pricing",
+      "proposedBy": "seed",
+      "probeScore": 425,
+      "collectorId": null,
+      "contract": {
+        "minRows": 10,
+        "fields": [
+          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed on the pricing page, e.g. in the model pricing table or cards", "sample": "Llama-3.3-70B-Instruct" },
+          { "name": "input_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only without the dollar sign", "sample": "0.23" },
+          { "name": "output_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million output tokens, numeric only without the dollar sign", "sample": "0.40" },
+          { "name": "category", "type": "string", "required": false, "description": "The model type or category label if shown, such as text generation or embeddings", "sample": "text-generation" }
+        ]
+      }
+    },
+    {
+      "key": "together",
+      "url": "https://www.together.ai/pricing",
+      "proposedBy": "seed",
+      "probeScore": 400,
+      "collectorId": "c_mt0zvtac9xjvgoo4w",
+      "contract": {
+        "minRows": 10,
+        "fields": [
+          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed in the pricing tables", "sample": "Llama 3.3 70B Instruct Turbo" },
+          { "name": "input_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only", "sample": "0.88" },
+          { "name": "output_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million output tokens, numeric only", "sample": "0.88" },
+          { "name": "category", "type": "string", "required": false, "description": "Model family or section heading the model appears under", "sample": "Chat" }
+        ]
+      }
+    },
+    {
+      "key": "runpod",
+      "url": "https://www.runpod.io/pricing",
+      "proposedBy": "seed",
+      "probeScore": 84,
+      "collectorId": null,
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          { "name": "gpu_model", "type": "string", "required": true, "description": "The GPU model name shown on the pricing card, like H100 or A100", "sample": "H100 PCIe" },
+          { "name": "vram_gb", "type": "number", "required": false, "description": "The GPU's VRAM in gigabytes, numeric only", "sample": "80" },
+          { "name": "price_per_hour", "type": "number", "required": true, "description": "Hourly rental price in USD, numeric only without the dollar sign", "sample": "2.39" },
+          { "name": "cloud_type", "type": "string", "required": false, "description": "Deployment tier if shown, such as secure cloud or community cloud", "sample": "Secure Cloud" }
+        ]
+      }
+    },
+    {
+      "key": "fireworks",
+      "url": "https://fireworks.ai/pricing",
+      "proposedBy": "seed",
+      "probeScore": 48,
+      "collectorId": "c_mt101i5717dco5qrfu",
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          { "name": "model_name", "type": "string", "required": true, "description": "The model or model-size tier named in the pricing table rows", "sample": "Llama 3.1 405B" },
+          { "name": "price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million tokens for this row, numeric only", "sample": "3.00" },
+          { "name": "unit", "type": "string", "required": false, "description": "What the price is charged per, like input tokens, output tokens, or images", "sample": "per 1M tokens" }
+        ]
+      }
+    },
+    {
+      "key": "lambda",
+      "url": "https://lambda.ai/pricing",
+      "proposedBy": "seed",
+      "probeScore": 34,
+      "collectorId": null,
+      "contract": {
+        "minRows": 4,
+        "fields": [
+          { "name": "gpu_model", "type": "string", "required": true, "description": "The GPU or instance type name in the on-demand pricing table", "sample": "NVIDIA H100 SXM" },
+          { "name": "price_per_hour", "type": "number", "required": true, "description": "On-demand hourly price in USD, numeric only", "sample": "3.29" },
+          { "name": "gpu_count", "type": "number", "required": false, "description": "Number of GPUs in the instance if shown", "sample": "8" }
+        ]
+      }
+    },
+    {
+      "key": "modal",
+      "url": "https://modal.com/pricing",
+      "proposedBy": "seed",
+      "probeScore": 34,
+      "collectorId": null,
+      "contract": {
+        "minRows": 4,
+        "fields": [
+          { "name": "resource", "type": "string", "required": true, "description": "The compute resource being priced, like a GPU model or CPU or memory", "sample": "Nvidia H100" },
+          { "name": "price", "type": "number", "required": true, "description": "The listed price as a number, without currency symbol", "sample": "0.001097" },
+          { "name": "unit", "type": "string", "required": true, "description": "The billing unit the price applies to, like per second or per hour", "sample": "per second" }
+        ]
+      }
+    }
+  ],
+  "discarded": [
+    { "url": "https://render.com/pricing", "reason": "probe returned near-empty page (1 price signal) — client-rendered", "probeScore": 1 },
+    { "url": "https://www.railway.com/pricing", "reason": "reserve — healthy probe (26 signals) but fleet cap is 6", "probeScore": 26 }
+  ]
+}

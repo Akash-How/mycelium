@@ -1,0 +1,11 @@
+{
+  "fleet": { "maxCollectors": 6 },
+  "countries": ["us", "gb", "de", "in", "br", "jp", "au", "ca"],
+  "schedule": { "sweepsPerDay": 3, "jitterSeconds": 120 },
+  "heal": {
+    "maxAttemptsPerIncident": 2,
+    "quarantineThreshold": 3,
+    "quarantineWindowHours": 48
+  },
+  "budget": { "creditCeilingPerDay": 400, "hardStop": true }
+}

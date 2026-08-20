@@ -1,898 +1,704 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Mycelium — living data network</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MYCELIUM — a data network that keeps itself alive</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #131210; --bg2: #0d0c0a; --panel: #1a1917; --panel2: #23211e;
-    --line: #2c2a26; --line2: #3e3b35;
-    --ink: #efede8; --ink2: #b7b3ab; --ink3: #7d796f;
-    --accent: #e5e3dd; --accent2: #918d84;
-    --ok: #4fd39a; --warn: #e6b23c; --bad: #f06060; --quar: #6f6f6f;
-    --okbg: rgba(79,211,154,.1); --warnbg: rgba(230,178,60,.1);
-    --badbg: rgba(240,96,96,.1); --quarbg: rgba(120,120,120,.14);
-    --display: "Bricolage Grotesque", system-ui, sans-serif;
-    --body: system-ui, "Segoe UI", sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
-    --serif: "Instrument Serif", Georgia, serif;
-  }
-  * { box-sizing: border-box; margin: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background:
-      radial-gradient(1100px 550px at 70% -10%, rgba(255,255,255,.045), transparent 60%),
-      var(--bg);
-    color: var(--ink); font: 15.5px/1.6 var(--body);
-    -webkit-font-smoothing: antialiased; min-height: 100vh;
-  }
-  ::selection { background: #3a3a3a; color: #fff; }
-  body::after {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .05;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
-  }
+:root{
+  --bg:#060708; --txt:#f2f3f4; --dim:#9aa0a7; --faint:#767d86;
+  --line:#1a1d20; --panel:#0d0f13;
+  --cyan:#00e5ff; --pink:#ff2a6d; --ok:#39ffb4; --warn:#ffb224;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --disp:'Anton',Impact,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:var(--bg);scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--txt);color:#000}
+a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
+.sec{padding:0 5vw;position:relative}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--faint);text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
+/* ============ preloader ============ */
+#pre{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;padding:5vh 5vw}
+#pre .top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase}
+#pre .pre-spacer{flex:1 1 auto}
+#pre .term{font-family:var(--mono);font-size:12px;line-height:2.2;color:var(--dim);min-height:96px;margin-bottom:5vh}
+#pre .term .ln{opacity:0;transition:opacity .3s}
+#pre .term .ln.on{opacity:1}
+#pre .bot{display:flex;justify-content:space-between;align-items:flex-end}
+#pre .pct{font-family:var(--disp);font-size:clamp(40px,6vw,80px);line-height:1;font-variant-numeric:tabular-nums}
+#pre .skip{font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;cursor:pointer;padding-bottom:12px;background:none;border:0}
+#pre .skip:hover{color:var(--txt)}
+#pre .bar{position:absolute;left:0;bottom:0;height:2px;width:0%;background:var(--txt);transition:width .3s}
+#pre.done{transition:transform .7s cubic-bezier(.7,0,.3,1);transform:translateY(-100%)}
 
-  /* ---------- header ---------- */
-  .top {
-    position: sticky; top: 0; z-index: 50;
-    backdrop-filter: blur(14px); background: rgba(13,13,13,.75);
-    border-bottom: 1px solid var(--line);
-  }
-  #progress { position: fixed; top: 0; left: 0; height: 1.5px; width: 0; background: var(--ink); z-index: 60; opacity: .5; }
-  .kpi, .src { transform-style: preserve-3d; will-change: transform; }
-  .top-in {
-    max-width: 76rem; margin: 0 auto; padding: .8rem 1.5rem;
-    display: flex; align-items: center; gap: 1.4rem;
-  }
-  .brand { font-family: var(--display); font-size: 1.3rem; font-weight: 700; letter-spacing: -.02em; display: flex; align-items: center; gap: .6rem; }
-  
-  nav { display: flex; gap: 1.1rem; font-size: .82rem; color: var(--ink3); }
-  nav a { color: inherit; text-decoration: none; letter-spacing: .04em; text-transform: uppercase; font-size: .7rem; padding: .3rem 0; border-bottom: 2px solid transparent; }
-  nav a:hover { color: var(--ink); border-color: var(--accent); }
-  .live { margin-left: auto; font-family: var(--mono); font-size: .72rem; color: var(--ink3); display: flex; align-items: center; gap: .9rem; }
-  .endpoint { cursor: pointer; color: var(--ink2); background: var(--panel); border: 1px solid var(--line); padding: .35rem .75rem; border-radius: 7px; transition: border-color .2s, transform .1s; }
-  .endpoint:hover { border-color: var(--accent); }
-  .endpoint:active { transform: scale(.97); }
+/* ============ section rail ============ */
+.section-rail{position:fixed;right:24px;top:50%;z-index:80;display:grid;gap:7px;transform:translateY(-50%)}
+.section-rail a{height:20px;display:flex;align-items:center;justify-content:flex-end;gap:10px;color:var(--faint)}
+.section-rail .rail-name{padding:3px 5px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;opacity:0;transform:translateX(8px);transition:opacity .3s,transform .3s,color .3s;white-space:nowrap;background:rgba(6,7,8,.9);box-shadow:0 0 16px 8px rgba(6,7,8,.9)}
+.section-rail .rail-mark{display:block;width:12px;height:1px;background:var(--faint);transition:width .35s cubic-bezier(.16,1,.3,1),background .3s,box-shadow .3s}
+.section-rail a:hover .rail-name,.section-rail a.on .rail-name{opacity:1;transform:none;color:var(--txt)}
+.section-rail a:hover .rail-mark{width:24px;background:var(--dim)}
+.section-rail a.on .rail-mark{width:38px;background:var(--ok);box-shadow:0 0 12px rgba(57,255,180,.35)}
 
-  .wrap { max-width: 76rem; margin: 0 auto; padding: 0 1.5rem 6rem; }
+/* ============ hero ============ */
+.hero{min-height:97vh;display:flex;flex-direction:column;padding-top:4vh;padding-bottom:5vh}
+.hero .topbar{display:flex;justify-content:space-between;align-items:baseline}
+.hero .mark{font-family:var(--disp);font-size:clamp(54px,11vw,170px);line-height:.92;letter-spacing:-.015em;margin-top:3vh;user-select:none}
+.hero .mark .tail{color:var(--ok)}
+.organism{position:relative;height:44vh;margin-top:2vh;cursor:crosshair}
+.organism canvas{position:absolute;inset:0;width:100%;height:100%}
+.node-tip{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(6,7,8,.94);border:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;max-width:250px}
+.node-tip b{font-weight:500}
+.node-tip .row{color:var(--dim);display:flex;gap:16px;justify-content:space-between}
+.hero .strap{display:grid;grid-template-columns:repeat(12,1fr);align-items:end;gap:2vw;margin-top:3vh}
+.hero-meta{grid-column:1/5;align-self:end;border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:13px;max-width:360px}
+.hm-row{display:flex;justify-content:space-between;gap:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
+.hm-row .val{color:var(--dim)}
+.hm-live{display:inline-flex;align-items:center;gap:8px}
+.hm-live i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(57,255,180,.1)}
+.hm-live{color:var(--ok)}
+.hero .strap .big{grid-column:7/12;font-size:clamp(17px,1.9vw,25px);font-weight:300;line-height:1.55;max-width:620px}
+.hero .strap .big s{color:var(--faint);text-decoration-thickness:2px}
+.hero .strap .big b{font-weight:500}
+.hero .scroll{grid-column:12;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;text-align:right}
 
-  /* ---------- hero ---------- */
-  .hero { display: grid; grid-template-columns: 1.25fr .9fr; gap: 1.4rem; padding: 2.2rem 0 1rem; align-items: stretch; }
-  @media (max-width: 62rem) { .hero { grid-template-columns: 1fr; } }
-  .organism {
-    position: relative; background: linear-gradient(180deg, var(--panel), var(--bg2));
-    border: 1px solid var(--line); border-radius: 18px; overflow: hidden; min-height: 26rem;
-  }
-  .organism canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .organism .caption { position: absolute; left: 1.2rem; top: 1.1rem; z-index: 2; }
-  .caption h1 { font-family: var(--display); font-size: clamp(1.7rem, 3.2vw, 2.4rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.06; }
-  .caption h1 em, .sec-head h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
-  .caption p { color: var(--ink2); font-size: .86rem; max-width: 26ch; margin-top: .35rem; }
-  .node-tip {
-    position: absolute; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .15s;
-    background: rgba(13,13,13,.92); border: 1px solid var(--line2); border-radius: 10px;
-    padding: .55rem .8rem; font-size: .78rem; max-width: 16rem; backdrop-filter: blur(6px);
-  }
-  .node-tip b { font-family: var(--mono); font-weight: 600; font-size: .74rem; }
-  .node-tip .row { color: var(--ink2); display: flex; gap: .6rem; justify-content: space-between; }
+/* ============ phases ============ */
+.phases{display:flex;margin:10vh 5vw 0;border-top:1px solid var(--line)}
+.phase{flex:1;padding:20px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);position:relative;transition:color .4s}
+.phase::before{content:"";position:absolute;top:-1px;left:0;width:0;height:1px;background:var(--txt);transition:width .5s}
+.phase.on{color:var(--txt)}.phase.on::before{width:88%}
+.phase .n{display:block;opacity:.5;margin-bottom:6px}
 
-  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; align-content: stretch; }
-  .kpi {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-    padding: 1rem 1.15rem; display: flex; flex-direction: column; justify-content: space-between;
-    transition: transform .25s, border-color .25s; position: relative; overflow: hidden;
-  }
-  .kpi:hover { transform: translateY(-2px); border-color: var(--line2); }
-  .kpi .k { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink3); }
-  .kpi .v { font-family: var(--display); font-size: 2.1rem; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin-top: .3rem; }
-  .kpi .v small { font-size: .95rem; color: var(--ink3); font-weight: 400; }
-  .kpi .sub { font-size: .74rem; color: var(--ink3); margin-top: .2rem; }
-  .kpi.ring { grid-column: span 2; flex-direction: row; align-items: center; gap: 1.2rem; }
-  .ring svg { flex-shrink: 0; }
-  .ring .rv { font-family: var(--display); font-size: 1.7rem; font-weight: 650; }
+/* ============ stats ============ */
+.stats{display:grid;grid-template-columns:repeat(12,1fr);padding-top:12vh;padding-bottom:16vh;gap:8vh 2vw}
+.stat{min-height:26vh;border-top:1px solid var(--line);padding-top:26px}
+.stat:nth-child(1){grid-column:1/4;grid-row:1}
+.stat:nth-child(2){grid-column:6/9;grid-row:1;margin-top:16vh}
+.stat:nth-child(3){grid-column:10/13;grid-row:1;margin-top:4vh}
+.stat:nth-child(4){grid-column:2/6;grid-row:2;margin-top:8vh}
+.stat:nth-child(5){grid-column:8/12;grid-row:2}
+.stat .label{margin-bottom:26px;display:block}
+.stat .v{font-family:var(--disp);font-size:clamp(48px,5.6vw,96px);line-height:1;font-variant-numeric:tabular-nums}
+.stat .u{font-family:var(--mono);font-size:13px;color:var(--dim);margin-left:6px}
+.stat.cool .v{color:var(--ok)}
+.stat.hot .v{color:var(--pink)}
+.stat .q{margin-top:18px;font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.8;max-width:240px;border-left:1px solid var(--line);padding-left:12px;opacity:0;transition:opacity .3s}
+.stat:hover .q{opacity:1}
 
-  /* ---------- sections ---------- */
-  section { margin-top: 4.5rem; position: relative; }
-  section .ghost {
-    position: absolute; top: -2.6rem; right: -.5rem; z-index: 0; pointer-events: none;
-    font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(4.5rem, 10vw, 8rem);
-    letter-spacing: -.02em; color: rgba(255,255,255,.045);
-    user-select: none; line-height: 1;
-  }
-  .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.2rem; position: relative; z-index: 1; }
-  .sec-head h2 { font-family: var(--display); font-size: clamp(1.5rem, 2.6vw, 1.9rem); font-weight: 700; letter-spacing: -.025em; }
-  .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--ink3); letter-spacing: .1em; text-transform: uppercase; }
-  .sec-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); align-self: center; }
+/* ============ fleet ============ */
+.fleethead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5vh}
+.fleet-rows .frow{display:grid;grid-template-columns:200px 1fr auto auto;gap:24px;align-items:center;padding:17px 0;border-bottom:1px solid var(--line)}
+.frow .dom{font-size:clamp(15px,1.4vw,19px);font-weight:400}
+.frow .cid{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.frow .ticks{display:flex;gap:3px;align-items:flex-end;height:18px;justify-self:end}
+.frow .tick{width:9px;border-radius:1px;min-height:5px}
+.frow .st{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;justify-self:end;min-width:110px;text-align:right}
+.st.active,.st.healthy,.st.approved{color:var(--ok)}
+.st.degraded,.st.pending{color:var(--warn)}
+.st.broken,.st.error,.st.rejected{color:var(--pink)}
+.st.quarantined,.st.retired{color:var(--faint)}
+.st.creating,.st.unproven{color:var(--faint)}
 
-  .st-em { font-family: var(--serif); font-style: italic; font-weight: 400; }
+/* ============ incident ============ */
+.incsec{padding-top:16vh;padding-bottom:8vh}
+.incline{font-size:clamp(26px,4vw,52px);font-weight:300;line-height:1.28;max-width:1100px;margin:5vh 0 10vh}
+.incline .fire{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:#000;background:var(--ok);padding:5px 12px;vertical-align:middle;margin-right:24px;text-transform:uppercase}
+.incline b{font-weight:500;color:var(--ok)}
+.inc-toolbar{display:flex;gap:26px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:4px;flex-wrap:wrap}
+.inc-stats{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.08em;margin-right:auto}
+.inc-stats b{color:var(--dim);font-weight:500}
+.fbtn{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;background:none;border:0;color:var(--faint);cursor:pointer;padding:4px 0;border-bottom:1px solid transparent}
+.fbtn:hover{color:var(--dim)}
+.fbtn.on{color:var(--txt);border-color:var(--txt)}
+.inc{border-bottom:1px solid var(--line)}
+.inc>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:130px 1fr auto auto auto;gap:24px;align-items:center;padding:18px 0}
+.inc>summary::-webkit-details-marker{display:none}
+.inc>summary:hover .who{color:var(--txt)}
+.inc .when{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.inc .who{font-size:15px;font-weight:400;color:var(--dim);transition:color .3s}
+.inc .snip{font-family:var(--mono);font-size:11px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:38ch}
+.inc .snip b{color:var(--pink);font-weight:400}
+.mini-gates{display:flex;gap:5px}
+.mini-gates i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.mini-gates i.pass{background:var(--ok)}
+.mini-gates i.fail{background:var(--pink)}
+.inc .decision{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;min-width:110px;text-align:right}
+.inc-body{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding:10px 0 40px}
+.inc-col{border-left:1px solid var(--line);padding-left:22px}
+.inc-col:nth-child(1){grid-column:1/4}
+.inc-col:nth-child(2){grid-column:4/9}
+.inc-col:nth-child(3){grid-column:9/13}
+.inc-col .clbl{font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:14px}
+.inc-col .clbl .n{color:var(--dim)}
+.sym-fields{font-family:var(--mono);font-size:12px;color:var(--txt);word-break:break-word;line-height:1.9}
+.sym-rows{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:8px}
+.sym-rows b{color:var(--pink);font-weight:400}
+.prompt-txt{font-family:var(--mono);font-size:11.5px;line-height:2;color:var(--dim);max-width:56ch}
+.copy-p{margin-top:14px;font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;background:none;border:0;color:var(--faint);cursor:pointer;padding:0;border-bottom:1px solid var(--line)}
+.copy-p:hover{color:var(--txt)}
+.gates{display:flex;flex-direction:column;gap:9px}
+.gate{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.gate::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--line)}
+.gate.pass::before{background:var(--ok)}.gate.fail::before{background:var(--pink)}
+.gate .res{margin-left:auto;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase}
+.gate.pass .res{color:var(--ok)}.gate.fail .res{color:var(--pink)}
+.recovery{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:18px;line-height:1.9}
+.recovery b{color:var(--txt);font-weight:400}
+.case{grid-column:1/13;font-size:13px;font-weight:300;color:var(--dim);line-height:1.8;max-width:900px;border-top:1px solid var(--line);padding-top:16px;margin-top:6px}
+.case pre{font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.8;overflow-x:auto;margin-top:12px;border-left:1px solid var(--line);padding-left:16px}
 
-  /* ---------- credo ---------- */
-  .credo { margin-top: 5.5rem; padding: 3rem 0 1rem; text-align: center; }
-  .credo .big {
-    font-family: var(--serif); font-style: italic; font-weight: 400;
-    font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.3; color: var(--ink);
-    max-width: 30ch; margin: 0 auto; text-wrap: balance;
-  }
-  .credo .big b { font-family: var(--display); font-style: normal; font-weight: 700; letter-spacing: -.02em; }
-  .credo .sub { font-family: var(--mono); font-size: .7rem; color: var(--ink3); margin-top: 1.1rem; letter-spacing: .08em; }
+/* ============ markets ============ */
+.mkt{padding-top:16vh;padding-bottom:14vh}
+.mkt .head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:5vh}
+.mkt-title{font-size:clamp(26px,3.2vw,48px);font-weight:300;margin-top:16px;line-height:1.15;max-width:800px}
+.mkt-title b{font-weight:500}
+.matrix-wrap{overflow-x:auto;border-top:1px solid var(--line)}
+table.matrix{border-collapse:collapse;width:100%;min-width:640px}
+.matrix th{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);font-weight:400;padding:16px 10px;text-align:right}
+.matrix th.rowh{text-align:left;padding-left:0}
+.matrix td.rowh{font-size:14px;font-weight:400;padding:14px 10px 14px 0;white-space:nowrap;border-bottom:1px solid var(--line)}
+.matrix td.cell{font-family:var(--mono);font-size:11.5px;text-align:right;padding:14px 10px;border-bottom:1px solid var(--line);color:var(--dim);font-variant-numeric:tabular-nums}
+.matrix td.cell small{color:var(--faint);margin-left:6px}
+.matrix tr:hover td{color:var(--txt);background:rgba(255,255,255,.012)}
+.mkt-note{font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:2;margin-top:26px;max-width:640px}
+.mkt-note b{color:var(--ok);font-weight:400}
 
-  /* ---------- doctrine strip ---------- */
-  .doctrine {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    margin-top: 3.5rem; padding: .4rem 0;
-  }
-  @media (max-width: 56rem) { .doctrine { grid-template-columns: 1fr; } .doc-col + .doc-col { border-left: 0 !important; border-top: 1px solid var(--line); } }
-  .doc-col { padding: 1.4rem 1.6rem 1.4rem 0; }
-  .doc-col + .doc-col { border-left: 1px solid var(--line); padding-left: 1.6rem; }
-  .doc-col h3 { font-family: var(--display); font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em; }
-  .doc-col h3 em { font-family: var(--serif); font-style: italic; color: var(--ok); }
-  .doc-col p { color: var(--ink3); font-size: .88rem; max-width: 34ch; margin-top: .4rem; line-height: 1.6; }
+/* ============ dataset ============ */
+.data{padding-top:14vh;padding-bottom:16vh}
+.data .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5vh}
+.data .endpoint{font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;border-bottom:1px solid var(--line);padding-bottom:2px}
+.data .endpoint:hover{color:var(--txt)}
+.ds-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw}
+.ds{grid-column:span 4;border-top:1px solid var(--line);padding-top:20px;min-width:0}
+.ds .h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.ds .h b{font-size:15px;font-weight:400}
+.ds .h span{font-family:var(--mono);font-size:10px;color:var(--faint)}
+.ds table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.ds td{padding:7px 0;color:var(--faint);border-bottom:1px solid rgba(255,255,255,.04)}
+.ds td:first-child{max-width:16rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:14px;color:var(--dim)}
+.ds td.n{text-align:right;color:var(--txt);font-variant-numeric:tabular-nums}
+.ds .more{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);padding-top:12px}
 
-  /* ---------- fleet ---------- */
-  .fleet { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: .9rem; }
-  .src {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.15rem;
-    display: flex; flex-direction: column; gap: .6rem; transition: transform .25s, border-color .25s;
-  }
-  .src:hover { transform: translateY(-2px); border-color: var(--line2); }
-  .src::before { content: ""; position: absolute; top: 0; left: 1rem; right: 55%; height: 2px; border-radius: 0 0 2px 2px; background: var(--sc, var(--line2)); opacity: .8; }
-  .src { position: relative; }
-  .src-head { display: flex; align-items: center; gap: .6rem; }
-  .src-head .domain { font-family: var(--display); font-weight: 650; font-size: 1.1rem; letter-spacing: -.01em; }
-  .src-head .pill { margin-left: auto; }
-  .src .cid { font-family: var(--mono); font-size: .72rem; color: var(--ink3); }
-  .ticks { display: flex; gap: 3px; align-items: flex-end; height: 22px; }
-  .tick { flex: 1; max-width: 14px; border-radius: 2px 2px 0 0; min-height: 6px; opacity: .9; }
-  .src .meta { display: flex; justify-content: space-between; font-size: .74rem; color: var(--ink3); font-family: var(--mono); }
+/* ============ footer ============ */
+.foot{padding-top:12vh;padding-bottom:3vh;border-top:1px solid var(--line)}
+.foot-main{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding-bottom:9vh}
+.foot-brand{grid-column:1/8}
+.foot-mark{display:block;font-family:var(--disp);font-size:clamp(64px,9vw,150px);line-height:.82;letter-spacing:-.025em}
+.foot-mark .tail{color:var(--ok)}
+.foot-brand p{max-width:560px;margin-top:4vh;font-size:clamp(18px,1.6vw,24px);font-weight:300;line-height:1.5;color:var(--dim)}
+.foot-brand p b{color:var(--txt);font-weight:500}
+.foot-cta{grid-column:9/13;align-self:end}
+.foot-cta .label{display:block;margin-bottom:20px}
+.foot-action{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-top:1px solid var(--faint);border-bottom:1px solid var(--faint);font-size:clamp(16px,1.6vw,22px);font-weight:300;color:var(--txt)!important;transition:border-color .3s,color .3s;cursor:pointer}
+.foot-action:hover{border-color:var(--ok);color:var(--ok)!important}
+.foot-nav{display:flex;justify-content:space-between;align-items:center;gap:30px;padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.foot-nav nav{display:flex;gap:clamp(18px,3vw,48px);flex-wrap:wrap}
+.foot-nav a{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
+.foot-status{display:flex;align-items:center;gap:10px;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+.foot-status i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(57,255,180,.08)}
+.foot-bottom{display:flex;justify-content:space-between;gap:30px;padding-top:26px;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
 
-  .pill { display: inline-flex; align-items: center; gap: .35rem; font-family: var(--mono); font-size: .64rem; letter-spacing: .07em; text-transform: uppercase; padding: .18rem .55rem; border-radius: 5px; white-space: nowrap; }
-  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .pill.active, .pill.healthy, .pill.approved { background: var(--okbg); color: var(--ok); }
-  .pill.degraded, .pill.pending, .pill.healing { background: var(--warnbg); color: var(--warn); }
-  .pill.broken, .pill.error, .pill.rejected { background: var(--badbg); color: var(--bad); }
-  .pill.quarantined, .pill.retired { background: var(--quarbg); color: var(--quar); }
-  .pill.creating, .pill.unproven { background: var(--panel2); color: var(--ink3); }
+.empty{font-family:var(--mono);font-size:11px;color:var(--faint);padding:26px 0;letter-spacing:.08em}
 
-  /* ---------- incidents ---------- */
-  .inc-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1rem; }
-  .inc-stats { font-family: var(--mono); font-size: .74rem; color: var(--ink3); margin-right: auto; }
-  .inc-stats b { color: var(--ink); font-weight: 600; }
-  .fbtn {
-    font-family: var(--mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase;
-    background: transparent; border: 1px solid var(--line); color: var(--ink3);
-    padding: .32rem .7rem; border-radius: 999px; cursor: pointer; transition: all .15s;
-  }
-  .fbtn:hover { border-color: var(--line2); color: var(--ink2); }
-  .fbtn.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-
-  .timeline { display: flex; flex-direction: column; gap: .55rem; }
-  .inc {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-    overflow: hidden; transition: border-color .25s;
-  }
-  .inc:hover { border-color: var(--line2); }
-  .inc > summary {
-    list-style: none; cursor: pointer;
-    display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9rem;
-    padding: .65rem 1rem; min-height: 2.6rem;
-  }
-  .inc > summary::-webkit-details-marker { display: none; }
-  .inc > summary::before {
-    content: "▸"; color: var(--ink3); font-size: .7rem; width: .8rem;
-    transition: transform .2s; flex-shrink: 0;
-  }
-  .inc[open] > summary::before { transform: rotate(90deg); }
-  .inc[open] > summary { border-bottom: 1px solid var(--line); background: var(--panel2); }
-  .inc-head .who, .inc > summary .who { font-weight: 650; font-size: .9rem; }
-  .inc > summary .when { font-family: var(--mono); font-size: .68rem; color: var(--ink3); }
-  .inc > summary .snip {
-    font-family: var(--mono); font-size: .72rem; color: var(--ink2);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34ch;
-  }
-  .inc > summary .snip b { color: var(--bad); font-weight: 600; }
-  .mini-gates { display: flex; gap: .3rem; margin-left: auto; align-items: center; }
-  .mini-gates i { width: 7px; height: 7px; border-radius: 50%; background: var(--line2); }
-  .mini-gates i.pass { background: var(--ok); } .mini-gates i.fail { background: var(--bad); }
-  .inc > summary .rtime { font-family: var(--mono); font-size: .68rem; color: var(--ink3); }
-
-  /* the pipeline: three connected stages inside one card */
-  .stages { display: grid; grid-template-columns: 1fr 1.3fr 1fr; }
-  @media (max-width: 56rem) { .stages { grid-template-columns: 1fr; } .stage-col + .stage-col { border-left: 0 !important; border-top: 1px solid var(--line); } }
-  .stage-col { padding: .85rem 1.1rem; min-width: 0; }
-  .stage-col + .stage-col { border-left: 1px solid var(--line); }
-  .stage-lbl {
-    display: flex; align-items: center; gap: .45rem;
-    font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--ink3); margin-bottom: .5rem;
-  }
-  .stage-lbl .n {
-    width: 15px; height: 15px; border-radius: 50%; border: 1px solid var(--line2);
-    display: inline-flex; align-items: center; justify-content: center; font-size: .58rem; color: var(--ink2);
-  }
-  .sym-fields { font-family: var(--mono); font-size: .76rem; color: var(--ink); word-break: break-word; }
-  .sym-rows { font-family: var(--mono); font-size: .82rem; color: var(--ink2); margin-top: .35rem; }
-  .sym-rows b { color: var(--bad); font-weight: 600; }
-  .prompt-txt { font-family: var(--mono); font-size: .74rem; line-height: 1.6; color: var(--ink2); }
-  .copy-p {
-    margin-top: .5rem; font-family: var(--mono); font-size: .62rem; letter-spacing: .06em;
-    background: transparent; border: 1px solid var(--line); color: var(--ink3);
-    padding: .2rem .55rem; border-radius: 5px; cursor: pointer;
-  }
-  .copy-p:hover { color: var(--ink2); border-color: var(--line2); }
-  .gates { display: flex; flex-direction: column; gap: .35rem; }
-  .gate { display: flex; align-items: center; gap: .5rem; font-family: var(--mono); font-size: .72rem; color: var(--ink2); }
-  .gate::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--line2); }
-  .gate.pass::before { background: var(--ok); } .gate.fail::before { background: var(--bad); }
-  .gate.pass .res { color: var(--ok); } .gate.fail .res { color: var(--bad); }
-  .gate .res { margin-left: auto; font-size: .68rem; }
-  .recovery { font-family: var(--mono); font-size: .72rem; color: var(--ink3); margin-top: .55rem; padding-top: .5rem; border-top: 1px dashed var(--line); }
-  .recovery b { color: var(--ink); font-weight: 600; }
-
-  .inc-foot { border-top: 1px solid var(--line); }
-  .inc-foot summary {
-    cursor: pointer; list-style: none; padding: .55rem 1.1rem;
-    font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3);
-  }
-  .inc-foot summary:hover { color: var(--ink2); }
-  .inc-foot summary::before { content: "▸ "; }
-  .inc-foot details[open] summary::before { content: "▾ "; }
-  .inc-foot .case { padding: 0 1.1rem .85rem; font-size: .8rem; color: var(--ink2); max-width: 78ch; }
-  .inc-foot pre { margin: .5rem 1.1rem .9rem; background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; font-family: var(--mono); font-size: .68rem; color: var(--ink3); overflow-x: auto; }
-
-  /* ---------- divergence ---------- */
-  .matrix-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.25rem; overflow-x: auto; }
-  table.matrix { border-collapse: separate; border-spacing: 4px; width: 100%; min-width: 40rem; }
-  .matrix th { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink3); font-weight: 500; padding: .3rem .5rem; text-align: center; }
-  .matrix th.rowh { text-align: left; }
-  .matrix td.rowh { font-size: .84rem; font-weight: 600; padding: .3rem .6rem .3rem .2rem; white-space: nowrap; }
-  .cell {
-    text-align: center; font-family: var(--mono); font-size: .74rem; padding: .55rem .3rem;
-    border-radius: 7px; color: var(--ink); position: relative; cursor: default;
-    transition: transform .15s;
-  }
-  .cell:hover { transform: scale(1.06); z-index: 2; }
-  .cell small { display: block; font-size: .6rem; color: rgba(255,255,255,.55); }
-  .matrix tr:hover td.rowh { color: var(--ink); }
-  .matrix tr:hover .cell { outline: 1px solid rgba(255,255,255,.14); }
-  .matrix-note { font-size: .76rem; color: var(--ink3); margin-top: .8rem; max-width: 70ch; }
-
-  /* ---------- dataset ---------- */
-  .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: .9rem; }
-  .ds { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.15rem; }
-  .ds .h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .5rem; }
-  .ds .h b { font-size: .95rem; }
-  .ds .h span { font-family: var(--mono); font-size: .7rem; color: var(--ink3); }
-  .ds table { width: 100%; border-collapse: collapse; font-size: .78rem; }
-  .ds tr:hover td { color: var(--ink); }
-  .ds td { padding: .32rem .3rem; border-top: 1px solid var(--line); color: var(--ink2); transition: color .15s; }
-  .ds tr:nth-child(even) td { background: rgba(255,255,255,.015); }
-  .ds td.n { text-align: right; font-family: var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
-  .ds td:first-child { max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: .8rem; }
-  .ds .more { font-family: var(--mono); font-size: .68rem; color: var(--ink3); padding-top: .45rem; }
-
-  footer { margin-top: 4rem; border-top: 1px solid var(--line); padding-top: 1.4rem; display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: .78rem; color: var(--ink3); }
-  footer a { color: var(--accent); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-  .empty { color: var(--ink3); font-family: var(--serif); font-style: italic; font-size: 1rem; padding: 1.2rem; background: var(--panel); border: 1px dashed var(--line); border-radius: 12px; }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:1000px){
+  .section-rail{display:none}
+  .hero .strap .big{grid-column:1/11}
+  .hero-meta{display:none}
+  .stats{grid-template-columns:1fr 1fr;gap:8vh 5vw}
+  .stat,.stat:nth-child(n){grid-column:auto;grid-row:auto;margin-top:0}
+  .frow{grid-template-columns:1fr auto!important}
+  .frow .cid,.frow .ticks{display:none}
+  .inc>summary{grid-template-columns:1fr auto}
+  .inc .when,.inc .snip,.mini-gates{display:none}
+  .inc-body{display:block}
+  .inc-col{border-left:0;padding-left:0;margin-bottom:5vh}
+  .ds{grid-column:span 12}
+  .foot-main{grid-template-columns:1fr;gap:8vh}
+  .foot-brand,.foot-cta{grid-column:auto}
+}
 </style>
 </head>
 <body>
 
-<div id="progress"></div>
-<div class="top"><div class="top-in">
-  <div class="brand">Mycelium</div>
-  <nav>
-    <a href="#fleet">Network</a><a href="#incidents">Incidents</a>
-    <a href="#divergence">Divergence</a><a href="#dataset">Dataset</a>
-  </nav>
-  <div class="live">
-    <span id="updated">syncing…</span>
-    <code class="endpoint" id="copyEp" title="Click to copy">GET /export.json ⧉</code>
+<div id="pre">
+  <div class="top"><span>MYCELIUM</span><span>SELF-HEALING DATA NETWORK</span></div>
+  <div class="pre-spacer"></div>
+  <div class="term" id="preTerm">
+    <div class="ln">$ bdata login — authenticated</div>
+    <div class="ln">$ fleet: 6 collectors · contracts loaded</div>
+    <div class="ln">$ sentinel armed · three gates · auto-approve BANNED</div>
+    <div class="ln">$ heartbeat running — the network maintains itself</div>
   </div>
-</div></div>
-
-<div class="wrap">
-
-  <div class="hero">
-    <div class="organism">
-      <div class="caption">
-        <h1>A data network<br><em>that keeps itself alive.</em></h1>
-        <p>Every node is a Scraper Studio collector — <span class="st-em">watched, verified, self-repairing.</span></p>
-      </div>
-      <canvas id="net"></canvas>
-      <div class="node-tip" id="tip"></div>
-    </div>
-    <div class="kpis" id="kpis"></div>
+  <div class="bot">
+    <div class="pct" id="prePct">0%</div>
+    <button class="skip" id="preSkip">SKIP ␣</button>
   </div>
-
-  <section class="doctrine" aria-label="doctrine">
-    <div class="doc-col"><h3>Watch<em>.</em></h3><p>Every run is scored against its contract and a rolling baseline of itself. Nothing drifts silently.</p></div>
-    <div class="doc-col"><h3>Heal<em>.</em></h3><p>A break becomes a repair order — written by the machine, executed by Bright Data, same collector.</p></div>
-    <div class="doc-col"><h3>Verify<em>.</em></h3><p>Three gates before any fix is believed. A system that serves data must know when to bench itself.</p></div>
-  </section>
-
-  <section id="fleet" class="reveal">
-    <span class="ghost" aria-hidden="true">01</span>
-    <div class="sec-head"><span class="tag">01 · Network</span><h2>The fleet, <em>self-built.</em></h2></div>
-    <div class="fleet" id="fleetGrid"></div>
-  </section>
-
-  <section id="incidents" class="reveal">
-    <span class="ghost" aria-hidden="true">02</span>
-    <div class="sec-head"><span class="tag">02 · Survive</span><h2>Detect, diagnose, <em>heal, verify.</em></h2></div>
-    <div class="inc-toolbar">
-      <span class="inc-stats" id="incStats"></span>
-      <button class="fbtn on" data-f="all">All</button>
-      <button class="fbtn" data-f="approved">Approved</button>
-      <button class="fbtn" data-f="quarantined">Quarantined</button>
-      <button class="fbtn" data-f="rejected">Rejected</button>
-    </div>
-    <div class="timeline" id="incList"></div>
-  </section>
-
-  <section id="divergence" class="reveal">
-    <span class="ghost" aria-hidden="true">03</span>
-    <div class="sec-head"><span class="tag">03 · Markets</span><h2>Same page, <em>different market.</em></h2></div>
-    <div class="matrix-wrap"><table class="matrix" id="matrix"></table>
-      <p class="matrix-note">Daily page probes through Bright Data's unlocker, one per market (<code style="font-family:var(--mono);font-size:.9em">scrape --country</code>).
-      Cell = count of price tokens found, with the currencies seen. A uniform row is itself a finding: <span class="st-em">that vendor speaks one currency to the whole world.</span></p>
-    </div>
-  </section>
-
-  <section id="dataset" class="reveal">
-    <span class="ghost" aria-hidden="true">04</span>
-    <div class="sec-head"><span class="tag">04 · Serve</span><h2>The dataset, <em>served.</em></h2></div>
-    <div class="data-grid" id="dsGrid"></div>
-  </section>
-
-  <div class="credo reveal">
-    <p class="big">We didn't write a scraper.<br>We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
-    <p class="sub">EVERY REPAIR PASSES THREE GATES · AUTO-APPROVE IS BANNED · BUILT ON BRIGHT DATA SCRAPER STUDIO</p>
-  </div>
-
-  <footer>
-    <span>Mycelium · a self-healing web data network · Into the Scrape-Verse 2026</span>
-    <span><a href="/export.json">export.json</a> · <a href="/export.csv">export.csv</a> · <a href="/reliability">reliability</a> · <a href="/incidents">incidents</a></span>
-  </footer>
+  <div class="bar" id="preBar"></div>
 </div>
 
-<script src="/vendor/gsap.min.js"></script>
-<script src="/vendor/ScrollTrigger.min.js"></script>
+<nav class="section-rail" aria-label="sections">
+  <a href="#top" class="on"><span class="rail-name">Network</span><span class="rail-mark"></span></a>
+  <a href="#loop"><span class="rail-name">The loop</span><span class="rail-mark"></span></a>
+  <a href="#markets"><span class="rail-name">Markets</span><span class="rail-mark"></span></a>
+  <a href="#dataset"><span class="rail-name">Dataset</span><span class="rail-mark"></span></a>
+  <a href="#end"><span class="rail-name">End</span><span class="rail-mark"></span></a>
+</nav>
+
+<div id="app">
+
+<header class="sec hero" id="top">
+  <div class="topbar">
+    <span class="label">Into the Scrape-Verse · 2026</span>
+    <span class="label">Built on Bright Data Scraper Studio</span>
+  </div>
+  <h1 class="mark">MYCELIUM<span class="tail">.</span></h1>
+  <div class="organism">
+    <canvas id="net"></canvas>
+    <div class="node-tip" id="tip"></div>
+  </div>
+  <div class="strap">
+    <div class="hero-meta">
+      <div class="hm-row"><span>Collectors live</span><span class="val" id="hm-fleet">—</span></div>
+      <div class="hm-row"><span>Rows serving</span><span class="val" id="hm-rows">—</span></div>
+      <div class="hm-row"><span>Status</span><span class="hm-live"><i></i>LIVE · <span id="hm-time">syncing</span></span></div>
+    </div>
+    <p class="big">Scrapers break quietly. <s>You maintain them forever.</s> This network watches its own output, writes its own repair orders, and <b>refuses to serve data it can't verify.</b></p>
+    <span class="scroll">SCROLL ↓</span>
+  </div>
+</header>
+
+<div class="phases" id="phases">
+  <div class="phase"><span class="n">01</span>DETECT</div>
+  <div class="phase"><span class="n">02</span>DIAGNOSE</div>
+  <div class="phase"><span class="n">03</span>HEAL</div>
+  <div class="phase"><span class="n">04</span>VERIFY</div>
+</div>
+
+<section class="sec stats" id="stats" aria-label="reliability">
+  <div class="stat cool"><span class="label">Verified-healthy runs</span><div class="v" id="s-up">—</div>
+    <p class="q">every scheduled sweep, scored against its contract and a rolling baseline of itself.</p></div>
+  <div class="stat"><span class="label">Rows serving</span><div class="v" id="s-rows">—</div>
+    <p class="q">the latest verified extraction, one API call away. /export.json</p></div>
+  <div class="stat cool"><span class="label">Heals · unattended</span><div class="v" id="s-heals">—</div>
+    <p class="q">repair orders written by machine, executed by Bright Data, trusted only after three gates.</p></div>
+  <div class="stat"><span class="label">Mean recovery</span><div class="v" id="s-mttr">—<span class="u">min</span></div>
+    <p class="q">break detected → verified fix. no human in the loop.</p></div>
+  <div class="stat hot"><span class="label">Quarantined</span><div class="v" id="s-quar">—</div>
+    <p class="q">a system that serves data must know when to bench itself.</p></div>
+</section>
+
+<section class="sec" id="fleet" aria-label="fleet">
+  <div class="fleethead">
+    <span class="label">The fleet — self-built</span>
+    <span class="label" id="fleetCount"></span>
+  </div>
+  <div class="fleet-rows" id="fleetRows"></div>
+</section>
+
+<section class="sec incsec" id="loop" aria-label="incidents">
+  <span class="label">The loop — detect · diagnose · heal · verify</span>
+  <p class="incline" id="incHeadline"><span class="fire">LIVE RECORD</span>Every break this fleet has survived, <b>with the receipts.</b></p>
+  <div class="inc-toolbar">
+    <span class="inc-stats" id="incStats"></span>
+    <button class="fbtn on" data-f="all">All</button>
+    <button class="fbtn" data-f="approved">Approved</button>
+    <button class="fbtn" data-f="quarantined">Quarantined</button>
+    <button class="fbtn" data-f="rejected">Rejected</button>
+  </div>
+  <div id="incList"></div>
+</section>
+
+<section class="sec mkt" id="markets" aria-label="markets">
+  <div class="head">
+    <div><span class="label">Markets — probed daily from 8 countries</span>
+    <p class="mkt-title">Same page, different market. <b>A uniform row is a finding too.</b></p></div>
+  </div>
+  <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+  <p class="mkt-note">Cells count price tokens found via <b>bdata scrape --country</b> through Bright Data's unlocker. Finding so far: <b>AI compute speaks one currency to the whole world.</b></p>
+</section>
+
+<section class="sec data" id="dataset" aria-label="dataset">
+  <div class="head">
+    <span class="label">The dataset — served</span>
+    <span class="endpoint" id="copyEp">GET /export.json ⧉</span>
+  </div>
+  <div class="ds-grid" id="dsGrid"></div>
+</section>
+
+<footer class="sec foot" id="end">
+  <div class="foot-main">
+    <div class="foot-brand">
+      <span class="foot-mark">MYCELIUM<span class="tail">.</span></span>
+      <p>We didn't write a scraper. We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
+    </div>
+    <div class="foot-cta">
+      <span class="label">Consume the network</span>
+      <a class="foot-action" href="/export.json">export.json <span>→</span></a>
+    </div>
+  </div>
+  <div class="foot-nav">
+    <nav>
+      <a href="/export.csv">export.csv</a>
+      <a href="/reliability">reliability</a>
+      <a href="/incidents">incidents</a>
+      <a href="/geo">geo</a>
+    </nav>
+    <span class="foot-status"><i></i>FLEET LIVE · SWEEPING ON SCHEDULE</span>
+  </div>
+  <div class="foot-bottom">
+    <span>EVERY REPAIR PASSES THREE GATES · AUTO-APPROVE IS BANNED</span>
+    <span>BUILT ON BRIGHT DATA SCRAPER STUDIO · MIT</span>
+  </div>
+</footer>
+
+</div>
+
 <script>
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STATUS = { active:"--ok", healthy:"--ok", approved:"--ok", degraded:"--warn", pending:"--warn", broken:"--bad", error:"--bad", rejected:"--bad", quarantined:"--quar", retired:"--quar", creating:"--ink3", unproven:"--ink3" };
-const cvar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $=(id)=>document.getElementById(id);
+const esc=(s)=>String(s??"").replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SC={active:"var(--ok)",healthy:"var(--ok)",approved:"var(--ok)",degraded:"var(--warn)",pending:"var(--warn)",broken:"var(--pink)",error:"var(--pink)",rejected:"var(--pink)",quarantined:"var(--faint)",retired:"var(--faint)",creating:"var(--faint)",unproven:"var(--faint)"};
 
-$("copyEp").onclick = () => { navigator.clipboard.writeText(location.origin + "/export.json"); $("copyEp").textContent = "copied ✓"; setTimeout(() => $("copyEp").textContent = "GET /export.json ⧉", 1200); };
+/* ============ preloader ============ */
+(function(){
+  const pre=$("pre"),pct=$("prePct"),bar=$("preBar");
+  const lines=[...document.querySelectorAll("#preTerm .ln")];
+  const seen=sessionStorage.getItem("myc-pre");
+  let p=0,done=false;
+  function finish(){ if(done)return; done=true; sessionStorage.setItem("myc-pre","1");
+    pct.textContent="100%"; bar.style.width="100%";
+    setTimeout(()=>{pre.classList.add("done"); setTimeout(()=>pre.remove(),800);}, seen?60:350); }
+  $("preSkip").onclick=finish;
+  addEventListener("keydown",(e)=>{if(e.key===" ")finish();},{once:true});
+  if(seen||reduced){ finish(); return; }
+  lines.forEach((l,i)=>setTimeout(()=>l.classList.add("on"),260*i+200));
+  const iv=setInterval(()=>{ p=Math.min(99,p+Math.random()*14);
+    pct.textContent=Math.floor(p)+"%"; bar.style.width=p+"%";
+    if(p>=99){clearInterval(iv); setTimeout(finish,300);} },130);
+})();
 
-/* ---------- count-up ---------- */
-function countUp(el, target, suffix = "", decimals = 0) {
-  if (reduced) { el.textContent = target.toFixed(decimals) + suffix; return; }
-  const start = performance.now(), dur = 900, from = 0;
-  (function step(t) {
-    const p = Math.min(1, (t - start) / dur), ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = (from + (target - from) * ease).toFixed(decimals) + suffix;
-    if (p < 1) requestAnimationFrame(step);
-  })(start);
+/* ============ rail highlight ============ */
+const railLinks=[...document.querySelectorAll(".section-rail a")];
+const railMap={top:0,loop:1,markets:2,dataset:3,end:4};
+new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
+  const i=railMap[e.target.id]; if(i==null)return;
+  railLinks.forEach((a,j)=>a.classList.toggle("on",j===i)); }); },{rootMargin:"-40% 0px -50% 0px"})
+  .observe($("top")), ["loop","markets","dataset","end"].forEach((id)=>{
+  new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
+    railLinks.forEach((a,j)=>a.classList.toggle("on",j===railMap[id])); }); },{rootMargin:"-40% 0px -50% 0px"}).observe($(id)); });
+
+/* ============ phases: ambient cycle ============ */
+(function(){ const ph=[...document.querySelectorAll(".phase")]; let i=0;
+  ph[0].classList.add("on");
+  if(reduced)return;
+  setInterval(()=>{ ph[i].classList.remove("on"); ph[i].classList.add("past");
+    i=(i+1)%ph.length; if(i===0)ph.forEach(p=>p.classList.remove("past"));
+    ph[i].classList.add("on"); },2400); })();
+
+/* ============ data ============ */
+$("copyEp").onclick=()=>{navigator.clipboard.writeText(location.origin+"/export.json");$("copyEp").textContent="COPIED ✓";setTimeout(()=>$("copyEp").textContent="GET /export.json ⧉",1200);};
+
+let NODES=[];
+function syncOrganism(){ window.NODES=NODES; if(window.__net3d)window.__net3d.setNodes(NODES); }
+
+let LAST_INCIDENTS=[],INC_FILTER="all";
+document.querySelectorAll(".fbtn").forEach((b)=>b.onclick=()=>{ INC_FILTER=b.dataset.f;
+  document.querySelectorAll(".fbtn").forEach((x)=>x.classList.toggle("on",x===b)); renderIncidents(); });
+const ago=(ts)=>{ if(!ts)return""; const s=(Date.now()-new Date(ts.replace(" ","T")+"Z").getTime())/1000;
+  if(s<3600)return Math.max(1,Math.round(s/60))+"M AGO"; if(s<86400)return Math.round(s/3600)+"H AGO"; return Math.round(s/86400)+"D AGO"; };
+function copyPrompt(btn,txt){ navigator.clipboard.writeText(txt); btn.textContent="COPIED ✓"; setTimeout(()=>(btn.textContent="COPY PROMPT"),1200); }
+
+function renderIncidents(){
+  const openIds=new Set([...document.querySelectorAll(".inc[open]")].map((d)=>d.dataset.id));
+  const all=LAST_INCIDENTS;
+  const shown=INC_FILTER==="all"?all:all.filter((i)=>i.decision===INC_FILTER);
+  const approved=all.filter((i)=>i.decision==="approved").length;
+  const quar=all.filter((i)=>i.decision==="quarantined").length;
+  const mttrs=all.filter((i)=>i.time_to_recovery_s).map((i)=>i.time_to_recovery_s);
+  const mttr=mttrs.length?Math.round(mttrs.reduce((a,b)=>a+b,0)/mttrs.length/60):null;
+  $("incStats").innerHTML=`<b>${all.length}</b> INCIDENTS · <b>${approved}</b> HEALED · <b>${quar}</b> QUARANTINED${mttr?` · MEAN RECOVERY <b>${mttr} MIN</b>`:""}`;
+
+  $("incList").innerHTML=shown.length?shown.map((i,idx)=>{
+    const g=i.gates;
+    const gates=g?["contract","golden","continuity"].map((k)=>
+      `<div class="gate ${g[k]?"pass":"fail"}">${k}<span class="res">${g[k]?"pass":"fail"}</span></div>`).join(""):"<div class='gate'>not reached</div>";
+    const mini=g?["contract","golden","continuity"].map((k)=>`<i class="${g[k]?"pass":"fail"}" title="${k}"></i>`).join(""):"";
+    const fields=(i.symptom?.brokenFields??[]).join(", ")||"—";
+    const pv=i.preview_sample?.length?`<pre>${esc(JSON.stringify(i.preview_sample,null,1).slice(0,700))}</pre>`:"";
+    const note=i.symptom?.note?esc(i.symptom.note):"";
+    const recov=i.time_to_recovery_s
+      ?`<div class="recovery">BREAK → VERIFIED FIX IN <b>${Math.round(i.time_to_recovery_s/60)} MIN</b> — UNATTENDED</div>`
+      :i.decision==="quarantined"?`<div class="recovery">BENCHED — <b>REFUSING TO SERVE UNVERIFIED DATA</b></div>`:"";
+    return `<details class="inc" data-id="${i.id}" ${openIds.has(String(i.id))?"open":""}>
+      <summary>
+        <span class="when">${esc((i.detected_at??"").slice(5,16))} · ${ago(i.detected_at)}</span>
+        <span class="who">${esc(i.domain.replace("www.",""))}</span>
+        <span class="snip">${esc(fields)} · rows ${i.symptom?.rowsBefore??"?"} → <b>${i.symptom?.rowsAfter??"?"}</b></span>
+        <span class="mini-gates">${mini}</span>
+        <span class="decision st ${esc(i.decision)}">${esc(i.decision)}</span>
+      </summary>
+      <div class="inc-body">
+        <div class="inc-col"><span class="clbl"><span class="n">01</span> DETECTED — BY THE SENTINEL</span>
+          <div class="sym-fields">${esc(fields)}</div>
+          <div class="sym-rows">rows ${i.symptom?.rowsBefore??"?"} → <b>${i.symptom?.rowsAfter??"?"}</b></div></div>
+        <div class="inc-col"><span class="clbl"><span class="n">02</span> REPAIR ORDER — MACHINE-WRITTEN, SENT TO BRIGHT DATA</span>
+          <div class="prompt-txt" id="p-${idx}">${esc(i.prompt??"")}</div>
+          <button class="copy-p" onclick="copyPrompt(this,document.getElementById('p-${idx}').textContent)">COPY PROMPT</button></div>
+        <div class="inc-col"><span class="clbl"><span class="n">03</span> VERIFIED — THREE GATES, ALL OR NOTHING</span>
+          <div class="gates">${gates}</div>${recov}</div>
+        ${note||pv?`<div class="case">${note}${pv}</div>`:""}
+      </div>
+    </details>`;
+  }).join(""):`<div class="empty">NO ${INC_FILTER==="all"?"":INC_FILTER.toUpperCase()+" "}INCIDENTS — THE FLEET IS SWEEPING ON SCHEDULE.</div>`;
 }
 
-/* ---------- the organism: 3D handled in module script below ---------- */
-let NODES = [];
-function syncOrganism() { window.NODES = NODES; if (window.__net3d) window.__net3d.setNodes(NODES); }
-/* ---------- data load ---------- */
-async function load() {
-  const first = !$("k-fleet"); // build shells on first successful fetch, even after early failures
-  let rel, sources, incidents, exp, geo, runs;
-  try {
-    [rel, sources, incidents, exp, geo, runs] = await Promise.all([
-      fetch("/reliability").then((r) => r.json()),
-      fetch("/sources").then((r) => r.json()),
-      fetch("/incidents").then((r) => r.json()),
-      fetch("/export.json").then((r) => r.json()),
-      fetch("/geo").then((r) => r.json()),
-      fetch("/runs?limit=200").then((r) => r.json()),
-    ]);
-  } catch { $("updated").textContent = "api unreachable — retrying"; return; }
-  $("updated").textContent = "live · " + new Date().toLocaleTimeString();
+async function load(){
+  let rel,sources,incidents,exp,geo,runs;
+  try{ [rel,sources,incidents,exp,geo,runs]=await Promise.all([
+    fetch("/reliability").then(r=>r.json()), fetch("/sources").then(r=>r.json()),
+    fetch("/incidents").then(r=>r.json()), fetch("/export.json").then(r=>r.json()),
+    fetch("/geo").then(r=>r.json()), fetch("/runs?limit=200").then(r=>r.json()) ]);
+  }catch{ $("hm-time").textContent="RETRYING"; return; }
+  $("hm-time").textContent=new Date().toLocaleTimeString();
 
-  /* KPIs */
-  const uptime = rel.runs.total ? (rel.runs.healthy / rel.runs.total) * 100 : 0;
-  const healRate = rel.heals.incidents ? (rel.heals.approved / rel.heals.incidents) * 100 : 0;
-  const mttr = rel.heals.mean_recovery_s ? Math.round(rel.heals.mean_recovery_s / 60) : null;
-  const rowsServing = exp.filter((e) => e.country === "global").reduce((a, e) => a + e.rows.length, 0) || exp.reduce((a, e) => a + e.rows.length, 0);
-  if (first) {
-    $("kpis").innerHTML = `
-      <div class="kpi ring">
-        <svg width="86" height="86" viewBox="0 0 86 86">
-          <circle cx="43" cy="43" r="36" fill="none" stroke="${cvar("--line")}" stroke-width="8"/>
-          <circle id="ringArc" cx="43" cy="43" r="36" fill="none" stroke="${cvar("--ok")}" stroke-width="8"
-            stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226" transform="rotate(-90 43 43)"
-            style="transition: stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)"/>
-        </svg>
-        <div><div class="k">Verified-healthy runs</div><div class="rv" id="k-up">0%</div>
-        <div class="sub">of all scheduled sweeps, all time</div></div>
-      </div>
-      <div class="kpi"><div class="k">Collectors live</div><div class="v" id="k-fleet">0</div><div class="sub" id="k-fleetsub"></div></div>
-      <div class="kpi"><div class="k">Rows serving</div><div class="v" id="k-rows">0</div><div class="sub">latest verified extraction</div></div>
-      <div class="kpi"><div class="k">Heals approved</div><div class="v"><span id="k-heals">0</span><small id="k-healrate"></small></div><div class="sub">through all three gates</div></div>
-      <div class="kpi"><div class="k">Mean recovery</div><div class="v" id="k-mttr">—</div><div class="sub">break detected → verified fix</div></div>`;
-    countUp($("k-fleet"), rel.fleet.active);
-    countUp($("k-rows"), rowsServing);
-    countUp($("k-heals"), rel.heals.approved);
-    countUp($("k-up"), uptime, "%", 1);
-  } else {
-    $("k-fleet").textContent = rel.fleet.active;
-    $("k-rows").textContent = rowsServing;
-    $("k-heals").textContent = rel.heals.approved;
-    $("k-up").textContent = uptime.toFixed(1) + "%";
-  }
-  $("k-fleetsub").textContent = `${rel.fleet.quarantined} quarantined · ${rel.fleet.total - rel.fleet.active - rel.fleet.quarantined} benched`;
-  $("k-healrate").textContent = rel.heals.incidents ? " / " + rel.heals.incidents : "";
-  $("k-mttr").textContent = mttr != null ? mttr + " min" : "—";
-  requestAnimationFrame(() => $("ringArc")?.style.setProperty("stroke-dashoffset", 226 - 226 * uptime / 100));
+  const uptime=rel.runs.total?(rel.runs.healthy/rel.runs.total)*100:0;
+  const mttr=rel.heals.mean_recovery_s?Math.round(rel.heals.mean_recovery_s/60):null;
+  const rowsServing=exp.filter(e=>e.country==="global").reduce((a,e)=>a+e.rows.length,0)||exp.reduce((a,e)=>a+e.rows.length,0);
+  $("s-up").textContent=uptime.toFixed(1)+"%";
+  $("s-rows").textContent=rowsServing;
+  $("s-heals").textContent=rel.heals.approved+"/"+rel.heals.incidents;
+  $("s-mttr").innerHTML=(mttr??"—")+'<span class="u">min</span>';
+  $("s-quar").textContent=rel.fleet.quarantined??0;
+  $("hm-fleet").textContent=(rel.fleet.active??0)+" / "+rel.fleet.total;
+  $("hm-rows").textContent=rowsServing;
+  $("fleetCount").textContent=`${rel.fleet.active} ACTIVE · ${rel.fleet.quarantined} QUARANTINED · ${rel.fleet.total-rel.fleet.active-rel.fleet.quarantined} BENCHED`;
 
+  const runsBySource={};
+  for(const r of runs)(runsBySource[r.source_id]??=[]).push(r);
 
-  /* organism nodes */
-  const runsBySource = {};
-  for (const r of runs) (runsBySource[r.source_id] ??= []).push(r);
-  NODES = sources.filter((s) => s.status !== "retired").map((s, i) => ({
-    domain: s.domain.replace("www.", ""), label: s.domain.replace("www.", "").split(".")[0],
-    cid: s.collector_id, status: s.status, lastVerdict: s.last_verdict,
-    rows: exp.find((e) => e.source_id === s.id)?.rows.length,
-    seed: i * .37 + .1,
-  }));
+  NODES=sources.filter(s=>s.status!=="retired").map((s,i)=>({
+    domain:s.domain.replace("www.",""),label:s.domain.replace("www.","").split(".")[0],
+    cid:s.collector_id,status:s.status,lastVerdict:s.last_verdict,
+    rows:exp.find(e=>e.source_id===s.id)?.rows.length,seed:i*.37+.1 }));
   syncOrganism();
 
-  /* fleet cards */
-  $("fleetGrid").innerHTML = sources.map((s) => {
-    const hist = (runsBySource[s.id] ?? []).slice(0, 18).reverse();
-    const ticks = hist.map((r) => {
-      const c = cvar(STATUS[r.verdict] ?? "--ink3");
-      const h = r.verdict === "healthy" ? 22 : r.verdict === "degraded" ? 14 : 8;
-      return `<div class="tick" style="background:${c};height:${h}px" title="${esc(r.started_at)} · ${esc(r.country)} · ${esc(r.verdict ?? "run")} · ${r.row_count ?? 0} rows"></div>`;
-    }).join("") || `<div style="font-size:.72rem;color:var(--ink3)">no runs yet</div>`;
-    return `<div class="src" style="--sc:${cvar(STATUS[s.status])}">
-      <div class="src-head"><span class="domain">${esc(s.domain.replace("www.",""))}</span><span class="pill ${esc(s.status)}">${esc(s.status)}</span></div>
-      <div class="cid">${s.collector_id ? esc(s.collector_id) + " — a live Bright Data endpoint" : "no collector — " + esc(s.status)}</div>
-      <div class="ticks">${ticks}</div>
-      <div class="meta"><span>last: ${esc(s.last_verdict ?? "—")}</span><span>${s.birth_certified_at ? "certified " + esc(s.birth_certified_at.slice(5, 16)) : "uncertified"}</span></div>
-    </div>`;
-  }).join("");
+  $("fleetRows").innerHTML=sources.map((s)=>{
+    const hist=(runsBySource[s.id]??[]).slice(0,16).reverse();
+    const ticks=hist.map((r)=>{ const c=SC[r.verdict]??"var(--line)";
+      const h=r.verdict==="healthy"?18:r.verdict==="degraded"?11:6;
+      return `<span class="tick" style="background:${c};height:${h}px" title="${esc(r.started_at)} · ${esc(r.verdict??"run")} · ${r.row_count??0} rows"></span>`; }).join("");
+    return `<div class="frow">
+      <span class="dom">${esc(s.domain.replace("www.",""))}</span>
+      <span class="cid">${s.collector_id?esc(s.collector_id)+" — live Bright Data endpoint":"no collector — "+esc(s.status)}</span>
+      <span class="ticks">${ticks}</span>
+      <span class="st ${esc(s.status)}">${esc(s.status)}</span>
+    </div>`; }).join("");
 
-  /* incidents */
-  LAST_INCIDENTS = incidents;
-  renderIncidents();
+  LAST_INCIDENTS=incidents; renderIncidents();
 
-  /* divergence matrix */
-  const geoByDomain = new Map();
-  for (const gp of geo) {
-    const d = gp.domain.replace("www.", "");
-    if (!geoByDomain.has(d)) geoByDomain.set(d, new Map());
-    geoByDomain.get(d).set(gp.country, gp);
-  }
-  const countries = [...new Set(geo.map((gp) => gp.country))].sort();
-  const maxSig = Math.max(1, ...geo.map((gp) => gp.signal_count));
-  $("matrix").innerHTML = geo.length
-    ? `<tr><th class="rowh">source</th>${countries.map((c) => `<th>${esc(c)}</th>`).join("")}</tr>` +
-      [...geoByDomain.entries()].map(([d, m]) => `<tr><td class="rowh">${esc(d)}</td>` +
-        countries.map((c) => {
-          const p = m.get(c);
-          if (!p) return `<td class="cell" style="background:var(--bg2)">—</td>`;
-          const a = .06 + .3 * (p.signal_count / maxSig);
-          return `<td class="cell" style="background:rgba(255,255,255,${a.toFixed(2)})"
-            title="${esc(p.top_signals.slice(0, 8).join("  "))}">${p.signal_count}<small>${esc(p.currency_set.join(" ") || "–")}</small></td>`;
-        }).join("") + "</tr>").join("")
-    : `<tr><td class="empty" style="display:block">No geo probes yet — each source is probed from every market daily.</td></tr>`;
+  const geoBy=new Map();
+  for(const gp of geo){ const d=gp.domain.replace("www.","");
+    if(!geoBy.has(d))geoBy.set(d,new Map()); geoBy.get(d).set(gp.country,gp); }
+  const countries=[...new Set(geo.map(g=>g.country))].sort();
+  $("matrix").innerHTML=geo.length
+    ?`<tr><th class="rowh">SOURCE</th>${countries.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>`+
+      [...geoBy.entries()].map(([d,m])=>`<tr><td class="rowh">${esc(d)}</td>`+
+        countries.map(c=>{ const p=m.get(c); if(!p)return`<td class="cell">—</td>`;
+          return `<td class="cell" title="${esc(p.top_signals.slice(0,8).join("  "))}">${p.signal_count}<small>${esc(p.currency_set.join(" ")||"–")}</small></td>`; }).join("")+"</tr>").join("")
+    :`<tr><td class="empty">NO GEO PROBES YET — EACH SOURCE IS PROBED FROM EVERY MARKET DAILY.</td></tr>`;
 
-  /* dataset */
-  const globalExp = exp.filter((e) => e.country === "global");
-  const shown = globalExp.length ? globalExp : exp;
-  $("dsGrid").innerHTML = shown.length ? shown.map((e) => {
-    const first = e.rows[0] ?? {};
-    const nameF = Object.keys(first).find((k) => typeof first[k] === "string");
-    const numF = Object.keys(first).find((k) => typeof first[k] === "number");
-    const rows = e.rows.slice(0, 6).map((r) =>
-      `<tr><td>${esc(r[nameF])}</td><td class="n">${r[numF] ?? "—"}</td></tr>`).join("");
-    return `<div class="ds"><div class="h"><b>${esc(e.domain.replace("www.",""))}</b><span>${e.rows.length} rows · ${esc((e.as_of ?? "").slice(5, 16))}</span></div>
+  const globalExp=exp.filter(e=>e.country==="global");
+  const shown=globalExp.length?globalExp:exp;
+  $("dsGrid").innerHTML=shown.length?shown.map((e)=>{
+    const first=e.rows[0]??{};
+    const nameF=Object.keys(first).find(k=>typeof first[k]==="string");
+    const numF=Object.keys(first).find(k=>typeof first[k]==="number");
+    const rows=e.rows.slice(0,6).map(r=>`<tr><td>${esc(r[nameF])}</td><td class="n">${r[numF]??"—"}</td></tr>`).join("");
+    return `<div class="ds"><div class="h"><b>${esc(e.domain.replace("www.",""))}</b><span>${e.rows.length} ROWS · ${esc((e.as_of??"").slice(5,16))}</span></div>
       <table>${rows}</table>
-      ${e.rows.length > 6 ? `<div class="more">+ ${e.rows.length - 6} more rows in /export.json?source=${e.source_id}</div>` : ""}</div>`;
-  }).join("") : `<div class="empty">No verified rows yet.</div>`;
+      ${e.rows.length>6?`<div class="more">+ ${e.rows.length-6} MORE — /export.json?source=${e.source_id}</div>`:""}</div>`; }).join("")
+    :`<div class="empty" style="grid-column:1/13">NO VERIFIED ROWS YET.</div>`;
 }
-
-/* ---------- incidents: filter + render ---------- */
-let LAST_INCIDENTS = [], INC_FILTER = "all";
-document.querySelectorAll(".fbtn").forEach((b) => b.onclick = () => {
-  INC_FILTER = b.dataset.f;
-  document.querySelectorAll(".fbtn").forEach((x) => x.classList.toggle("on", x === b));
-  renderIncidents();
-});
-const ago = (ts) => {
-  if (!ts) return "";
-  const s = (Date.now() - new Date(ts.replace(" ", "T") + "Z").getTime()) / 1000;
-  if (s < 3600) return Math.max(1, Math.round(s / 60)) + " min ago";
-  if (s < 86400) return Math.round(s / 3600) + " h ago";
-  return Math.round(s / 86400) + " d ago";
-};
-function copyPrompt(btn, txt) {
-  navigator.clipboard.writeText(txt);
-  btn.textContent = "copied ✓"; setTimeout(() => (btn.textContent = "copy prompt"), 1200);
-}
-function renderIncidents() {
-  const openIds = new Set([...document.querySelectorAll(".inc[open]")].map((d) => d.dataset.id));
-  const all = LAST_INCIDENTS;
-  const shown = INC_FILTER === "all" ? all : all.filter((i) => i.decision === INC_FILTER);
-  const approved = all.filter((i) => i.decision === "approved").length;
-  const quar = all.filter((i) => i.decision === "quarantined").length;
-  const mttrs = all.filter((i) => i.time_to_recovery_s).map((i) => i.time_to_recovery_s);
-  const mttr = mttrs.length ? Math.round(mttrs.reduce((a, b) => a + b, 0) / mttrs.length / 60) : null;
-  $("incStats").innerHTML = `<b>${all.length}</b> incidents · <b>${approved}</b> healed · <b>${quar}</b> quarantined${mttr ? ` · mean recovery <b>${mttr} min</b>` : ""}`;
-
-  $("incList").innerHTML = shown.length ? shown.map((i, idx) => {
-    const g = i.gates;
-    const gates = g ? ["contract", "golden", "continuity"].map((k) =>
-      `<div class="gate ${g[k] ? "pass" : "fail"}">${k}<span class="res">${g[k] ? "pass" : "fail"}</span></div>`).join("") : "<div class='gate'>not reached</div>";
-    const fields = (i.symptom?.brokenFields ?? []).join(", ") || "—";
-    const pv = i.preview_sample?.length
-      ? `<pre>${esc(JSON.stringify(i.preview_sample, null, 1).slice(0, 900))}</pre>` : "";
-    const note = i.symptom?.note ? `<div class="case">${esc(i.symptom.note)}</div>` : "";
-    const recov = i.time_to_recovery_s
-      ? `<div class="recovery">break → verified fix in <b>${Math.round(i.time_to_recovery_s / 60)} min</b>, <span class="st-em">unattended.</span></div>`
-      : i.decision === "quarantined"
-      ? `<div class="recovery">benched — <span class="st-em">refusing to serve unverified data.</span></div>` : "";
-    const miniGates = g
-      ? ["contract", "golden", "continuity"].map((k) => `<i class="${g[k] ? "pass" : "fail"}" title="${k}: ${g[k] ? "pass" : "fail"}"></i>`).join("")
-      : "";
-    const rtime = i.time_to_recovery_s ? Math.round(i.time_to_recovery_s / 60) + " min" : "";
-    return `<details class="inc" data-id="${i.id}" ${openIds.has(String(i.id)) ? "open" : ""}>
-      <summary>
-        <span class="who">${esc(i.domain.replace("www.",""))}</span>
-        <span class="snip">${esc(fields)} · rows ${i.symptom?.rowsBefore ?? "?"} → <b>${i.symptom?.rowsAfter ?? "?"}</b></span>
-        <span class="when">${ago(i.detected_at)}</span>
-        <span class="mini-gates">${miniGates}</span>
-        ${rtime ? `<span class="rtime">${rtime}</span>` : ""}
-        <span class="pill ${esc(i.decision)}">${esc(i.decision)}</span>
-      </summary>
-      <div class="stages">
-        <div class="stage-col">
-          <div class="stage-lbl"><span class="n">1</span>detected — by the sentinel</div>
-          <div class="sym-fields">${esc(fields)}</div>
-          <div class="sym-rows">rows ${i.symptom?.rowsBefore ?? "?"} → <b>${i.symptom?.rowsAfter ?? "?"}</b></div>
-        </div>
-        <div class="stage-col">
-          <div class="stage-lbl"><span class="n">2</span>repair order — written by the diagnostician, sent to Bright Data</div>
-          <div class="prompt-txt" id="p-${idx}">${esc(i.prompt ?? "")}</div>
-          <button class="copy-p" onclick="copyPrompt(this, document.getElementById('p-${idx}').textContent)">copy prompt</button>
-        </div>
-        <div class="stage-col">
-          <div class="stage-lbl"><span class="n">3</span>verified — three gates, all or nothing</div>
-          <div class="gates">${gates}</div>
-          ${recov}
-        </div>
-      </div>
-      ${note || pv ? `<div class="inc-foot"><details><summary>case file</summary>${note}${pv}</details></div>` : ""}
-    </details>`;
-  }).join("") : `<div class="empty">No ${INC_FILTER === "all" ? "" : INC_FILTER + " "}incidents${INC_FILTER === "all" ? " yet — the fleet is sweeping on schedule. Breaks will appear here with their full audit trail." : "."}</div>`;
-}
-
-let FX_DONE = false;
-function initScrollFX() {
-  if (FX_DONE || reduced || !window.gsap) return;
-  FX_DONE = true;
-  gsap.registerPlugin(ScrollTrigger);
-
-  /* hero: caption rises, organism breathes in, KPIs cascade */
-  gsap.from(".caption h1", { y: 26, opacity: 0, duration: 1, ease: "power3.out" });
-  gsap.from(".caption p", { y: 18, opacity: 0, duration: .9, delay: .18, ease: "power3.out" });
-  gsap.from(".organism", { scale: .975, opacity: 0, duration: 1.1, ease: "power2.out" });
-  gsap.from(".kpi", { y: 26, opacity: 0, duration: .8, stagger: .09, delay: .25, ease: "power3.out" });
-
-  /* sections: children stagger up as each section enters */
-  const groups = [
-    ["#fleet", ".src"],
-    ["#incidents", ".inc-toolbar, .inc"],
-    ["#divergence", ".matrix-wrap"],
-    ["#dataset", ".ds"],
-  ];
-  for (const [sec, kids] of groups) {
-    const els = document.querySelectorAll(`${sec} ${kids}`.replace("#", "#"));
-    if (!els.length) continue;
-    gsap.from(els, {
-      y: 30, opacity: 0, duration: .85, stagger: .08, ease: "power3.out",
-      scrollTrigger: { trigger: sec, start: "top 78%", once: true },
-    });
-  }
-
-  /* section heads: hairline + title slide */
-  document.querySelectorAll(".sec-head").forEach((h) => {
-    gsap.from(h, { x: -22, opacity: 0, duration: .7, ease: "power3.out",
-      scrollTrigger: { trigger: h, start: "top 85%", once: true } });
-  });
-
-  /* ghost numerals: slow parallax drift, scrubbed to scroll */
-  document.querySelectorAll(".ghost").forEach((g) => {
-    gsap.fromTo(g, { yPercent: -14 }, { yPercent: 26, ease: "none",
-      scrollTrigger: { trigger: g.parentElement, start: "top bottom", end: "bottom top", scrub: .6 } });
-  });
-
-  /* hero organism: gentle parallax out as you scroll past */
-  gsap.to(".organism canvas", { y: 36, ease: "none",
-    scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: .5 } });
-
-  /* credo: the closing statement rises slowly */
-  gsap.from(".credo .big", { y: 26, opacity: 0, duration: 1.1, ease: "power3.out",
-    scrollTrigger: { trigger: ".credo", start: "top 82%", once: true } });
-  gsap.from(".credo .sub", { opacity: 0, duration: 1, delay: .35,
-    scrollTrigger: { trigger: ".credo", start: "top 82%", once: true } });
-
-  /* footer fade-up */
-  gsap.from("footer", { y: 18, opacity: 0, duration: .8,
-    scrollTrigger: { trigger: "footer", start: "top 92%", once: true } });
-}
-
-load().then(initScrollFX);
-setInterval(load, 12000);
-
-/* scroll progress hairline */
-addEventListener("scroll", () => {
-  const h = document.documentElement;
-  $("progress").style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + "%";
-}, { passive: true });
-
-/* subtle 3D tilt on cards */
-if (!reduced) {
-  document.addEventListener("pointermove", (e) => {
-    const card = e.target.closest?.(".kpi, .src");
-    document.querySelectorAll(".kpi, .src").forEach((c) => { if (c !== card) c.style.transform = ""; });
-    if (!card) return;
-    const r = card.getBoundingClientRect();
-    const rx = ((e.clientY - r.top) / r.height - .5) * -4;
-    const ry = ((e.clientX - r.left) / r.width - .5) * 4;
-    card.style.transform = `perspective(700px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-2px)`;
-  }, { passive: true });
-}
+load(); setInterval(load,12000);
 </script>
 
 <script type="module">
 import * as THREE from "/vendor/three.module.min.js";
 
-const host = document.querySelector(".organism");
-const canvas = document.getElementById("net");
-const tip = document.getElementById("tip");
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const host=document.querySelector(".organism");
+const canvas=document.getElementById("net");
+const tip=document.getElementById("tip");
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const COL = {
-  active: 0x4fd39a, healthy: 0x4fd39a, degraded: 0xe6b23c,
-  broken: 0xf06060, quarantined: 0x6f6f6f, creating: 0x555555, unproven: 0x555555,
-};
+const COL={active:0x39ffb4,healthy:0x39ffb4,degraded:0xffb224,broken:0xff2a6d,quarantined:0x5a6068,creating:0x3a4046,unproven:0x3a4046};
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0d0d0d, 0.03);
-const camera = new THREE.PerspectiveCamera(27, 1, 0.1, 100);
-camera.position.set(0, 1.1, 17);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.15;
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x060708,0.03);
+const camera=new THREE.PerspectiveCamera(27,1,0.1,100);
+camera.position.set(0,1.1,17);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-const key = new THREE.PointLight(0xffffff, 40, 50); key.position.set(5, 7, 7); scene.add(key);
-const coreLight = new THREE.PointLight(0xffffff, 12, 14); scene.add(coreLight);
+scene.add(new THREE.AmbientLight(0xffffff,0.25));
+const key=new THREE.PointLight(0xffffff,40,50);key.position.set(5,7,7);scene.add(key);
+const coreLight=new THREE.PointLight(0xffffff,12,14);scene.add(coreLight);
 
-const world = new THREE.Group(); scene.add(world);
+const world=new THREE.Group();scene.add(world);
 
-const hub = new THREE.Group();
-const hubCore = new THREE.Mesh(
-  new THREE.IcosahedronGeometry(0.34, 2),
-  new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: .25, metalness: .9,
-    emissive: 0xffffff, emissiveIntensity: .5 }));
-const shellA = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.72, 1)),
-  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55 }));
-const shellB = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.06, 1)),
-  new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .14 }));
-const ringG = new THREE.Group();
-const ring = new THREE.Mesh(
-  new THREE.TorusGeometry(1.7, 0.006, 8, 160),
-  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .3 }));
-const ringDot = new THREE.Mesh(
-  new THREE.SphereGeometry(0.045, 12, 12),
-  new THREE.MeshBasicMaterial({ color: 0xffffff }));
-ringDot.position.set(1.7, 0, 0);
-ringG.add(ring, ringDot);
-ringG.rotation.x = Math.PI * 0.42; ringG.rotation.y = 0.25;
-const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-  map: null, color: 0xffffff, transparent: true, opacity: .12,
-  depthWrite: false, blending: THREE.AdditiveBlending }));
-coreGlow.scale.setScalar(2.6);
-hub.add(hubCore, shellA, shellB, ringG, coreGlow); world.add(hub);
+const hub=new THREE.Group();
+const hubCore=new THREE.Mesh(new THREE.IcosahedronGeometry(0.34,2),
+  new THREE.MeshStandardMaterial({color:0x0a0a0a,roughness:.25,metalness:.9,emissive:0xffffff,emissiveIntensity:.5}));
+const shellA=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.72,1)),
+  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.55}));
+const shellB=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.06,1)),
+  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.14}));
+const ringG=new THREE.Group();
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.7,0.006,8,160),
+  new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3}));
+const ringDot=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,12),
+  new THREE.MeshBasicMaterial({color:0x39ffb4}));
+ringDot.position.set(1.7,0,0);
+ringG.add(ring,ringDot);ringG.rotation.x=Math.PI*0.42;ringG.rotation.y=0.25;
+hub.add(hubCore,shellA,shellB,ringG);world.add(hub);
 
-{
-  const n = 700, pos = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) {
-    pos[i*3] = (Math.random() - .5) * 26;
-    pos[i*3+1] = (Math.random() - .5) * 14;
-    pos[i*3+2] = (Math.random() - .5) * 18 - 3;
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  world.add(new THREE.Points(geo, new THREE.PointsMaterial({
-    color: 0xaaaaaa, size: 0.018, transparent: true, opacity: .22, depthWrite: false })));
-}
+{ const n=700,pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){pos[i*3]=(Math.random()-.5)*26;pos[i*3+1]=(Math.random()-.5)*14;pos[i*3+2]=(Math.random()-.5)*18-3;}
+  const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+  world.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xaaaaaa,size:0.018,transparent:true,opacity:.22,depthWrite:false}))); }
 
-const glowTex = (() => {
-  const c = document.createElement("canvas"); c.width = c.height = 64;
-  const g = c.getContext("2d");
-  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  grad.addColorStop(0, "rgba(255,255,255,1)"); grad.addColorStop(.4, "rgba(255,255,255,.35)");
-  grad.addColorStop(1, "rgba(255,255,255,0)");
-  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
-  return new THREE.CanvasTexture(c);
-})();
+const glowTex=(()=>{ const c=document.createElement("canvas");c.width=c.height=64;
+  const g=c.getContext("2d");
+  const grad=g.createRadialGradient(32,32,0,32,32,32);
+  grad.addColorStop(0,"rgba(255,255,255,1)");grad.addColorStop(.4,"rgba(255,255,255,.35)");grad.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=grad;g.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c); })();
 
-function makeLabel(text) {
-  const c = document.createElement("canvas"); c.width = 512; c.height = 96;
-  const g = c.getContext("2d");
-  g.font = "500 40px 'JetBrains Mono', monospace";
-  g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillStyle = "rgba(200,200,205,.92)";
-  g.fillText(text, 256, 48);
-  const tex = new THREE.CanvasTexture(c); tex.anisotropy = 4;
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-  sp.scale.set(2.3, 0.43, 1);
-  return sp;
-}
+function makeLabel(text){ const c=document.createElement("canvas");c.width=512;c.height=96;
+  const g=c.getContext("2d");
+  g.font="500 38px 'JetBrains Mono', monospace";g.textAlign="center";g.textBaseline="middle";
+  g.fillStyle="rgba(190,196,202,.9)";g.fillText(text.toUpperCase(),256,48);
+  const tex=new THREE.CanvasTexture(c);tex.anisotropy=4;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
+  sp.scale.set(2.3,0.43,1); return sp; }
 
-coreGlow.material.map = glowTex; coreGlow.material.needsUpdate = true;
+let nodeGroup=new THREE.Group();world.add(nodeGroup);
+let flows=[],NODES3=[];
 
-let nodeGroup = new THREE.Group(); world.add(nodeGroup);
-let flows = [];
-let NODES3 = [];
+function buildNodes(list){
+  world.remove(nodeGroup);nodeGroup=new THREE.Group();world.add(nodeGroup);
+  flows=[];NODES3=[];
+  const N=Math.max(list.length,1);
+  list.forEach((n,i)=>{
+    const a=(i/N)*Math.PI*2+0.9, r=5.0, y=Math.sin(a*2)*0.55;
+    const p=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r*0.55);
+    const col=COL[n.status]??0x3a4046;
+    const dim=n.status==="quarantined";
 
-function buildNodes(list) {
-  world.remove(nodeGroup); nodeGroup = new THREE.Group(); world.add(nodeGroup);
-  flows = []; NODES3 = [];
-  const N = Math.max(list.length, 1);
-  list.forEach((n, i) => {
-    const a = (i / N) * Math.PI * 2 + 0.9;
-    const r = 5.0;
-    const y = Math.sin(a * 2) * 0.55;
-    const p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.55);
-    const col = COL[n.status] ?? 0x555555;
+    const mesh=new THREE.Mesh(new THREE.SphereGeometry(0.16,28,28),
+      new THREE.MeshStandardMaterial({color:0x141414,roughness:.3,metalness:.6,emissive:col,emissiveIntensity:dim?.3:1.5}));
+    mesh.position.copy(p);mesh.userData=n;
 
-    const dim = n.status === "quarantined";
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.16, 28, 28),
-      new THREE.MeshStandardMaterial({ color: 0x141414, roughness: .3, metalness: .6,
-        emissive: col, emissiveIntensity: dim ? .3 : 1.5 }));
-    mesh.position.copy(p);
-    mesh.userData = n;
-
-    const halo = new THREE.Mesh(
-      new THREE.RingGeometry(0.27, 0.283, 48),
-      new THREE.MeshBasicMaterial({ color: col, transparent: true,
-        opacity: dim ? .18 : .5, side: THREE.DoubleSide, depthWrite: false }));
+    const halo=new THREE.Mesh(new THREE.RingGeometry(0.27,0.283,48),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:dim?.18:.5,side:THREE.DoubleSide,depthWrite:false}));
     halo.position.copy(p);
 
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTex, color: col, transparent: true, opacity: dim ? .06 : .16,
-      depthWrite: false, blending: THREE.AdditiveBlending }));
-    glow.scale.setScalar(0.7); glow.position.copy(p);
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:col,transparent:true,opacity:dim?.06:.16,depthWrite:false,blending:THREE.AdditiveBlending}));
+    glow.scale.setScalar(0.7);glow.position.copy(p);
     nodeGroup.add(halo);
 
-    const c1 = p.clone().multiplyScalar(.3).add(new THREE.Vector3(0, .9 + Math.sin(i * 2.1) * .3, 0));
-    const c2 = p.clone().multiplyScalar(.72).add(new THREE.Vector3(
-      Math.sin(i * 2.7) * .6, -.5 + Math.cos(i * 1.9) * .3, Math.sin(i) * .4));
-    const curve = new THREE.CubicBezierCurve3(new THREE.Vector3(0, 0, 0), c1, c2, p);
-    const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 64, 0.011, 6, false),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .26 }));
+    const c1=p.clone().multiplyScalar(.3).add(new THREE.Vector3(0,.9+Math.sin(i*2.1)*.3,0));
+    const c2=p.clone().multiplyScalar(.72).add(new THREE.Vector3(Math.sin(i*2.7)*.6,-.5+Math.cos(i*1.9)*.3,Math.sin(i)*.4));
+    const curve=new THREE.CubicBezierCurve3(new THREE.Vector3(0,0,0),c1,c2,p);
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,64,0.011,6,false),
+      new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.26}));
+    nodeGroup.add(tube,glow,mesh);
 
-    nodeGroup.add(tube, glow, mesh);
+    if(n.status==="active"){
+      const dot=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:col,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));
+      dot.scale.setScalar(0.16);nodeGroup.add(dot);
+      flows.push({dot,curve,off:Math.random()}); }
 
-    if (n.status === "active") {
-      const dot = new THREE.Sprite(new THREE.SpriteMaterial({
-        map: glowTex, color: col, transparent: true, opacity: .9,
-        depthWrite: false, blending: THREE.AdditiveBlending }));
-      dot.scale.setScalar(0.16);
-      nodeGroup.add(dot);
-      flows.push({ dot, curve, off: Math.random() });
-    }
-    const label = makeLabel(n.label);
-    label.position.copy(p).add(new THREE.Vector3(0, -0.58, 0));
+    const label=makeLabel(n.label);
+    label.position.copy(p).add(new THREE.Vector3(0,-0.58,0));
     nodeGroup.add(label);
-    NODES3.push({ mesh, glow, halo, label, base: p.clone(), seed: i * 1.31 });
-  });
-  if (reduced) renderer.render(scene, camera);
+    NODES3.push({mesh,glow,halo,label,base:p.clone(),seed:i*1.31}); });
+  if(reduced)renderer.render(scene,camera);
 }
+window.__net3d={setNodes:buildNodes};
+if(window.NODES&&window.NODES.length)buildNodes(window.NODES);
 
-window.__net3d = { setNodes: buildNodes };
-if (window.NODES && window.NODES.length) buildNodes(window.NODES);
-
-function size() {
-  const r = host.getBoundingClientRect();
-  renderer.setSize(r.width, r.height, false);
-  camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
-}
-addEventListener("resize", () => { size(); if (reduced) renderer.render(scene, camera); });
+function size(){ const r=host.getBoundingClientRect();
+  renderer.setSize(r.width,r.height,false);
+  camera.aspect=r.width/r.height;camera.updateProjectionMatrix(); }
+addEventListener("resize",()=>{size();if(reduced)renderer.render(scene,camera);});
 size();
 
-const ray = new THREE.Raycaster(); const ptr = new THREE.Vector2(-9, -9);
-let targetRX = 0, targetPan = 0;
-host.addEventListener("pointermove", (e) => {
-  const r = host.getBoundingClientRect();
-  const nx = (e.clientX - r.left) / r.width, ny = (e.clientY - r.top) / r.height;
-  targetPan = (nx - .5) * 2.2; targetRX = (ny - .5) * .22;
-  ptr.set(nx * 2 - 1, -(ny * 2 - 1));
+const ray=new THREE.Raycaster();const ptr=new THREE.Vector2(-9,-9);
+let targetRX=0,targetPan=0;
+host.addEventListener("pointermove",(e)=>{
+  const r=host.getBoundingClientRect();
+  const nx=(e.clientX-r.left)/r.width,ny=(e.clientY-r.top)/r.height;
+  targetPan=(nx-.5)*2.2;targetRX=(ny-.5)*.22;
+  ptr.set(nx*2-1,-(ny*2-1));
+  ray.setFromCamera(ptr,camera);
+  const hit=ray.intersectObjects(NODES3.map(n=>n.mesh))[0];
+  if(hit){ const n=hit.object.userData;
+    tip.style.opacity=1;
+    tip.style.left=Math.min(e.clientX-r.left+14,r.width-260)+"px";
+    tip.style.top=(e.clientY-r.top+12)+"px";
+    tip.innerHTML="<b>"+n.domain+"</b>"+
+      "<div class=\"row\"><span>COLLECTOR</span><b>"+(n.cid||"—")+"</b></div>"+
+      "<div class=\"row\"><span>STATUS</span><b>"+n.status.toUpperCase()+"</b></div>"+
+      "<div class=\"row\"><span>ROWS</span><b>"+(n.rows??"—")+"</b></div>";
+    host.style.cursor="pointer";
+  } else { tip.style.opacity=0; host.style.cursor="crosshair"; } });
+host.addEventListener("pointerleave",()=>{tip.style.opacity=0;targetRX=0;targetPan=0;});
+host.addEventListener("click",()=>{ ray.setFromCamera(ptr,camera);
+  if(ray.intersectObjects(NODES3.map(n=>n.mesh))[0])document.getElementById("fleet").scrollIntoView({behavior:"smooth"}); });
 
-  ray.setFromCamera(ptr, camera);
-  const hit = ray.intersectObjects(NODES3.map((n) => n.mesh))[0];
-  if (hit) {
-    const n = hit.object.userData;
-    tip.style.opacity = 1;
-    tip.style.left = Math.min(e.clientX - r.left + 14, r.width - 250) + "px";
-    tip.style.top = (e.clientY - r.top + 12) + "px";
-    tip.innerHTML = "<b>" + n.domain + "</b>" +
-      "<div class=\"row\"><span>collector</span><b>" + (n.cid || "—") + "</b></div>" +
-      "<div class=\"row\"><span>status</span><b>" + n.status + "</b></div>" +
-      "<div class=\"row\"><span>last run</span><b>" + (n.lastVerdict || "—") + "</b></div>" +
-      "<div class=\"row\"><span>rows</span><b>" + (n.rows ?? "—") + "</b></div>";
-    host.style.cursor = "pointer";
-  } else { tip.style.opacity = 0; host.style.cursor = "default"; }
-});
-host.addEventListener("pointerleave", () => { tip.style.opacity = 0; targetRX = 0; targetPan = 0; });
-host.addEventListener("click", () => {
-  ray.setFromCamera(ptr, camera);
-  if (ray.intersectObjects(NODES3.map((n) => n.mesh))[0]) {
-    document.getElementById("fleet").scrollIntoView({ behavior: "smooth" });
-  }
-});
+let visible=true;
+new IntersectionObserver((es)=>{visible=es[0].isIntersecting;}).observe(host);
 
-let visible = true;
-new IntersectionObserver((es) => { visible = es[0].isIntersecting; }).observe(host);
-
-function frame(t) {
+function frame(t){
   requestAnimationFrame(frame);
-  if (!visible) return;
-  const tt = t * 0.001;
-  world.rotation.y = tt * 0.032;
-  world.rotation.x += (targetRX - world.rotation.x) * .04;
-  camera.position.x += (targetPan - camera.position.x) * .03;
-  camera.lookAt(0, 0, 0);
-  hubCore.rotation.y = tt * .3;
-  const b = 1 + Math.sin(tt * 1.3) * .05; hubCore.scale.setScalar(b);
-  hubCore.material.emissiveIntensity = .4 + Math.sin(tt * 1.3) * .18;
-  shellA.rotation.y = tt * .16; shellA.rotation.z = tt * .05;
-  shellB.rotation.y = -tt * .07; shellB.rotation.x = Math.sin(tt * .15) * .2;
-  ringG.rotation.z = tt * .1;
-  const rd = tt * .5; ringDot.position.set(Math.cos(rd) * 1.7, Math.sin(rd) * 1.7, 0);
-  for (const n of NODES3) {
-    n.mesh.position.y = n.base.y + Math.sin(tt * .8 + n.seed) * .05;
+  if(!visible)return;
+  const tt=t*0.001;
+  world.rotation.y=tt*0.032;
+  world.rotation.x+=(targetRX-world.rotation.x)*.04;
+  camera.position.x+=(targetPan-camera.position.x)*.03;
+  camera.lookAt(0,0,0);
+  hubCore.rotation.y=tt*.3;
+  const b=1+Math.sin(tt*1.3)*.05;hubCore.scale.setScalar(b);
+  hubCore.material.emissiveIntensity=.4+Math.sin(tt*1.3)*.18;
+  shellA.rotation.y=tt*.16;shellA.rotation.z=tt*.05;
+  shellB.rotation.y=-tt*.07;shellB.rotation.x=Math.sin(tt*.15)*.2;
+  ringG.rotation.z=tt*.1;
+  const rd=tt*.5;ringDot.position.set(Math.cos(rd)*1.7,Math.sin(rd)*1.7,0);
+  for(const n of NODES3){
+    n.mesh.position.y=n.base.y+Math.sin(tt*.8+n.seed)*.05;
     n.glow.position.copy(n.mesh.position);
     n.halo.position.copy(n.mesh.position);
     n.halo.quaternion.copy(camera.quaternion);
-    n.label.position.set(n.mesh.position.x, n.mesh.position.y - 0.58, n.mesh.position.z);
-  }
-  for (const f of flows) {
-    const p = (tt * .07 + f.off) % 1;
+    n.label.position.set(n.mesh.position.x,n.mesh.position.y-0.58,n.mesh.position.z); }
+  for(const f of flows){
+    const p=(tt*.07+f.off)%1;
     f.dot.position.copy(f.curve.getPoint(p));
-    f.dot.material.opacity = .25 + Math.sin(p * Math.PI) * .65;
-  }
-  renderer.render(scene, camera);
+    f.dot.material.opacity=.25+Math.sin(p*Math.PI)*.65; }
+  renderer.render(scene,camera);
 }
-if (reduced) {
-  world.rotation.y = .6;
-  renderer.render(scene, camera);
-} else {
-  requestAnimationFrame(frame);
-}
+if(reduced){world.rotation.y=.6;renderer.render(scene,camera);}
+else requestAnimationFrame(frame);
 </script>
 </body>
 </html>

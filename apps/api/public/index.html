@@ -136,19 +136,35 @@
   .fbtn:hover { border-color: var(--line2); color: var(--ink2); }
   .fbtn.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
-  .timeline { display: flex; flex-direction: column; gap: .8rem; }
+  .timeline { display: flex; flex-direction: column; gap: .55rem; }
   .inc {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
     overflow: hidden; transition: border-color .25s;
   }
   .inc:hover { border-color: var(--line2); }
-  .inc-head {
-    display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .8rem;
-    padding: .75rem 1.1rem; border-bottom: 1px solid var(--line); background: var(--panel2);
+  .inc > summary {
+    list-style: none; cursor: pointer;
+    display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9rem;
+    padding: .65rem 1rem; min-height: 2.6rem;
   }
-  .inc-head .who { font-weight: 650; font-size: .95rem; }
-  .inc-head .when { font-family: var(--mono); font-size: .7rem; color: var(--ink3); }
-  .inc-head .pill { margin-left: auto; }
+  .inc > summary::-webkit-details-marker { display: none; }
+  .inc > summary::before {
+    content: "▸"; color: var(--ink3); font-size: .7rem; width: .8rem;
+    transition: transform .2s; flex-shrink: 0;
+  }
+  .inc[open] > summary::before { transform: rotate(90deg); }
+  .inc[open] > summary { border-bottom: 1px solid var(--line); background: var(--panel2); }
+  .inc-head .who, .inc > summary .who { font-weight: 650; font-size: .9rem; }
+  .inc > summary .when { font-family: var(--mono); font-size: .68rem; color: var(--ink3); }
+  .inc > summary .snip {
+    font-family: var(--mono); font-size: .72rem; color: var(--ink2);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34ch;
+  }
+  .inc > summary .snip b { color: var(--bad); font-weight: 600; }
+  .mini-gates { display: flex; gap: .3rem; margin-left: auto; align-items: center; }
+  .mini-gates i { width: 7px; height: 7px; border-radius: 50%; background: var(--line2); }
+  .mini-gates i.pass { background: var(--ok); } .mini-gates i.fail { background: var(--bad); }
+  .inc > summary .rtime { font-family: var(--mono); font-size: .68rem; color: var(--ink3); }
 
   /* the pipeline: three connected stages inside one card */
   .stages { display: grid; grid-template-columns: 1fr 1.3fr 1fr; }
@@ -541,6 +557,7 @@ function copyPrompt(btn, txt) {
   btn.textContent = "copied ✓"; setTimeout(() => (btn.textContent = "copy prompt"), 1200);
 }
 function renderIncidents() {
+  const openIds = new Set([...document.querySelectorAll(".inc[open]")].map((d) => d.dataset.id));
   const all = LAST_INCIDENTS;
   const shown = INC_FILTER === "all" ? all : all.filter((i) => i.decision === INC_FILTER);
   const approved = all.filter((i) => i.decision === "approved").length;
@@ -561,12 +578,19 @@ function renderIncidents() {
       ? `<div class="recovery">break → verified fix in <b>${Math.round(i.time_to_recovery_s / 60)} min</b>, unattended</div>`
       : i.decision === "quarantined"
       ? `<div class="recovery">benched — <b>refusing to serve unverified data</b></div>` : "";
-    return `<div class="inc">
-      <div class="inc-head">
+    const miniGates = g
+      ? ["contract", "golden", "continuity"].map((k) => `<i class="${g[k] ? "pass" : "fail"}" title="${k}: ${g[k] ? "pass" : "fail"}"></i>`).join("")
+      : "";
+    const rtime = i.time_to_recovery_s ? Math.round(i.time_to_recovery_s / 60) + " min" : "";
+    return `<details class="inc" data-id="${i.id}" ${openIds.has(String(i.id)) ? "open" : ""}>
+      <summary>
         <span class="who">${esc(i.domain.replace("www.",""))}</span>
-        <span class="when">${esc((i.detected_at ?? "").slice(0, 16))} · ${ago(i.detected_at)}</span>
+        <span class="snip">${esc(fields)} · rows ${i.symptom?.rowsBefore ?? "?"} → <b>${i.symptom?.rowsAfter ?? "?"}</b></span>
+        <span class="when">${ago(i.detected_at)}</span>
+        <span class="mini-gates">${miniGates}</span>
+        ${rtime ? `<span class="rtime">${rtime}</span>` : ""}
         <span class="pill ${esc(i.decision)}">${esc(i.decision)}</span>
-      </div>
+      </summary>
       <div class="stages">
         <div class="stage-col">
           <div class="stage-lbl"><span class="n">1</span>detected — by the sentinel</div>
@@ -585,7 +609,7 @@ function renderIncidents() {
         </div>
       </div>
       ${note || pv ? `<div class="inc-foot"><details><summary>case file</summary>${note}${pv}</details></div>` : ""}
-    </div>`;
+    </details>`;
   }).join("") : `<div class="empty">No ${INC_FILTER === "all" ? "" : INC_FILTER + " "}incidents${INC_FILTER === "all" ? " yet — the fleet is sweeping on schedule. Breaks will appear here with their full audit trail." : "."}</div>`;
 }
 

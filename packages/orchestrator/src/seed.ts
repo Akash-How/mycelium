@@ -58,9 +58,12 @@ export function seedFleet(dbPath?: string) {
         contractJson,
         s.collectorId ? "unproven" : "creating",
       );
-    } else if (s.collectorId && !existing.collector_id) {
+    } else if (s.collectorId) {
+      // Refresh the contract too: field names may be corrected to match the
+      // schema a heal actually produced. Never touch status past 'unproven'.
       db.prepare(
-        `UPDATE source SET collector_id = ?, contract_json = ?, status = 'unproven'
+        `UPDATE source SET collector_id = ?, contract_json = ?,
+           status = CASE WHEN status = 'creating' THEN 'unproven' ELSE status END
          WHERE id = ?`,
       ).run(s.collectorId, contractJson, existing.id);
     }

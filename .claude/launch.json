@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mycelium-api",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "apps/api/src/main.ts"],
+      "port": 4000
+    }
+  ]
+}

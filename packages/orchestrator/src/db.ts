@@ -91,6 +91,17 @@ CREATE TABLE IF NOT EXISTS spend (
   page_loads INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS geo_probe (
+  id INTEGER PRIMARY KEY,
+  source_id INTEGER NOT NULL REFERENCES source(id),
+  country TEXT NOT NULL,
+  probed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  signal_count INTEGER NOT NULL,
+  top_signals TEXT NOT NULL,
+  currency_set TEXT NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS fixture_unique ON golden_fixture(source_id, field, row_key);
 CREATE INDEX IF NOT EXISTS run_source_time ON run(source_id, started_at DESC);
 CREATE INDEX IF NOT EXISTS incident_source_time ON incident(source_id, detected_at DESC);
 `;

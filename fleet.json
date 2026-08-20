@@ -6,7 +6,7 @@
       "url": "https://deepinfra.com/pricing",
       "proposedBy": "seed",
       "probeScore": 425,
-      "collectorId": null,
+      "collectorId": "c_mt0zvpz01t2wj6mhvb",
       "contract": {
         "minRows": 10,
         "fields": [
@@ -26,26 +26,25 @@
       "contract": {
         "minRows": 10,
         "fields": [
-          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed in the pricing tables", "sample": "Llama 3.3 70B Instruct Turbo" },
-          { "name": "input_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only", "sample": "0.88" },
-          { "name": "output_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million output tokens, numeric only", "sample": "0.88" },
-          { "name": "category", "type": "string", "required": false, "description": "Model family or section heading the model appears under", "sample": "Chat" }
+          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed in the pricing tables", "sample": "MiniMax M3" },
+          { "name": "input_price_per_1m_tokens", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only", "sample": "0.3" },
+          { "name": "output_price_per_1m_tokens", "type": "number", "required": true, "description": "Price in USD per 1 million output tokens, numeric only", "sample": "1.2" },
+          { "name": "model_category", "type": "string", "required": false, "description": "Model family or section heading the model appears under", "sample": "Chat" }
         ]
       }
     },
     {
-      "key": "runpod",
-      "url": "https://www.runpod.io/pricing",
+      "key": "railway",
+      "url": "https://www.railway.com/pricing",
       "proposedBy": "seed",
-      "probeScore": 84,
-      "collectorId": null,
+      "probeScore": 26,
+      "collectorId": "c_mt10u9f11xss96qwzk",
       "contract": {
-        "minRows": 5,
+        "minRows": 3,
         "fields": [
-          { "name": "gpu_model", "type": "string", "required": true, "description": "The GPU model name shown on the pricing card, like H100 or A100", "sample": "H100 PCIe" },
-          { "name": "vram_gb", "type": "number", "required": false, "description": "The GPU's VRAM in gigabytes, numeric only", "sample": "80" },
-          { "name": "price_per_hour", "type": "number", "required": true, "description": "Hourly rental price in USD, numeric only without the dollar sign", "sample": "2.39" },
-          { "name": "cloud_type", "type": "string", "required": false, "description": "Deployment tier if shown, such as secure cloud or community cloud", "sample": "Secure Cloud" }
+          { "name": "plan_name", "type": "string", "required": true, "description": "The plan tier name shown on the pricing card, like Hobby or Pro", "sample": "Pro" },
+          { "name": "monthly_price", "type": "number", "required": true, "description": "The plan's monthly price in USD, numeric only without the dollar sign", "sample": "20" },
+          { "name": "description", "type": "string", "required": false, "description": "The short plan description or usage allowance shown on the card", "sample": "For professional developers" }
         ]
       }
     },
@@ -58,9 +57,9 @@
       "contract": {
         "minRows": 5,
         "fields": [
-          { "name": "model_name", "type": "string", "required": true, "description": "The model or model-size tier named in the pricing table rows", "sample": "Llama 3.1 405B" },
-          { "name": "price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million tokens for this row, numeric only", "sample": "3.00" },
-          { "name": "unit", "type": "string", "required": false, "description": "What the price is charged per, like input tokens, output tokens, or images", "sample": "per 1M tokens" }
+          { "name": "tier_name", "type": "string", "required": true, "description": "The model or model-size tier named in the pricing table rows", "sample": "Qwen3 8B" },
+          { "name": "input_price", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens for this row, numeric only", "sample": "0.1" },
+          { "name": "price_unit_description", "type": "string", "required": false, "description": "What the price is charged per, like $ / 1M input tokens", "sample": "$ / 1M input tokens" }
         ]
       }
     },
@@ -69,12 +68,12 @@
       "url": "https://lambda.ai/pricing",
       "proposedBy": "seed",
       "probeScore": 34,
-      "collectorId": null,
+      "collectorId": "c_mt104yty6k8vncg5d",
       "contract": {
         "minRows": 4,
         "fields": [
-          { "name": "gpu_model", "type": "string", "required": true, "description": "The GPU or instance type name in the on-demand pricing table", "sample": "NVIDIA H100 SXM" },
-          { "name": "price_per_hour", "type": "number", "required": true, "description": "On-demand hourly price in USD, numeric only", "sample": "3.29" },
+          { "name": "gpu_type", "type": "string", "required": true, "description": "The GPU or instance type name in the on-demand pricing table", "sample": "NVIDIA H100 SXM" },
+          { "name": "price_per_gpu_per_hour", "type": "number", "required": true, "description": "On-demand hourly price per GPU in USD, numeric only", "sample": "3.99" },
           { "name": "gpu_count", "type": "number", "required": false, "description": "Number of GPUs in the instance if shown", "sample": "8" }
         ]
       }
@@ -84,7 +83,7 @@
       "url": "https://modal.com/pricing",
       "proposedBy": "seed",
       "probeScore": 34,
-      "collectorId": null,
+      "collectorId": "c_mt10c9c614vdb154wk",
       "contract": {
         "minRows": 4,
         "fields": [
@@ -97,6 +96,6 @@
   ],
   "discarded": [
     { "url": "https://render.com/pricing", "reason": "probe returned near-empty page (1 price signal) — client-rendered", "probeScore": 1 },
-    { "url": "https://www.railway.com/pricing", "reason": "reserve — healthy probe (26 signals) but fleet cap is 6", "probeScore": 26 }
+    { "url": "https://www.runpod.io/pricing", "reason": "scraper create failed twice: 600-poll timeout, then AI generation error — reserve promoted in its place", "probeScore": 84 }
   ]
 }

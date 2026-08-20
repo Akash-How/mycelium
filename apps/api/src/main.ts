@@ -143,6 +143,29 @@ app.get("/export.csv", (c) => {
   return c.body(lines.join("\n"));
 });
 
+// Geo divergence probes: page-level price signals per market, via the
+// unlocker's --country (structured runs are global — see geo.ts).
+app.get("/geo", (c) => {
+  const rows = db
+    .prepare(
+      `SELECT g.source_id, s.domain, g.country, g.probed_at, g.signal_count,
+              g.top_signals, g.currency_set
+       FROM geo_probe g JOIN source s ON s.id = g.source_id
+       WHERE g.probed_at = (
+         SELECT MAX(g2.probed_at) FROM geo_probe g2
+         WHERE g2.source_id = g.source_id AND g2.country = g.country)
+       ORDER BY g.source_id, g.country`,
+    )
+    .all() as any[];
+  return c.json(
+    rows.map((r) => ({
+      ...r,
+      top_signals: JSON.parse(r.top_signals),
+      currency_set: JSON.parse(r.currency_set),
+    })),
+  );
+});
+
 app.use("/*", serveStatic({ root: "./apps/api/public" }));
 
 const port = Number(process.env.PORT ?? 4000);

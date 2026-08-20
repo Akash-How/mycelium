@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -b",
+    "typecheck": "tsc --noEmit",
     "orchestrate": "tsx packages/orchestrator/src/main.ts",
     "api": "tsx apps/api/src/main.ts"
   },

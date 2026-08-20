@@ -82,14 +82,22 @@ export function extractJson(stdout: string): unknown {
   throw new Error("unparseable JSON in bdata output");
 }
 
+// Note: `scraper run` has no geo flag — collectors route through Bright
+// Data's unlocker network globally. Geo divergence is measured separately
+// via `scrape --country` page probes (see geo.ts).
 export function runScraper(
   collectorId: string,
   url: string,
-  country?: string,
 ): Promise<BdataResult> {
-  const args = ["scraper", "run", collectorId, url, "--json"];
+  return bdata(["scraper", "run", collectorId, url, "--json"], {
+    timeoutMs: 10 * 60_000,
+  });
+}
+
+export function scrapePage(url: string, country?: string): Promise<BdataResult> {
+  const args = ["scrape", url, "-f", "markdown"];
   if (country) args.push("--country", country);
-  return bdata(args, { timeoutMs: 10 * 60_000 });
+  return bdata(args, { timeoutMs: 3 * 60_000 });
 }
 
 export function healScraper(
@@ -110,7 +118,9 @@ export function approveHeal(
 ): Promise<BdataResult> {
   const args = ["scraper", "approve", collectorId];
   if (reject) args.push("--reject");
-  else args.push("--url", url);
+  // --auto-save is load-bearing: approve without it reviews the heal but
+  // never persists the template, and production runs keep the broken version.
+  else args.push("--url", url, "--auto-save");
   return bdata(args, { timeoutMs: 10 * 60_000, retries: 0 });
 }
 

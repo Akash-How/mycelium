@@ -8,7 +8,6 @@
   :root {
     --bg: #12101a; --panel: #1a1725; --panel2: #221e30;
     --line: #322c44; --ink: #ece9f4; --ink2: #b3abc6; --ink3: #7d7590;
-    --accent: #a globalization
     --accent: #a08ce0; --ok: #6ec695; --warn: #dcae5e; --bad: #e0836c;
     --okbg: #1a2b22; --warnbg: #2c2518; --badbg: #2e1f1b; --quar: #4a4458;
     --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
@@ -81,8 +80,13 @@
 </section>
 
 <section>
-  <h2>Divergence — latest verified rows by market</h2>
+  <h2>Divergence — page-level price signals by market</h2>
   <div class="tblwrap"><table id="divergence"></table></div>
+</section>
+
+<section>
+  <h2>Latest verified dataset — global extraction</h2>
+  <div class="tblwrap"><table id="dataset"></table></div>
 </section>
 
 <footer>
@@ -96,11 +100,12 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const pill = (v) => `<span class="pill ${esc(v)}">${esc(v ?? "—")}</span>`;
 
 async function load() {
-  const [rel, sources, incidents, exp] = await Promise.all([
+  const [rel, sources, incidents, exp, geo] = await Promise.all([
     fetch("/reliability").then((r) => r.json()),
     fetch("/sources").then((r) => r.json()),
     fetch("/incidents").then((r) => r.json()),
     fetch("/export.json").then((r) => r.json()),
+    fetch("/geo").then((r) => r.json()),
   ]);
 
   const mttr = rel.heals.mean_recovery_s ? Math.round(rel.heals.mean_recovery_s / 60) + "<small> min</small>" : "—";
@@ -144,31 +149,39 @@ async function load() {
       }).join("")
     : `<tr><td class="empty">No incidents yet. The fleet is sweeping on schedule — breaks will appear here with their full audit trail.</td></tr>`;
 
-  const byDomain = new Map();
-  for (const e of exp) {
-    if (!byDomain.has(e.domain)) byDomain.set(e.domain, new Map());
-    byDomain.get(e.domain).set(e.country, e.rows);
+  const geoByDomain = new Map();
+  for (const g of geo) {
+    if (!geoByDomain.has(g.domain)) geoByDomain.set(g.domain, new Map());
+    geoByDomain.get(g.domain).set(g.country, g);
   }
-  const countries = [...new Set(exp.map((e) => e.country))].sort();
-  $("divergence").innerHTML = exp.length
-    ? `<tr><th>Source</th><th>Sample row</th>${countries.map((c) => `<th class="num">${esc(c)}</th>`).join("")}</tr>` +
-      [...byDomain.entries()].map(([domain, markets]) => {
-        const first = markets.values().next().value?.[0] ?? {};
-        const numField = Object.keys(first).find((k) => typeof first[k] === "number");
-        const nameField = Object.keys(first).find((k) => typeof first[k] === "string");
-        const name = first[nameField] ?? "—";
-        return `<tr>
+  const geoCountries = [...new Set(geo.map((g) => g.country))].sort();
+  $("divergence").innerHTML = geo.length
+    ? `<tr><th>Source</th>${geoCountries.map((c) => `<th class="num">${esc(c)}</th>`).join("")}</tr>` +
+      [...geoByDomain.entries()].map(([domain, markets]) => `<tr>
           <td>${esc(domain)}</td>
-          <td class="mono">${esc(String(name).slice(0, 40))}</td>
-          ${countries.map((c) => {
-            const rows = markets.get(c);
-            const row = rows?.find((r) => r[nameField] === name) ?? rows?.[0];
-            const v = row?.[numField];
-            return `<td class="num mono">${v == null ? "—" : esc(v)}</td>`;
+          ${geoCountries.map((c) => {
+            const p = markets.get(c);
+            if (!p) return `<td class="num mono">—</td>`;
+            const cur = p.currency_set.join(" ");
+            return `<td class="num mono" title="${esc(p.top_signals.slice(0, 6).join(" · "))}">${p.signal_count}<span style="color:var(--ink3)"> ${esc(cur)}</span></td>`;
           }).join("")}
+        </tr>`).join("")
+    : `<tr><td class="empty">No geo probes yet. Each source's page is probed from every configured market daily; signal counts and currencies land here.</td></tr>`;
+
+  $("dataset").innerHTML = exp.length
+    ? `<tr><th>Source</th><th>As of</th><th>Rows</th><th>Sample</th></tr>` +
+      exp.map((e) => {
+        const first = e.rows[0] ?? {};
+        const nameField = Object.keys(first).find((k) => typeof first[k] === "string");
+        const numField = Object.keys(first).find((k) => typeof first[k] === "number");
+        return `<tr>
+          <td>${esc(e.domain)}</td>
+          <td class="mono">${esc((e.as_of ?? "").slice(0, 16))}</td>
+          <td class="num mono">${e.rows.length}</td>
+          <td class="mono">${esc(String(first[nameField] ?? "—").slice(0, 36))} · ${esc(first[numField] ?? "—")}</td>
         </tr>`;
       }).join("")
-    : `<tr><td class="empty">No verified rows yet. Once collectors are birth-certified and the first sweep completes, the latest per-market values land here.</td></tr>`;
+    : `<tr><td class="empty">No verified rows yet. Once collectors are birth-certified and the first sweep completes, the latest dataset lands here.</td></tr>`;
 }
 load();
 setInterval(load, 15000);

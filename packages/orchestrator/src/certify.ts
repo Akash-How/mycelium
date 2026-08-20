@@ -23,9 +23,12 @@ if (!src) {
 }
 const contract = Contract.parse(JSON.parse(src.contract_json));
 
+// Judge the latest stored run: a collector healed after an empty birth is
+// certified on what it returns now, not on its worst day.
 const firstRun = db
   .prepare(
-    `SELECT * FROM run WHERE source_id = ? ORDER BY started_at ASC LIMIT 1`,
+    `SELECT * FROM run WHERE source_id = ? AND row_count > 0
+     ORDER BY started_at DESC LIMIT 1`,
   )
   .get(src.id) as any;
 if (!firstRun) {

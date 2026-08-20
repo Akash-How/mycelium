@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "noEmit": true,
+    "paths": {
+      "@mycelium/contracts": ["./packages/contracts/src/index.ts"],
+      "@mycelium/sentinel": ["./packages/sentinel/src/index.ts"],
+      "@mycelium/orchestrator/*": ["./packages/orchestrator/*"]
+    },
+    "baseUrl": "."
+  },
+  "include": ["packages/**/src/**/*.ts", "apps/**/src/**/*.ts"]
+}

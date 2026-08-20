@@ -51,14 +51,13 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 /* ============ hero ============ */
 .hero{min-height:97vh;display:flex;flex-direction:column;padding-top:4vh;padding-bottom:5vh}
 .hero .topbar{display:flex;justify-content:space-between;align-items:baseline}
-.hero .mark{font-family:var(--disp);font-size:clamp(54px,11vw,170px);line-height:.92;letter-spacing:-.015em;margin-top:3vh;user-select:none}
-.hero .mark .tail{color:var(--ok)}
-.organism{position:relative;height:44vh;margin-top:2vh;cursor:crosshair}
+.hero .mark{font-family:var(--disp);font-size:clamp(54px,11vw,170px);line-height:.92;letter-spacing:-.015em;margin-top:2vh;user-select:none;position:relative;z-index:2;pointer-events:none;mix-blend-mode:screen}
+.organism{position:relative;height:58vh;margin-top:-8vh;cursor:crosshair;z-index:1}
 .organism canvas{position:absolute;inset:0;width:100%;height:100%}
 .node-tip{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(6,7,8,.94);border:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;max-width:250px}
 .node-tip b{font-weight:500}
 .node-tip .row{color:var(--dim);display:flex;gap:16px;justify-content:space-between}
-.hero .strap{display:grid;grid-template-columns:repeat(12,1fr);align-items:end;gap:2vw;margin-top:3vh}
+.hero .strap{display:grid;grid-template-columns:repeat(12,1fr);align-items:end;gap:2vw;margin-top:0}
 .hero-meta{grid-column:1/5;align-self:end;border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:13px;max-width:360px}
 .hm-row{display:flex;justify-content:space-between;gap:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
 .hm-row .val{color:var(--dim)}
@@ -192,7 +191,6 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .foot-main{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding-bottom:9vh}
 .foot-brand{grid-column:1/8}
 .foot-mark{display:block;font-family:var(--disp);font-size:clamp(64px,9vw,150px);line-height:.82;letter-spacing:-.025em}
-.foot-mark .tail{color:var(--ok)}
 .foot-brand p{max-width:560px;margin-top:4vh;font-size:clamp(18px,1.6vw,24px);font-weight:300;line-height:1.5;color:var(--dim)}
 .foot-brand p b{color:var(--txt);font-weight:500}
 .foot-cta{grid-column:9/13;align-self:end}
@@ -260,7 +258,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
     <span class="label">Into the Scrape-Verse · 2026</span>
     <span class="label">Built on Bright Data Scraper Studio</span>
   </div>
-  <h1 class="mark">MYCELIUM<span class="tail">.</span></h1>
+  <h1 class="mark">MYCELIUM</h1>
   <div class="organism">
     <canvas id="net"></canvas>
     <div class="node-tip" id="tip"></div>
@@ -337,7 +335,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 <footer class="sec foot" id="end">
   <div class="foot-main">
     <div class="foot-brand">
-      <span class="foot-mark">MYCELIUM<span class="tail">.</span></span>
+      <span class="foot-mark">MYCELIUM</span>
       <p>We didn't write a scraper. We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
     </div>
     <div class="foot-cta">
@@ -590,8 +588,8 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.15;
 const scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x060708,0.03);
-const camera=new THREE.PerspectiveCamera(27,1,0.1,100);
-camera.position.set(0,1.1,17);
+const camera=new THREE.PerspectiveCamera(34,1,0.1,100);
+camera.position.set(0,0.7,11.6);
 
 scene.add(new THREE.AmbientLight(0xffffff,0.25));
 const key=new THREE.PointLight(0xffffff,40,50);key.position.set(5,7,7);scene.add(key);
@@ -633,7 +631,7 @@ function makeLabel(text){ const c=document.createElement("canvas");c.width=512;c
   g.fillStyle="rgba(190,196,202,.9)";g.fillText(text.toUpperCase(),256,48);
   const tex=new THREE.CanvasTexture(c);tex.anisotropy=4;
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
-  sp.scale.set(2.3,0.43,1); return sp; }
+  sp.scale.set(2.9,0.54,1); return sp; }
 
 let nodeGroup=new THREE.Group();world.add(nodeGroup);
 let flows=[],NODES3=[];
@@ -643,8 +641,9 @@ function buildNodes(list){
   flows=[];NODES3=[];
   const N=Math.max(list.length,1);
   list.forEach((n,i)=>{
-    const a=(i/N)*Math.PI*2+0.9, r=5.0, y=Math.sin(a*2)*0.55;
-    const p=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r*0.55);
+    const a=(i/N)*Math.PI*2+0.9;
+    const y=Math.sin(a*2)*0.7;
+    const p=new THREE.Vector3(Math.cos(a)*6.3,y,Math.sin(a)*2.4);
     const col=COL[n.status]??0x3a4046;
     const dim=n.status==="quarantined";
 
@@ -710,6 +709,7 @@ host.addEventListener("pointerleave",()=>{tip.style.opacity=0;targetRX=0;targetP
 host.addEventListener("click",()=>{ ray.setFromCamera(ptr,camera);
   if(ray.intersectObjects(NODES3.map(n=>n.mesh))[0])document.getElementById("fleet").scrollIntoView({behavior:"smooth"}); });
 
+const _wp=new THREE.Vector3();
 let visible=true;
 new IntersectionObserver((es)=>{visible=es[0].isIntersecting;}).observe(host);
 
@@ -717,7 +717,7 @@ function frame(t){
   requestAnimationFrame(frame);
   if(!visible)return;
   const tt=t*0.001;
-  world.rotation.y=tt*0.032;
+  world.rotation.y=Math.sin(tt*0.11)*0.32;
   world.rotation.x+=(targetRX-world.rotation.x)*.04;
   camera.position.x+=(targetPan-camera.position.x)*.03;
   camera.lookAt(0,0,0);
@@ -733,7 +733,9 @@ function frame(t){
     n.glow.position.copy(n.mesh.position);
     n.halo.position.copy(n.mesh.position);
     n.halo.quaternion.copy(camera.quaternion);
-    n.label.position.set(n.mesh.position.x,n.mesh.position.y-0.58,n.mesh.position.z); }
+    n.label.position.set(n.mesh.position.x,n.mesh.position.y-0.62,n.mesh.position.z);
+    const wz=n.mesh.getWorldPosition(_wp).z;
+    n.label.material.opacity=THREE.MathUtils.clamp(.95-( -wz+2)*.18,.25,.95); }
   for(const f of flows){
     const p=(tt*.07+f.off)%1;
     f.dot.position.copy(f.curve.getPoint(p));

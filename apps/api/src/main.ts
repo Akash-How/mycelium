@@ -173,6 +173,11 @@ app.get("/geo", (c) => {
   );
 });
 
+app.use("/*", async (c, next) => {
+  await next();
+  // the page changes constantly during the hackathon — never let browsers cache it
+  if (c.req.path === "/" || c.req.path.endsWith(".html")) c.header("Cache-Control", "no-store");
+});
 app.use("/*", serveStatic({ root: "./apps/api/public" }));
 
 const port = Number(process.env.PORT ?? 4000);

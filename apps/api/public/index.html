@@ -30,6 +30,23 @@
     -webkit-font-smoothing: antialiased; min-height: 100vh;
   }
   ::selection { background: #3a3a3a; color: #fff; }
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 100; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- activity ticker ---------- */
+  .ticker { border-bottom: 1px solid var(--line); overflow: hidden; background: var(--bg2); }
+  .ticker-in {
+    display: inline-flex; gap: 3rem; padding: .42rem 0; white-space: nowrap;
+    font-family: var(--mono); font-size: .68rem; color: var(--ink3);
+    animation: tick 55s linear infinite; will-change: transform;
+  }
+  .ticker:hover .ticker-in { animation-play-state: paused; }
+  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .ticker-in b { color: var(--ink2); font-weight: 500; }
+  .ticker-in .tv { color: var(--tc, var(--ink2)); }
+  @media (prefers-reduced-motion: reduce) { .ticker-in { animation: none; } }
 
   /* ---------- header ---------- */
   .top {
@@ -90,10 +107,17 @@
   .ring .rv { font-family: var(--display); font-size: 1.7rem; font-weight: 650; }
 
   /* ---------- sections ---------- */
-  section { margin-top: 3rem; }
-  .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.1rem; }
-  .sec-head h2 { font-family: var(--display); font-size: 1.35rem; font-weight: 650; letter-spacing: -.02em; }
+  section { margin-top: 4.5rem; position: relative; }
+  section .ghost {
+    position: absolute; top: -2.6rem; right: -.5rem; z-index: 0; pointer-events: none;
+    font-family: var(--display); font-weight: 800; font-size: clamp(4rem, 9vw, 7rem);
+    letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.05);
+    user-select: none; line-height: 1;
+  }
+  .sec-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.2rem; position: relative; z-index: 1; }
+  .sec-head h2 { font-family: var(--display); font-size: clamp(1.5rem, 2.6vw, 1.9rem); font-weight: 700; letter-spacing: -.025em; }
   .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--ink3); letter-spacing: .1em; text-transform: uppercase; }
+  .sec-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); align-self: center; }
   .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
   .reveal.in { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) {
@@ -107,9 +131,10 @@
     display: flex; flex-direction: column; gap: .6rem; transition: transform .25s, border-color .25s;
   }
   .src:hover { transform: translateY(-2px); border-color: var(--line2); }
+  .src::before { content: ""; position: absolute; top: 0; left: 1rem; right: 55%; height: 2px; border-radius: 0 0 2px 2px; background: var(--sc, var(--line2)); opacity: .8; }
+  .src { position: relative; }
   .src-head { display: flex; align-items: center; gap: .6rem; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .src-head .domain { font-weight: 600; font-size: .95rem; }
+  .src-head .domain { font-family: var(--display); font-weight: 650; font-size: 1.1rem; letter-spacing: -.01em; }
   .src-head .pill { margin-left: auto; }
   .src .cid { font-family: var(--mono); font-size: .72rem; color: var(--ink3); }
   .ticks { display: flex; gap: 3px; align-items: flex-end; height: 22px; }
@@ -223,6 +248,8 @@
   }
   .cell:hover { transform: scale(1.06); z-index: 2; }
   .cell small { display: block; font-size: .6rem; color: rgba(255,255,255,.55); }
+  .matrix tr:hover td.rowh { color: var(--ink); }
+  .matrix tr:hover .cell { outline: 1px solid rgba(255,255,255,.14); }
   .matrix-note { font-size: .76rem; color: var(--ink3); margin-top: .8rem; max-width: 70ch; }
 
   /* ---------- dataset ---------- */
@@ -232,7 +259,9 @@
   .ds .h b { font-size: .95rem; }
   .ds .h span { font-family: var(--mono); font-size: .7rem; color: var(--ink3); }
   .ds table { width: 100%; border-collapse: collapse; font-size: .78rem; }
-  .ds td { padding: .32rem 0; border-top: 1px solid var(--line); color: var(--ink2); }
+  .ds tr:hover td { color: var(--ink); }
+  .ds td { padding: .32rem .3rem; border-top: 1px solid var(--line); color: var(--ink2); transition: color .15s; }
+  .ds tr:nth-child(even) td { background: rgba(255,255,255,.015); }
   .ds td.n { text-align: right; font-family: var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
   .ds td:first-child { max-width: 15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: .8rem; }
   .ds .more { font-family: var(--mono); font-size: .68rem; color: var(--ink3); padding-top: .45rem; }
@@ -257,6 +286,7 @@
     <code class="endpoint" id="copyEp" title="Click to copy">GET /export.json ⧉</code>
   </div>
 </div></div>
+<div class="ticker"><div class="ticker-in" id="ticker"></div></div>
 
 <div class="wrap">
 
@@ -273,11 +303,13 @@
   </div>
 
   <section id="fleet" class="reveal">
+    <span class="ghost" aria-hidden="true">01</span>
     <div class="sec-head"><span class="tag">01 · Network</span><h2>The fleet</h2></div>
     <div class="fleet" id="fleetGrid"></div>
   </section>
 
   <section id="incidents" class="reveal">
+    <span class="ghost" aria-hidden="true">02</span>
     <div class="sec-head"><span class="tag">02 · Survive</span><h2>Detect · diagnose · heal · verify</h2></div>
     <div class="inc-toolbar">
       <span class="inc-stats" id="incStats"></span>
@@ -290,6 +322,7 @@
   </section>
 
   <section id="divergence" class="reveal">
+    <span class="ghost" aria-hidden="true">03</span>
     <div class="sec-head"><span class="tag">03 · Markets</span><h2>Price signals by market</h2></div>
     <div class="matrix-wrap"><table class="matrix" id="matrix"></table>
       <p class="matrix-note">Daily page probes through Bright Data's unlocker, one per market (<code style="font-family:var(--mono);font-size:.9em">scrape --country</code>).
@@ -298,6 +331,7 @@
   </section>
 
   <section id="dataset" class="reveal">
+    <span class="ghost" aria-hidden="true">04</span>
     <div class="sec-head"><span class="tag">04 · Serve</span><h2>Latest verified dataset</h2></div>
     <div class="data-grid" id="dsGrid"></div>
   </section>
@@ -387,6 +421,14 @@ async function load() {
   $("k-mttr").textContent = mttr != null ? mttr + " min" : "—";
   requestAnimationFrame(() => $("ringArc")?.style.setProperty("stroke-dashoffset", 226 - 226 * uptime / 100));
 
+  /* activity ticker: latest runs, doubled for seamless loop */
+  const tickerItems = runs.slice(0, 24).map((r) => {
+    const src = sources.find((s) => s.id === r.source_id);
+    const c = cvar(STATUS[r.verdict] ?? "--ink3");
+    return `<span><b>${esc((r.started_at ?? "").slice(11, 16))}</b> ${esc(src?.domain.replace("www.","") ?? "?")} · <span class="tv" style="--tc:${c}">${esc(r.verdict ?? "run")}</span> · ${r.row_count ?? 0} rows</span>`;
+  }).join("");
+  $("ticker").innerHTML = tickerItems + tickerItems;
+
   /* organism nodes */
   const runsBySource = {};
   for (const r of runs) (runsBySource[r.source_id] ??= []).push(r);
@@ -406,9 +448,8 @@ async function load() {
       const h = r.verdict === "healthy" ? 22 : r.verdict === "degraded" ? 14 : 8;
       return `<div class="tick" style="background:${c};height:${h}px" title="${esc(r.started_at)} · ${esc(r.country)} · ${esc(r.verdict ?? "run")} · ${r.row_count ?? 0} rows"></div>`;
     }).join("") || `<div style="font-size:.72rem;color:var(--ink3)">no runs yet</div>`;
-    return `<div class="src">
-      <div class="src-head"><span class="dot" style="background:${cvar(STATUS[s.status])};box-shadow:0 0 8px ${cvar(STATUS[s.status])}"></span>
-        <span class="domain">${esc(s.domain.replace("www.",""))}</span><span class="pill ${esc(s.status)}">${esc(s.status)}</span></div>
+    return `<div class="src" style="--sc:${cvar(STATUS[s.status])}">
+      <div class="src-head"><span class="domain">${esc(s.domain.replace("www.",""))}</span><span class="pill ${esc(s.status)}">${esc(s.status)}</span></div>
       <div class="cid">${s.collector_id ? esc(s.collector_id) + " — a live Bright Data endpoint" : "no collector — " + esc(s.status)}</div>
       <div class="ticks">${ticks}</div>
       <div class="meta"><span>last: ${esc(s.last_verdict ?? "—")}</span><span>${s.birth_certified_at ? "certified " + esc(s.birth_certified_at.slice(5, 16)) : "uncertified"}</span></div>

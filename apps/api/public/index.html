@@ -828,7 +828,7 @@ let targetRX=0,targetPan=0;
 host.addEventListener("pointermove",(e)=>{
   const r=host.getBoundingClientRect();
   const nx=(e.clientX-r.left)/r.width,ny=(e.clientY-r.top)/r.height;
-  targetPan=(nx-.5)*2.2;targetRX=(ny-.5)*.22;
+  targetPan=(nx-.5)*.5;targetRX=(ny-.5)*.16;
   ptr.set(nx*2-1,-(ny*2-1));
   ray.setFromCamera(ptr,camera);
   const hit=ray.intersectObjects(NODES3.map(n=>n.mesh))[0];
@@ -854,10 +854,10 @@ function frame(t){
   requestAnimationFrame(frame);
   if(!visible)return;
   const tt=t*0.001;
-  world.rotation.y=Math.sin(tt*0.11)*0.32;
+  world.rotation.y=Math.sin(tt*0.1)*0.14;
   world.rotation.x+=(targetRX-world.rotation.x)*.028;
-  camera.position.x+=(targetPan-camera.position.x)*.022;
-  camera.lookAt(0,0,0);
+  camera.position.x+=(targetPan-camera.position.x)*.06;
+  camera.position.z=11.6;camera.lookAt(0,0,0);
   hubCore.rotation.y=tt*.3;
   const b=1+Math.sin(tt*1.3)*.05;hubCore.scale.setScalar(b);
   hubCore.material.emissiveIntensity=.4+Math.sin(tt*1.3)*.18;

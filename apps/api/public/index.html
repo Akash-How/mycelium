@@ -109,6 +109,18 @@
   .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--ink3); letter-spacing: .1em; text-transform: uppercase; }
   .sec-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); align-self: center; }
 
+  .st-em { font-family: var(--serif); font-style: italic; font-weight: 400; }
+
+  /* ---------- credo ---------- */
+  .credo { margin-top: 5.5rem; padding: 3rem 0 1rem; text-align: center; }
+  .credo .big {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: clamp(1.5rem, 3.4vw, 2.3rem); line-height: 1.3; color: var(--ink);
+    max-width: 30ch; margin: 0 auto; text-wrap: balance;
+  }
+  .credo .big b { font-family: var(--display); font-style: normal; font-weight: 700; letter-spacing: -.02em; }
+  .credo .sub { font-family: var(--mono); font-size: .7rem; color: var(--ink3); margin-top: 1.1rem; letter-spacing: .08em; }
+
   /* ---------- doctrine strip ---------- */
   .doctrine {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -266,7 +278,7 @@
   footer { margin-top: 4rem; border-top: 1px solid var(--line); padding-top: 1.4rem; display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: .78rem; color: var(--ink3); }
   footer a { color: var(--accent); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
-  .empty { color: var(--ink3); font-size: .86rem; padding: 1.2rem; background: var(--panel); border: 1px dashed var(--line); border-radius: 12px; }
+  .empty { color: var(--ink3); font-family: var(--serif); font-style: italic; font-size: 1rem; padding: 1.2rem; background: var(--panel); border: 1px dashed var(--line); border-radius: 12px; }
 </style>
 </head>
 <body>
@@ -290,7 +302,7 @@
     <div class="organism">
       <div class="caption">
         <h1>A data network<br><em>that keeps itself alive.</em></h1>
-        <p>Every node is a Scraper Studio collector. Watched, verified, self-repairing.</p>
+        <p>Every node is a Scraper Studio collector — <span class="st-em">watched, verified, self-repairing.</span></p>
       </div>
       <canvas id="net"></canvas>
       <div class="node-tip" id="tip"></div>
@@ -328,7 +340,7 @@
     <div class="sec-head"><span class="tag">03 · Markets</span><h2>Same page, <em>different market.</em></h2></div>
     <div class="matrix-wrap"><table class="matrix" id="matrix"></table>
       <p class="matrix-note">Daily page probes through Bright Data's unlocker, one per market (<code style="font-family:var(--mono);font-size:.9em">scrape --country</code>).
-      Cell = count of price tokens found, with the currencies seen. Uniform counts and currencies across a row are themselves a finding: that vendor prices globally.</p>
+      Cell = count of price tokens found, with the currencies seen. A uniform row is itself a finding: <span class="st-em">that vendor speaks one currency to the whole world.</span></p>
     </div>
   </section>
 
@@ -338,8 +350,13 @@
     <div class="data-grid" id="dsGrid"></div>
   </section>
 
+  <div class="credo reveal">
+    <p class="big">We didn't write a scraper.<br>We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
+    <p class="sub">EVERY REPAIR PASSES THREE GATES · AUTO-APPROVE IS BANNED · BUILT ON BRIGHT DATA SCRAPER STUDIO</p>
+  </div>
+
   <footer>
-    <span>Built on Bright Data Scraper Studio · every repair passes three gates · <b style="color:var(--ink2)">auto-approve is banned</b></span>
+    <span>Mycelium · a self-healing web data network · Into the Scrape-Verse 2026</span>
     <span><a href="/export.json">export.json</a> · <a href="/export.csv">export.csv</a> · <a href="/reliability">reliability</a> · <a href="/incidents">incidents</a></span>
   </footer>
 </div>
@@ -526,9 +543,9 @@ function renderIncidents() {
       ? `<pre>${esc(JSON.stringify(i.preview_sample, null, 1).slice(0, 900))}</pre>` : "";
     const note = i.symptom?.note ? `<div class="case">${esc(i.symptom.note)}</div>` : "";
     const recov = i.time_to_recovery_s
-      ? `<div class="recovery">break → verified fix in <b>${Math.round(i.time_to_recovery_s / 60)} min</b>, unattended</div>`
+      ? `<div class="recovery">break → verified fix in <b>${Math.round(i.time_to_recovery_s / 60)} min</b>, <span class="st-em">unattended.</span></div>`
       : i.decision === "quarantined"
-      ? `<div class="recovery">benched — <b>refusing to serve unverified data</b></div>` : "";
+      ? `<div class="recovery">benched — <span class="st-em">refusing to serve unverified data.</span></div>` : "";
     const miniGates = g
       ? ["contract", "golden", "continuity"].map((k) => `<i class="${g[k] ? "pass" : "fail"}" title="${k}: ${g[k] ? "pass" : "fail"}"></i>`).join("")
       : "";
@@ -607,6 +624,12 @@ function initScrollFX() {
   /* hero organism: gentle parallax out as you scroll past */
   gsap.to(".organism canvas", { y: 36, ease: "none",
     scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: .5 } });
+
+  /* credo: the closing statement rises slowly */
+  gsap.from(".credo .big", { y: 26, opacity: 0, duration: 1.1, ease: "power3.out",
+    scrollTrigger: { trigger: ".credo", start: "top 82%", once: true } });
+  gsap.from(".credo .sub", { opacity: 0, duration: 1, delay: .35,
+    scrollTrigger: { trigger: ".credo", start: "top 82%", once: true } });
 
   /* footer fade-up */
   gsap.from("footer", { y: 18, opacity: 0, duration: .8,

@@ -60,11 +60,11 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .hero .brand{font-family:var(--disp);font-size:19px;letter-spacing:.04em}
 .stage{position:relative;margin-top:1vh;height:72vh}
 .organism{position:absolute;inset:0;cursor:crosshair;z-index:1}
-.hw-wrap{position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:screen}
+.hw-wrap{position:absolute;inset:0;pointer-events:none}
 .hw{position:absolute;font-family:var(--disp);font-size:clamp(64px,12.5vw,196px);line-height:.9;letter-spacing:-.01em;user-select:none;white-space:nowrap}
-.hw1{left:0;top:2%}
-.hw2{left:38%;top:33%}
-.hw3{right:0;top:64%}
+.hw1{left:0;top:2%;z-index:2;mix-blend-mode:screen}
+.hw2{left:36%;top:31%;z-index:0;color:#aeb4ba;filter:blur(.5px)}
+.hw3{right:0;top:64%;z-index:2;mix-blend-mode:screen}
 .organism canvas{position:absolute;inset:0;width:100%;height:100%}
 .node-tip{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(6,7,8,.94);border:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;max-width:250px}
 .node-tip b{font-weight:500}

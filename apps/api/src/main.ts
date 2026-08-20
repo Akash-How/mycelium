@@ -56,6 +56,7 @@ app.get("/incidents", (c) => {
       ...r,
       symptom: JSON.parse(r.symptom_json ?? "null"),
       gates: JSON.parse(r.gates_json ?? "null"),
+      preview_sample: (JSON.parse(r.preview_json ?? "[]") as unknown[]).slice(0, 3),
       symptom_json: undefined,
       gates_json: undefined,
       preview_json: undefined,

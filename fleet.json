@@ -44,7 +44,7 @@
         "fields": [
           { "name": "plan_name", "type": "string", "required": true, "description": "The plan tier name shown on the pricing card, like Hobby or Pro", "sample": "Pro" },
           { "name": "monthly_price", "type": "number", "required": true, "description": "The plan's monthly price in USD, numeric only without the dollar sign", "sample": "20" },
-          { "name": "description", "type": "string", "required": false, "description": "The short plan description or usage allowance shown on the card", "sample": "For professional developers" }
+          { "name": "plan_description", "type": "string", "required": false, "description": "The short plan description or usage allowance shown on the card", "sample": "Includes $20 of monthly usage credits" }
         ]
       }
     },

@@ -35,18 +35,6 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
   }
 
-  /* ---------- activity ticker ---------- */
-  .ticker { border-bottom: 1px solid var(--line); overflow: hidden; background: var(--bg2); }
-  .ticker-in {
-    display: inline-flex; gap: 3rem; padding: .42rem 0; white-space: nowrap;
-    font-family: var(--mono); font-size: .68rem; color: var(--ink3);
-    animation: tick 55s linear infinite; will-change: transform;
-  }
-  .ticker:hover .ticker-in { animation-play-state: paused; }
-  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .ticker-in b { color: var(--ink2); font-weight: 500; }
-  .ticker-in .tv { color: var(--tc, var(--ink2)); }
-  @media (prefers-reduced-motion: reduce) { .ticker-in { animation: none; } }
 
   /* ---------- header ---------- */
   .top {
@@ -118,11 +106,6 @@
   .sec-head h2 { font-family: var(--display); font-size: clamp(1.5rem, 2.6vw, 1.9rem); font-weight: 700; letter-spacing: -.025em; }
   .sec-head .tag { font-family: var(--mono); font-size: .68rem; color: var(--ink3); letter-spacing: .1em; text-transform: uppercase; }
   .sec-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); align-self: center; }
-  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
-  .reveal.in { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity: 1; transform: none; transition: none; }
-  }
 
   /* ---------- fleet ---------- */
   .fleet { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: .9rem; }
@@ -286,7 +269,6 @@
     <code class="endpoint" id="copyEp" title="Click to copy">GET /export.json ⧉</code>
   </div>
 </div></div>
-<div class="ticker"><div class="ticker-in" id="ticker"></div></div>
 
 <div class="wrap">
 
@@ -342,6 +324,8 @@
   </footer>
 </div>
 
+<script src="/vendor/gsap.min.js"></script>
+<script src="/vendor/ScrollTrigger.min.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -350,10 +334,6 @@ const cvar = (n) => getComputedStyle(document.documentElement).getPropertyValue(
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 $("copyEp").onclick = () => { navigator.clipboard.writeText(location.origin + "/export.json"); $("copyEp").textContent = "copied ✓"; setTimeout(() => $("copyEp").textContent = "GET /export.json ⧉", 1200); };
-
-/* ---------- staggered reveal ---------- */
-const io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")), { threshold: .08 });
-document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
 /* ---------- count-up ---------- */
 function countUp(el, target, suffix = "", decimals = 0) {
@@ -421,13 +401,6 @@ async function load() {
   $("k-mttr").textContent = mttr != null ? mttr + " min" : "—";
   requestAnimationFrame(() => $("ringArc")?.style.setProperty("stroke-dashoffset", 226 - 226 * uptime / 100));
 
-  /* activity ticker: latest runs, doubled for seamless loop */
-  const tickerItems = runs.slice(0, 24).map((r) => {
-    const src = sources.find((s) => s.id === r.source_id);
-    const c = cvar(STATUS[r.verdict] ?? "--ink3");
-    return `<span><b>${esc((r.started_at ?? "").slice(11, 16))}</b> ${esc(src?.domain.replace("www.","") ?? "?")} · <span class="tv" style="--tc:${c}">${esc(r.verdict ?? "run")}</span> · ${r.row_count ?? 0} rows</span>`;
-  }).join("");
-  $("ticker").innerHTML = tickerItems + tickerItems;
 
   /* organism nodes */
   const runsBySource = {};
@@ -571,7 +544,56 @@ function renderIncidents() {
   }).join("") : `<div class="empty">No ${INC_FILTER === "all" ? "" : INC_FILTER + " "}incidents${INC_FILTER === "all" ? " yet — the fleet is sweeping on schedule. Breaks will appear here with their full audit trail." : "."}</div>`;
 }
 
-load();
+let FX_DONE = false;
+function initScrollFX() {
+  if (FX_DONE || reduced || !window.gsap) return;
+  FX_DONE = true;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* hero: caption rises, organism breathes in, KPIs cascade */
+  gsap.from(".caption h1", { y: 26, opacity: 0, duration: 1, ease: "power3.out" });
+  gsap.from(".caption p", { y: 18, opacity: 0, duration: .9, delay: .18, ease: "power3.out" });
+  gsap.from(".organism", { scale: .975, opacity: 0, duration: 1.1, ease: "power2.out" });
+  gsap.from(".kpi", { y: 26, opacity: 0, duration: .8, stagger: .09, delay: .25, ease: "power3.out" });
+
+  /* sections: children stagger up as each section enters */
+  const groups = [
+    ["#fleet", ".src"],
+    ["#incidents", ".inc-toolbar, .inc"],
+    ["#divergence", ".matrix-wrap"],
+    ["#dataset", ".ds"],
+  ];
+  for (const [sec, kids] of groups) {
+    const els = document.querySelectorAll(`${sec} ${kids}`.replace("#", "#"));
+    if (!els.length) continue;
+    gsap.from(els, {
+      y: 30, opacity: 0, duration: .85, stagger: .08, ease: "power3.out",
+      scrollTrigger: { trigger: sec, start: "top 78%", once: true },
+    });
+  }
+
+  /* section heads: hairline + title slide */
+  document.querySelectorAll(".sec-head").forEach((h) => {
+    gsap.from(h, { x: -22, opacity: 0, duration: .7, ease: "power3.out",
+      scrollTrigger: { trigger: h, start: "top 85%", once: true } });
+  });
+
+  /* ghost numerals: slow parallax drift, scrubbed to scroll */
+  document.querySelectorAll(".ghost").forEach((g) => {
+    gsap.fromTo(g, { yPercent: -14 }, { yPercent: 26, ease: "none",
+      scrollTrigger: { trigger: g.parentElement, start: "top bottom", end: "bottom top", scrub: .6 } });
+  });
+
+  /* hero organism: gentle parallax out as you scroll past */
+  gsap.to(".organism canvas", { y: 36, ease: "none",
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: .5 } });
+
+  /* footer fade-up */
+  gsap.from("footer", { y: 18, opacity: 0, duration: .8,
+    scrollTrigger: { trigger: "footer", start: "top 92%", once: true } });
+}
+
+load().then(initScrollFX);
 setInterval(load, 12000);
 
 /* scroll progress hairline */

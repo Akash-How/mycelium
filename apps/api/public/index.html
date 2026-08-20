@@ -62,11 +62,11 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .hero{min-height:97vh;display:flex;flex-direction:column;padding-top:4vh;padding-bottom:5vh}
 .hero .topbar{display:flex;justify-content:space-between;align-items:baseline;position:relative;z-index:95}
 .hero .brand{font-family:var(--disp);font-size:19px;letter-spacing:.04em}
-.stage{position:relative;margin-top:1vh;height:72vh}
+.stage{position:relative;margin-top:3vh;height:72vh}
 .organism{position:absolute;inset:0;cursor:crosshair;z-index:1}
 .hw-wrap{position:absolute;inset:0;pointer-events:none}
 .hw{position:absolute;font-family:var(--disp);font-size:clamp(64px,12.5vw,196px);line-height:.9;letter-spacing:-.01em;user-select:none;white-space:nowrap}
-.hw1{left:0;top:2%;z-index:2;mix-blend-mode:screen}
+.hw1{left:0;top:9%;z-index:2;mix-blend-mode:screen}
 .hw2{left:0;top:32%;z-index:0;color:#aeb4ba;filter:blur(.5px)}
 .hw3{left:0;top:63%;z-index:2;mix-blend-mode:screen}
 .organism canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -650,7 +650,7 @@ function initFX(){
   gsap.to(".hw2",{x:()=>innerWidth*.34,ease:"none",scrollTrigger:{...heroScrub,scrub:.5}});
   gsap.to(".hw3",{x:()=>Math.max(0,innerWidth*.9-(document.querySelector(".hw3")?.offsetWidth??0)),
     ease:"none",scrollTrigger:{...heroScrub,scrub:.65}});
-  gsap.to(".hw1",{yPercent:-40,ease:"none",scrollTrigger:{...heroScrub,scrub:.4}});
+  gsap.to(".hw1",{yPercent:-16,ease:"none",scrollTrigger:{...heroScrub,scrub:.4}});
   gsap.to(".organism",{y:70,scale:.97,ease:"none",scrollTrigger:{...heroScrub,scrub:.8}});
   gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.2});
 

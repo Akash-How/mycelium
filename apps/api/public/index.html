@@ -362,6 +362,8 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 
 </div>
 
+<script src="/vendor/gsap.min.js"></script>
+<script src="/vendor/ScrollTrigger.min.js"></script>
 <script>
 const $=(id)=>document.getElementById(id);
 const esc=(s)=>String(s??"").replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -528,7 +530,48 @@ async function load(){
       ${e.rows.length>6?`<div class="more">+ ${e.rows.length-6} MORE — /export.json?source=${e.source_id}</div>`:""}</div>`; }).join("")
     :`<div class="empty" style="grid-column:1/13">NO VERIFIED ROWS YET.</div>`;
 }
-load(); setInterval(load,12000);
+/* ============ scroll choreography ============ */
+let FX=false;
+function initFX(){
+  if(FX||reduced||!window.gsap)return; FX=true;
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* hero: wordmark drifts slower than the page; organism separates */
+  gsap.to(".hero .mark",{yPercent:34,ease:"none",
+    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.5}});
+  gsap.to(".organism",{y:60,ease:"none",
+    scrollTrigger:{trigger:".hero",start:"top top",end:"bottom top",scrub:.7}});
+  gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.15});
+
+  /* phases: draw in */
+  gsap.from(".phase",{opacity:0,y:14,stagger:.1,duration:.7,ease:"power3.out",
+    scrollTrigger:{trigger:".phases",start:"top 88%",once:true}});
+
+  /* stats: entrance + per-column parallax drift at different speeds */
+  document.querySelectorAll(".stat").forEach((el,i)=>{
+    gsap.from(el,{opacity:0,y:36,duration:.9,ease:"power3.out",
+      scrollTrigger:{trigger:el,start:"top 85%",once:true}});
+    gsap.to(el,{y:-(18+(i%3)*22),ease:"none",
+      scrollTrigger:{trigger:".stats",start:"top bottom",end:"bottom top",scrub:.8}});
+  });
+
+  /* rows: batched rises */
+  for(const sel of [".frow",".inc",".ds"]){
+    ScrollTrigger.batch(sel,{start:"top 90%",once:true,
+      onEnter:(els)=>gsap.from(els,{opacity:0,y:22,stagger:.06,duration:.7,ease:"power3.out"})});
+  }
+  gsap.from(".incline",{opacity:0,y:26,duration:.9,ease:"power3.out",
+    scrollTrigger:{trigger:".incsec",start:"top 78%",once:true}});
+  gsap.from(".mkt-title",{opacity:0,y:26,duration:.9,ease:"power3.out",
+    scrollTrigger:{trigger:".mkt",start:"top 78%",once:true}});
+
+  /* foot-mark: rises through the footer like the hero in reverse */
+  gsap.from(".foot-mark",{yPercent:40,opacity:0,duration:1.1,ease:"power3.out",
+    scrollTrigger:{trigger:".foot",start:"top 80%",once:true}});
+  gsap.to(".foot-mark",{yPercent:-12,ease:"none",
+    scrollTrigger:{trigger:".foot",start:"top bottom",end:"bottom bottom",scrub:.6}});
+}
+load().then(initFX); setInterval(load,12000);
 </script>
 
 <script type="module">

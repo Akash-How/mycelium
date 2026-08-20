@@ -37,6 +37,8 @@
     backdrop-filter: blur(14px); background: rgba(13,13,13,.75);
     border-bottom: 1px solid var(--line);
   }
+  #progress { position: fixed; top: 0; left: 0; height: 1.5px; width: 0; background: var(--ink); z-index: 60; opacity: .5; }
+  .kpi, .src { transform-style: preserve-3d; will-change: transform; }
   .top-in {
     max-width: 76rem; margin: 0 auto; padding: .8rem 1.5rem;
     display: flex; align-items: center; gap: 1.4rem;
@@ -243,6 +245,7 @@
 </head>
 <body>
 
+<div id="progress"></div>
 <div class="top"><div class="top-in">
   <div class="brand">Mycelium</div>
   <nav>
@@ -329,93 +332,9 @@ function countUp(el, target, suffix = "", decimals = 0) {
   })(start);
 }
 
-/* ---------- the organism (canvas) ---------- */
+/* ---------- the organism: 3D handled in module script below ---------- */
 let NODES = [];
-const canvas = $("net"), ctx = canvas.getContext("2d");
-let W, H, DPR, t0 = performance.now();
-function sizeCanvas() {
-  DPR = devicePixelRatio || 1;
-  const r = canvas.parentElement.getBoundingClientRect();
-  W = r.width; H = r.height;
-  canvas.width = W * DPR; canvas.height = H * DPR;
-  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-}
-addEventListener("resize", () => { sizeCanvas(); layout(); });
-
-function layout() {
-  const cx = W * .5, cy = H * .58, R = Math.min(W, H) * .34;
-  NODES.forEach((n, i) => {
-    const a = -Math.PI / 2 + (i / NODES.length) * Math.PI * 2;
-    n.x = cx + Math.cos(a) * R * (1 + (i % 2) * .18);
-    n.y = cy + Math.sin(a) * R * (.82 + (i % 3) * .1);
-    n.cx = cx; n.cy = cy;
-  });
-}
-
-function filament(n, t) {
-  const midx = (n.cx + n.x) / 2 + Math.sin(t * .0004 + n.x) * 14;
-  const midy = (n.cy + n.y) / 2 + Math.cos(t * .0005 + n.y) * 14;
-  return { midx, midy };
-}
-
-function draw(t) {
-  ctx.clearRect(0, 0, W, H);
-  const cx = W * .5, cy = H * .58;
-  // hub glow
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 90);
-  g.addColorStop(0, "rgba(255,255,255,.10)"); g.addColorStop(1, "transparent");
-  ctx.fillStyle = g; ctx.fillRect(cx - 90, cy - 90, 180, 180);
-
-  for (const n of NODES) {
-    const col = cvar(STATUS[n.status] ?? "--ink3");
-    const { midx, midy } = filament(n, reduced ? 0 : t);
-    // filament
-    ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo(midx, midy, n.x, n.y); ctx.stroke();
-    // traveling pulse (skip when reduced or benched)
-    if (!reduced && (n.status === "active")) {
-      const p = ((t * .00028 + n.seed) % 1);
-      const px = (1-p)*(1-p)*cx + 2*(1-p)*p*midx + p*p*n.x;
-      const py = (1-p)*(1-p)*cy + 2*(1-p)*p*midy + p*p*n.y;
-      ctx.fillStyle = col; ctx.globalAlpha = .9;
-      ctx.beginPath(); ctx.arc(px, py, 2.4, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
-    }
-    // node halo + core
-    const halo = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, 26);
-    halo.addColorStop(0, col + "44"); halo.addColorStop(1, "transparent");
-    ctx.fillStyle = halo; ctx.fillRect(n.x - 26, n.y - 26, 52, 52);
-    const wob = reduced ? 0 : Math.sin(t * .002 + n.seed * 9) * 1.2;
-    ctx.fillStyle = col;
-    ctx.beginPath(); ctx.arc(n.x, n.y, 6 + wob * (n.status === "active" ? 1 : 0), 0, 7); ctx.fill();
-    // label
-    ctx.fillStyle = "rgba(239,236,246,.85)"; ctx.font = "600 11px " + getComputedStyle(document.body).getPropertyValue("--mono");
-    ctx.textAlign = "center";
-    ctx.fillText(n.label, n.x, n.y + 22);
-  }
-  // hub
-  ctx.fillStyle = cvar("--accent");
-  ctx.beginPath(); ctx.arc(cx, cy, 9 + (reduced ? 0 : Math.sin(t * .0016) * 1.6), 0, 7); ctx.fill();
-  ctx.fillStyle = "rgba(239,236,246,.9)"; ctx.font = "700 12px " + getComputedStyle(document.body).getPropertyValue("--display");
-  ctx.fillText("mycelium", cx, cy + 28);
-  if (!reduced) requestAnimationFrame(draw);
-}
-
-canvas.parentElement.addEventListener("mousemove", (e) => {
-  const r = canvas.getBoundingClientRect();
-  const mx = e.clientX - r.left, my = e.clientY - r.top;
-  const hit = NODES.find((n) => (n.x - mx) ** 2 + (n.y - my) ** 2 < 500);
-  const tip = $("tip");
-  if (hit) {
-    tip.style.opacity = 1;
-    tip.style.left = Math.min(mx + 14, W - 240) + "px"; tip.style.top = (my + 10) + "px";
-    tip.innerHTML = `<b>${esc(hit.domain)}</b>
-      <div class="row"><span>collector</span><b>${esc(hit.cid ?? "—")}</b></div>
-      <div class="row"><span>status</span><b style="color:${cvar(STATUS[hit.status])}">${esc(hit.status)}</b></div>
-      <div class="row"><span>last run</span><b>${esc(hit.lastVerdict ?? "—")}</b></div>
-      <div class="row"><span>rows</span><b>${hit.rows ?? "—"}</b></div>`;
-  } else tip.style.opacity = 0;
-});
-
+function syncOrganism() { window.NODES = NODES; if (window.__net3d) window.__net3d.setNodes(NODES); }
 /* ---------- data load ---------- */
 async function load() {
   const first = !$("k-fleet"); // build shells on first successful fetch, even after early failures
@@ -477,7 +396,7 @@ async function load() {
     rows: exp.find((e) => e.source_id === s.id)?.rows.length,
     seed: i * .37 + .1,
   }));
-  layout();
+  syncOrganism();
 
   /* fleet cards */
   $("fleetGrid").innerHTML = sources.map((s) => {
@@ -611,9 +530,209 @@ function renderIncidents() {
   }).join("") : `<div class="empty">No ${INC_FILTER === "all" ? "" : INC_FILTER + " "}incidents${INC_FILTER === "all" ? " yet — the fleet is sweeping on schedule. Breaks will appear here with their full audit trail." : "."}</div>`;
 }
 
-sizeCanvas();
-load().then(() => { if (reduced) draw(0); else requestAnimationFrame(draw); });
+load();
 setInterval(load, 12000);
+
+/* scroll progress hairline */
+addEventListener("scroll", () => {
+  const h = document.documentElement;
+  $("progress").style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + "%";
+}, { passive: true });
+
+/* subtle 3D tilt on cards */
+if (!reduced) {
+  document.addEventListener("pointermove", (e) => {
+    const card = e.target.closest?.(".kpi, .src");
+    document.querySelectorAll(".kpi, .src").forEach((c) => { if (c !== card) c.style.transform = ""; });
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const rx = ((e.clientY - r.top) / r.height - .5) * -4;
+    const ry = ((e.clientX - r.left) / r.width - .5) * 4;
+    card.style.transform = `perspective(700px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-2px)`;
+  }, { passive: true });
+}
+</script>
+
+<script type="module">
+import * as THREE from "/vendor/three.module.min.js";
+
+const host = document.querySelector(".organism");
+const canvas = document.getElementById("net");
+const tip = document.getElementById("tip");
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const COL = {
+  active: 0x4fd39a, healthy: 0x4fd39a, degraded: 0xe6b23c,
+  broken: 0xf06060, quarantined: 0x6f6f6f, creating: 0x555555, unproven: 0x555555,
+};
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0d0d0d, 0.05);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+camera.position.set(0, 1.6, 11);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+const key = new THREE.PointLight(0xffffff, 30, 40); key.position.set(4, 6, 6); scene.add(key);
+
+const world = new THREE.Group(); scene.add(world);
+
+const hub = new THREE.Group();
+const hubCore = new THREE.Mesh(
+  new THREE.IcosahedronGeometry(0.62, 1),
+  new THREE.MeshStandardMaterial({ color: 0x1c1c1c, roughness: .4, metalness: .7,
+    emissive: 0xffffff, emissiveIntensity: .06 }));
+const hubWire = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.86, 1)),
+  new THREE.LineBasicMaterial({ color: 0xdddddd, transparent: true, opacity: .32 }));
+hub.add(hubCore, hubWire); world.add(hub);
+
+{
+  const n = 700, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    pos[i*3] = (Math.random() - .5) * 26;
+    pos[i*3+1] = (Math.random() - .5) * 14;
+    pos[i*3+2] = (Math.random() - .5) * 18 - 3;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  world.add(new THREE.Points(geo, new THREE.PointsMaterial({
+    color: 0xbbbbbb, size: 0.02, transparent: true, opacity: .35, depthWrite: false })));
+}
+
+const glowTex = (() => {
+  const c = document.createElement("canvas"); c.width = c.height = 64;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, "rgba(255,255,255,1)"); grad.addColorStop(.4, "rgba(255,255,255,.35)");
+  grad.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+})();
+
+let nodeGroup = new THREE.Group(); world.add(nodeGroup);
+let flows = [];
+let NODES3 = [];
+
+function buildNodes(list) {
+  world.remove(nodeGroup); nodeGroup = new THREE.Group(); world.add(nodeGroup);
+  flows = []; NODES3 = [];
+  const N = Math.max(list.length, 1);
+  list.forEach((n, i) => {
+    const a = (i / N) * Math.PI * 2 + 0.4;
+    const r = 4.4 + (i % 2) * 1.1;
+    const y = ((i % 3) - 1) * 1.5;
+    const p = new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.72);
+    const col = COL[n.status] ?? 0x555555;
+
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.17, 24, 24),
+      new THREE.MeshStandardMaterial({ color: 0x101010, roughness: .35, metalness: .5,
+        emissive: col, emissiveIntensity: n.status === "quarantined" ? .35 : .9 }));
+    mesh.position.copy(p);
+    mesh.userData = n;
+
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: glowTex, color: col, transparent: true, opacity: n.status === "quarantined" ? .16 : .38,
+      depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.setScalar(1.5); glow.position.copy(p);
+
+    const mid = p.clone().multiplyScalar(.5).add(new THREE.Vector3(
+      Math.sin(i * 2.7) * .9, Math.cos(i * 1.9) * .9 + .4, Math.sin(i) * .6));
+    const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0, 0), mid, p);
+    const tube = new THREE.Mesh(
+      new THREE.TubeGeometry(curve, 40, 0.012, 6, false),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .13 }));
+
+    nodeGroup.add(tube, glow, mesh);
+
+    if (n.status === "active") {
+      const dot = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: glowTex, color: col, transparent: true, opacity: .9,
+        depthWrite: false, blending: THREE.AdditiveBlending }));
+      dot.scale.setScalar(0.22);
+      nodeGroup.add(dot);
+      flows.push({ dot, curve, off: Math.random() });
+    }
+    NODES3.push({ mesh, glow, base: p.clone(), seed: i * 1.31 });
+  });
+  if (reduced) renderer.render(scene, camera);
+}
+
+window.__net3d = { setNodes: buildNodes };
+if (window.NODES && window.NODES.length) buildNodes(window.NODES);
+
+function size() {
+  const r = host.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / r.height; camera.updateProjectionMatrix();
+}
+addEventListener("resize", () => { size(); if (reduced) renderer.render(scene, camera); });
+size();
+
+const ray = new THREE.Raycaster(); const ptr = new THREE.Vector2(-9, -9);
+let targetRX = 0, targetPan = 0;
+host.addEventListener("pointermove", (e) => {
+  const r = host.getBoundingClientRect();
+  const nx = (e.clientX - r.left) / r.width, ny = (e.clientY - r.top) / r.height;
+  targetPan = (nx - .5) * 2.2; targetRX = (ny - .5) * .22;
+  ptr.set(nx * 2 - 1, -(ny * 2 - 1));
+
+  ray.setFromCamera(ptr, camera);
+  const hit = ray.intersectObjects(NODES3.map((n) => n.mesh))[0];
+  if (hit) {
+    const n = hit.object.userData;
+    tip.style.opacity = 1;
+    tip.style.left = Math.min(e.clientX - r.left + 14, r.width - 250) + "px";
+    tip.style.top = (e.clientY - r.top + 12) + "px";
+    tip.innerHTML = "<b>" + n.domain + "</b>" +
+      "<div class=\"row\"><span>collector</span><b>" + (n.cid || "—") + "</b></div>" +
+      "<div class=\"row\"><span>status</span><b>" + n.status + "</b></div>" +
+      "<div class=\"row\"><span>last run</span><b>" + (n.lastVerdict || "—") + "</b></div>" +
+      "<div class=\"row\"><span>rows</span><b>" + (n.rows ?? "—") + "</b></div>";
+    host.style.cursor = "pointer";
+  } else { tip.style.opacity = 0; host.style.cursor = "default"; }
+});
+host.addEventListener("pointerleave", () => { tip.style.opacity = 0; targetRX = 0; targetPan = 0; });
+host.addEventListener("click", () => {
+  ray.setFromCamera(ptr, camera);
+  if (ray.intersectObjects(NODES3.map((n) => n.mesh))[0]) {
+    document.getElementById("fleet").scrollIntoView({ behavior: "smooth" });
+  }
+});
+
+let visible = true;
+new IntersectionObserver((es) => { visible = es[0].isIntersecting; }).observe(host);
+
+function frame(t) {
+  requestAnimationFrame(frame);
+  if (!visible) return;
+  const tt = t * 0.001;
+  world.rotation.y = tt * 0.05;
+  world.rotation.x += (targetRX - world.rotation.x) * .04;
+  camera.position.x += (targetPan - camera.position.x) * .03;
+  camera.lookAt(0, 0, 0);
+  hub.rotation.y = tt * .12; hub.rotation.x = Math.sin(tt * .2) * .15;
+  const b = 1 + Math.sin(tt * 1.4) * .04; hubCore.scale.setScalar(b);
+  hubWire.material.opacity = .26 + Math.sin(tt * 1.4) * .08;
+  for (const n of NODES3) {
+    n.mesh.position.y = n.base.y + Math.sin(tt * .8 + n.seed) * .09;
+    n.glow.position.copy(n.mesh.position);
+  }
+  for (const f of flows) {
+    const p = (tt * .07 + f.off) % 1;
+    f.dot.position.copy(f.curve.getPoint(p));
+    f.dot.material.opacity = .25 + Math.sin(p * Math.PI) * .65;
+  }
+  renderer.render(scene, camera);
+}
+if (reduced) {
+  world.rotation.y = .6;
+  renderer.render(scene, camera);
+} else {
+  requestAnimationFrame(frame);
+}
 </script>
 </body>
 </html>

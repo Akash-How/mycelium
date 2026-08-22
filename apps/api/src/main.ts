@@ -159,16 +159,12 @@ app.get("/newest", (c) => {
       is_new: r.seeded === 0,
     };
   });
-  // Genuine arrivals outrank baseline entries: a program recorded when we
-  // first started watching a platform is not "new", it is just when we
-  // arrived. Within each group, most recent first — preferring the
-  // platform's own launch date over our first sighting.
-  const byRecency = (a: any, b: any) => {
-    if (a.is_new !== b.is_new) return a.is_new ? -1 : 1;
-    if (a.launched_at && b.launched_at) return b.launched_at.localeCompare(a.launched_at);
-    if (a.launched_at !== b.launched_at) return a.launched_at ? -1 : 1;
-    return String(b.date).localeCompare(String(a.date));
-  };
+  // Strictly newest-first on the date the row actually displays. Earlier
+  // versions preferred genuine arrivals, then entries carrying a launch
+  // date — which quietly overrode chronology and put Dec 2025 above
+  // Aug 2026. A column showing a date must be sorted by that date.
+  const stamp = (e: any) => new Date(String(e.date).replace(" ", "T")).getTime() || 0;
+  const byRecency = (a: any, b: any) => stamp(b) - stamp(a);
   out.sort(byRecency);
 
   // Only one platform publishes launch dates, so a global sort hands it the

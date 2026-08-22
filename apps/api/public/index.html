@@ -251,7 +251,9 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .dash-col{min-width:0}
 .nw{display:grid;grid-template-columns:74px 1fr auto;gap:16px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line)}
 .nw .dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
-.nw .dt.fresh{color:var(--pink)}
+.nw .dt .nd{display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--pink);margin-right:7px;vertical-align:middle;
+  box-shadow:0 0 6px rgba(255,30,45,.55)}
 .nw .pg{font-size:clamp(13px,1.2vw,16px);color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nw .pg b{color:var(--txt);font-weight:400}
 .nw .pg small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-left:8px}
@@ -417,7 +419,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <div class="dash-grid">
     <div class="dash-col">
       <div class="lb-head">
-        <span class="label">Newest per platform</span>
+        <span class="label">Newest programs</span>
         <span class="label" id="newMeta"></span>
       </div>
       <div id="newRows"></div>
@@ -445,7 +447,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
       <div class="pool" id="poolBox"></div>
     </div>
   </div>
-  <p class="mkt-note">Ranked from the latest <b>gate-verified</b> sweep of every platform. Launch dates come from the platform where published, otherwise from when the watcher first saw the program. Live at <b>/newest</b>, <b>/top</b> and <b>/signals</b>.</p>
+  <p class="mkt-note">Every figure here comes from a <b>gate-verified</b> sweep. Nothing unverified is served.</p>
 </section>
 
 <section class="sec" id="fleet" aria-label="fleet">
@@ -715,7 +717,7 @@ async function load(){
     const money=(n)=>"$"+Number(n).toLocaleString();
     $("sigTiles").innerHTML=[
       ["Programs tracked",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,""],
-      ["New this week",sig.new_this_week,"first seen by the watcher","hot"],
+      ["New this week",sig.new_this_week,"newly appeared programs","hot"],
       ["Top reward",money(sig.top_bounty),"highest published bounty",""],
       ["Paying programs",sig.paying_programs,`${sig.above_10k} pay $10k+`,""],
       ["Median reward",money(sig.median_bounty),"of those that publish one",""],
@@ -727,13 +729,13 @@ async function load(){
       const sameYear=dt.getFullYear()===new Date().getFullYear();
       return dt.toLocaleDateString(undefined,sameYear?{month:"short",day:"numeric"}:{month:"short",day:"numeric",year:"2-digit"}); };
     const freshCut=Date.now()-7*864e5;
-    $("newMeta").textContent=`LATEST 2 PER PLATFORM · /NEWEST`;
+    $("newMeta").textContent="/NEWEST";
     $("newRows").innerHTML=newest.length?newest.map((n)=>{
       const when=new Date(String(n.date).replace(" ","T")+(String(n.date).endsWith("Z")?"":"Z"));
       const fresh=n.is_new&&when.getTime()>freshCut;
       const amt=n.bounty?money(n.bounty):(n.reward_text?esc(n.reward_text):(n.access?esc(String(n.access)):"—"));
       return `<div class="nw">
-        <span class="dt ${fresh?"fresh":""}">${fresh?"NEW · ":""}${esc(fmtDate(n.date))}</span>
+        <span class="dt">${fresh?'<i class="nd" title="first seen this week"></i>':""}${esc(fmtDate(n.date))}</span>
         <span class="pg"><b>${esc(String(n.program).slice(0,46))}</b><small>· ${esc(n.platform)}</small></span>
         <span class="amt ${n.bounty?"":"none"}">${amt}</span>
       </div>`;}).join(""):`<div class="empty">NO PROGRAMS YET.</div>`;
@@ -754,7 +756,7 @@ async function load(){
     $("poolBox").innerHTML=`<div class="pk">Combined published rewards</div><div class="pv">${esc(money(sig.total_rewards_pool||0))}</div>`;
 
     const max=top.length?top[0].bounty:1;
-    $("lbMeta").textContent=`TOP ${top.length} · /TOP`;
+    $("lbMeta").textContent="/TOP";
     $("lbRows").innerHTML=top.length?top.map((t,i)=>`<div class="lb">
       <span class="rk">${String(i+1).padStart(2,"0")}</span>
       <span class="pg">${esc(String(t.program).slice(0,34))}</span>

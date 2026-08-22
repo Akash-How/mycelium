@@ -160,6 +160,72 @@
           }
         ]
       }
+    },
+    {
+      "key": "hackerone",
+      "url": "https://hackerone.com/directory/programs",
+      "proposedBy": "seed",
+      "probeScore": 1,
+      "collectorId": "c_mt4tjsqn1rh9sw6gb8",
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          {
+            "name": "program_name",
+            "type": "string",
+            "required": true,
+            "description": "The company or program handle listed in the directory",
+            "sample": "Shopify"
+          },
+          {
+            "name": "bounty_range",
+            "type": "string",
+            "required": false,
+            "description": "Reward range shown on the listing",
+            "sample": "$500-$10,000"
+          },
+          {
+            "name": "program_type",
+            "type": "string",
+            "required": false,
+            "description": "Bug Bounty or Vulnerability Disclosure Program",
+            "sample": "Bug Bounty"
+          }
+        ]
+      }
+    },
+    {
+      "key": "openbugbounty",
+      "url": "https://www.openbugbounty.org/bugbounty-list/",
+      "proposedBy": "seed",
+      "probeScore": 88,
+      "collectorId": null,
+      "contract": {
+        "minRows": 10,
+        "fields": [
+          {
+            "name": "program_name",
+            "type": "string",
+            "required": true,
+            "description": "The website or company domain running the program",
+            "sample": "example.com"
+          },
+          {
+            "name": "reward_type",
+            "type": "string",
+            "required": false,
+            "description": "Reward offered such as Bounty, Thanks or Swag",
+            "sample": "Bounty"
+          },
+          {
+            "name": "listed_date",
+            "type": "string",
+            "required": false,
+            "description": "Date the program was listed",
+            "sample": "2026-08-01"
+          }
+        ]
+      }
     }
   ],
   "discarded": [
@@ -194,11 +260,6 @@
       "probeScore": 84
     },
     {
-      "url": "https://hackerone.com/opportunities/all",
-      "reason": "public directory is a client-rendered SPA; data arrives via GraphQL POST which `scrape` (GET-only) cannot reach. Unlocker DID defeat Cloudflare (200 + cf-ray) \u2014 deferred to a JS-rendering collector, not a blocking failure",
-      "probeScore": 0
-    },
-    {
       "url": "https://huntr.com/bounties",
       "reason": "SPA shell \u2014 0 signals from markdown, data loads client-side",
       "probeScore": 0
@@ -212,6 +273,11 @@
       "url": "https://immunefi.com/bug-bounty/",
       "reason": "collector generated but Bright Data proxy returns 403 tunneling-socket error on every run (proxy_config) \u2014 a transient infra issue on this target, not a data or code problem. Deferred under the two-attempt rule.",
       "probeScore": 55
+    },
+    {
+      "url": "https://bugbounty.zoho.com/bb/home",
+      "reason": "collector generated but came back disabled \u2014 the page is a single program, not a directory, so there was no repeating row structure to extract",
+      "probeScore": 1
     }
   ],
   "retiredVertical": {

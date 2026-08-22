@@ -11,7 +11,7 @@
 :root{
   --bg:#060708; --txt:#f2f3f4; --dim:#aeb5bc; --faint:#8a919a; --read:#cdd2d7;
   --line:#1a1d20; --panel:#0d0f13;
-  --cyan:#00e5ff; --pink:#ff2a6d; --ok:#39ffb4; --warn:#ffb224;
+  --cyan:#ff3b30; --pink:#ff3b30; --ok:#f2f3f4; --warn:#9aa0a7;
   --mono:'JetBrains Mono',ui-monospace,monospace;
   --sans:'Space Grotesk',system-ui,sans-serif;
   --disp:'Anton',Impact,sans-serif;
@@ -56,7 +56,7 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .section-rail .rail-mark{display:block;width:12px;height:1px;background:var(--faint);transition:width .35s cubic-bezier(.16,1,.3,1),background .3s,box-shadow .3s}
 .section-rail a:hover .rail-name,.section-rail a.on .rail-name{opacity:1;transform:none;color:var(--txt)}
 .section-rail a:hover .rail-mark{width:24px;background:var(--dim)}
-.section-rail a.on .rail-mark{width:38px;background:var(--ok);box-shadow:0 0 12px rgba(57,255,180,.35)}
+.section-rail a.on .rail-mark{width:38px;background:var(--pink);box-shadow:0 0 12px rgba(255,59,48,.35)}
 
 /* ============ hero ============ */
 .hero{min-height:97vh;display:flex;flex-direction:column;padding-top:4vh;padding-bottom:5vh}
@@ -66,9 +66,9 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .organism{position:absolute;inset:0;cursor:crosshair;z-index:1}
 .hw-wrap{position:absolute;inset:0;pointer-events:none}
 .hw{position:absolute;font-family:var(--disp);font-size:clamp(64px,12.5vw,196px);line-height:.9;letter-spacing:-.01em;user-select:none;white-space:nowrap}
-.hw1{left:0;top:9%;z-index:2;mix-blend-mode:screen}
-.hw2{left:0;top:32%;z-index:0;color:#aeb4ba;filter:blur(.5px)}
-.hw3{left:0;top:63%;z-index:2;mix-blend-mode:screen}
+.hw1{left:0;top:7%;z-index:2;mix-blend-mode:screen}
+.hw2{left:0;top:36%;z-index:0;color:#c22a22;filter:blur(.5px)}
+.hw3{left:0;top:65%;z-index:2;mix-blend-mode:screen}
 .organism canvas{position:absolute;inset:0;width:100%;height:100%}
 .node-tip{position:absolute;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(6,7,8,.94);border:1px solid var(--line);padding:10px 14px;font-family:var(--mono);font-size:11px;max-width:250px}
 .node-tip b{font-weight:500}
@@ -78,8 +78,8 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .hm-row{display:flex;justify-content:space-between;gap:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
 .hm-row .val{color:var(--dim)}
 .hm-live{display:inline-flex;align-items:center;gap:8px}
-.hm-live i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(57,255,180,.1)}
-.hm-live{color:var(--ok)}
+.hm-live i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,59,48,.12)}
+.hm-live{color:var(--pink)}
 .hero .strap .big{grid-column:7/12;font-size:clamp(17px,1.9vw,25px);font-weight:300;line-height:1.55;max-width:620px}
 .hero .strap .big s{color:var(--faint);text-decoration-thickness:2px}
 .hero .strap .big b{font-weight:500}
@@ -149,6 +149,14 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .st.quarantined,.st.retired{color:var(--faint)}
 .st.creating,.st.unproven{color:var(--faint)}
 
+/* ============ arrivals ============ */
+.arrivals{padding-top:14vh}
+.arr{display:grid;grid-template-columns:150px 1fr auto;gap:24px;align-items:baseline;padding:17px 0;border-bottom:1px solid var(--line)}
+.arr .when{font-family:var(--mono);font-size:10.5px;color:var(--pink);letter-spacing:.12em;text-transform:uppercase}
+.arr .nm{font-size:clamp(15px,1.4vw,19px)}
+.arr .meta{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:right}
+.arr .plat{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+
 /* ============ incident ============ */
 .incsec{padding-top:16vh;padding-bottom:8vh}
 .incline{font-size:clamp(26px,4vw,52px);font-weight:300;line-height:1.28;max-width:1100px;margin:5vh 0 10vh}
@@ -211,7 +219,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .matrix td.cell small{color:var(--faint);margin-left:6px}
 .matrix tr:hover td{color:var(--txt);background:rgba(255,255,255,.012)}
 .mkt-note{font-family:var(--mono);font-size:12px;color:var(--dim);line-height:2;margin-top:26px;max-width:640px}
-.mkt-note b{color:var(--ok);font-weight:400}
+.mkt-note b{color:var(--txt);font-weight:500}
 
 /* ============ dataset ============ */
 .data{padding-top:14vh;padding-bottom:16vh}
@@ -244,7 +252,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .foot-nav nav{display:flex;gap:clamp(18px,3vw,48px);flex-wrap:wrap}
 .foot-nav a{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
 .foot-status{display:flex;align-items:center;gap:10px;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
-.foot-status i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px rgba(57,255,180,.08)}
+.foot-status i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,59,48,.1)}
 .foot-bottom{display:flex;justify-content:space-between;gap:30px;padding-top:26px;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
 
 .empty{font-family:var(--mono);font-size:12px;color:var(--dim);padding:26px 0;letter-spacing:.08em}
@@ -290,6 +298,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 
 <nav class="section-rail" aria-label="sections">
   <a href="#top" class="on"><span class="rail-name">Network</span><span class="rail-mark"></span></a>
+  <a href="#arrivals"><span class="rail-name">Arrivals</span><span class="rail-mark"></span></a>
   <a href="#loop"><span class="rail-name">The loop</span><span class="rail-mark"></span></a>
   <a href="#markets"><span class="rail-name">Markets</span><span class="rail-mark"></span></a>
   <a href="#dataset"><span class="rail-name">Dataset</span><span class="rail-mark"></span></a>
@@ -320,7 +329,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
       <div class="hm-row"><span>Rows serving</span><span class="val" id="hm-rows">—</span></div>
       <div class="hm-row"><span>Status</span><span class="hm-live"><i></i>LIVE · <span id="hm-time">syncing</span></span></div>
     </div>
-    <p class="big">Scrapers break quietly. <s>You maintain them forever.</s> This network watches its own output, writes its own repair orders, and <b>refuses to serve data it can't verify.</b></p>
+    <p class="big">In bug bounty the <b>first submission wins.</b> <s>So you refresh directories by hand.</s> This network watches every platform, repairs its own scrapers, and tells you the moment a new program lands.</p>
     <span class="scroll">SCROLL ↓</span>
   </div>
 </header>
@@ -351,6 +360,15 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
     <span class="label" id="fleetCount"></span>
   </div>
   <div class="fleet-rows" id="fleetRows"></div>
+</section>
+
+<section class="sec arrivals" id="arrivals" aria-label="new programs">
+  <div class="fleethead">
+    <span class="label">Arrivals — new programs since baseline</span>
+    <span class="label" id="arrCount"></span>
+  </div>
+  <p class="incline" style="margin:3vh 0 6vh"><span class="fire">FIRST SUBMISSION WINS</span>The moment a program appears, <b>you already know.</b></p>
+  <div id="arrList"></div>
 </section>
 
 <section class="sec incsec" id="loop" aria-label="incidents">
@@ -396,7 +414,9 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   </div>
   <div class="foot-nav">
     <nav>
+      <a href="/api">api index</a>
       <a href="/export.csv">export.csv</a>
+      <a href="/history?source=1">history</a>
       <a href="/reliability">reliability</a>
       <a href="/incidents">incidents</a>
       <a href="/geo">geo</a>
@@ -440,11 +460,11 @@ const SC={active:"var(--ok)",healthy:"var(--ok)",approved:"var(--ok)",degraded:"
 
 /* ============ rail highlight ============ */
 const railLinks=[...document.querySelectorAll(".section-rail a")];
-const railMap={top:0,loop:1,markets:2,dataset:3,end:4};
+const railMap={top:0,arrivals:1,loop:2,markets:3,dataset:4,end:5};
 new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
   const i=railMap[e.target.id]; if(i==null)return;
   railLinks.forEach((a,j)=>a.classList.toggle("on",j===i)); }); },{rootMargin:"-40% 0px -50% 0px"})
-  .observe($("top")), ["loop","markets","dataset","end"].forEach((id)=>{
+  .observe($("top")), ["arrivals","loop","markets","dataset","end"].forEach((id)=>{
   new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
     railLinks.forEach((a,j)=>a.classList.toggle("on",j===railMap[id])); }); },{rootMargin:"-40% 0px -50% 0px"}).observe($(id)); });
 
@@ -598,6 +618,24 @@ async function load(){
 
   LAST_INCIDENTS=incidents; renderIncidents();
 
+  /* arrivals: newly discovered programs */
+  try{
+    const arr=await fetch("/new?hours=720").then(r=>r.json());
+    const wl=await fetch("/watchlist").then(r=>r.json());
+    const tracked=wl.reduce((a,w)=>a+(w.tracked||0),0);
+    $("arrCount").textContent=`${arr.length} NEW · ${tracked} TRACKED ACROSS ${wl.length} SOURCES`;
+    $("arrList").innerHTML=arr.length?arr.slice(0,25).map((a)=>{
+      const e=a.entity||{};
+      const bounty=e.bounty_reward_max??e.max_bounty??e.maxRewards??null;
+      const extra=e.activity_area||e.industryName||e.category||e.program_type||e.type||"";
+      return `<div class="arr">
+        <span class="when">${esc(ago(a.first_seen_at))}</span>
+        <span class="nm">${esc(a.key)}${extra?` <span class="plat">· ${esc(extra)}</span>`:""}</span>
+        <span class="meta">${bounty?"up to "+esc(bounty):""} <span class="plat">${esc(a.source.replace("www.","").replace("api.",""))}</span></span>
+      </div>`;}).join("")
+      :`<div class="empty">BASELINE SEEDED — WATCHING ${tracked} PROGRAMS. NEW ARRIVALS APPEAR HERE THE MOMENT THEY LAND.</div>`;
+  }catch{}
+
   const geoBy=new Map();
   for(const gp of geo){ const d=gp.domain.replace("www.","");
     if(!geoBy.has(d))geoBy.set(d,new Map()); geoBy.get(d).set(gp.country,gp); }
@@ -651,12 +689,14 @@ function initFX(){
 
   /* hero: words load flush-left, then STAIRCASE OUT as you scroll —
      INTO slides to center, PROOF to the right edge, PAGES holds the left */
-  gsap.from(".hw",{x:-60,opacity:0,duration:1.1,stagger:.14,ease:"power3.out"});
+  gsap.from(".hw",{y:40,opacity:0,duration:1.1,stagger:.14,ease:"power3.out"});
   const heroScrub={trigger:".hero",start:"top top",end:"bottom top"};
-  gsap.to(".hw2",{x:()=>innerWidth*.34,ease:"none",scrollTrigger:{...heroScrub,scrub:.5}});
-  gsap.to(".hw3",{x:()=>Math.max(0,innerWidth*.9-(document.querySelector(".hw3")?.offsetWidth??0)),
-    ease:"none",scrollTrigger:{...heroScrub,scrub:.65}});
-  gsap.to(".hw1",{yPercent:-16,ease:"none",scrollTrigger:{...heroScrub,scrub:.4}});
+  gsap.fromTo(".hw2",{x:0},{x:()=>innerWidth*.34,ease:"none",immediateRender:false,
+    scrollTrigger:{...heroScrub,scrub:.5}});
+  gsap.fromTo(".hw3",{x:0},{x:()=>Math.max(0,innerWidth*.9-(document.querySelector(".hw3")?.offsetWidth??0)),
+    ease:"none",immediateRender:false,scrollTrigger:{...heroScrub,scrub:.65}});
+  gsap.fromTo(".hw1",{yPercent:0},{yPercent:-16,ease:"none",immediateRender:false,
+    scrollTrigger:{...heroScrub,scrub:.4}});
   gsap.to(".organism",{y:70,scale:.97,ease:"none",scrollTrigger:{...heroScrub,scrub:.8}});
   gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.2});
 
@@ -689,6 +729,7 @@ function initFX(){
     scrollTrigger:{trigger:".foot",start:"top bottom",end:"bottom bottom",scrub:.6}});
 }
 load().then(initFX); setInterval(load,12000);
+
 
 /* ============ smooth expand for <details> ============ */
 document.addEventListener("click",(e)=>{
@@ -723,7 +764,7 @@ const canvas=document.getElementById("net");
 const tip=document.getElementById("tip");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const COL={active:0x39ffb4,healthy:0x39ffb4,degraded:0xffb224,broken:0xff2a6d,quarantined:0x5a6068,creating:0x3a4046,unproven:0x3a4046};
+const COL={active:0xf2f3f4,healthy:0xf2f3f4,degraded:0x9aa0a7,broken:0xff3b30,quarantined:0xff3b30,creating:0x3a4046,unproven:0x3a4046};
 
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -741,25 +782,209 @@ const coreLight=new THREE.PointLight(0xffffff,12,14);scene.add(coreLight);
 const world=new THREE.Group();world.scale.setScalar(0.86);world.position.y=-0.2;scene.add(world);
 
 const hub=new THREE.Group();
-const hubCore=new THREE.Mesh(new THREE.IcosahedronGeometry(0.34,2),
-  new THREE.MeshStandardMaterial({color:0x0a0a0a,roughness:.25,metalness:.9,emissive:0xffffff,emissiveIntensity:.5}));
-const shellA=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.72,1)),
-  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));
-const shellB=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.06,1)),
-  new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.09}));
+/* the organism: a continuously morphing noise-displaced icosphere,
+   drawn as a particle skin over a faint wireframe — no assets, all math */
+function makeMorph(detail){
+  const g=new THREE.IcosahedronGeometry(1.02,detail);
+  g.userData.base=Float32Array.from(g.attributes.position.array);
+  return g;
+}
+const skinGeo=makeMorph(4), wireGeo=makeMorph(2);
+const skin=new THREE.Points(skinGeo,new THREE.PointsMaterial({color:0xe6ebe9,size:0.02,
+  transparent:true,opacity:.65,depthWrite:false,blending:THREE.AdditiveBlending}));
+const wire=new THREE.Mesh(wireGeo,new THREE.MeshBasicMaterial({color:0xffffff,
+  wireframe:true,transparent:true,opacity:.07}));
+/* the core morphs between the icons of the trade:
+   globe (the web) → spider web (scraping) → database (structured data)
+   → torus (the pipeline) — all procedural point clouds */
+const CN=1300;
+function tSphere(){const a=new Float32Array(CN*3);const ga=Math.PI*(3-Math.sqrt(5));
+  for(let i=0;i<CN;i++){const y=1-(i/(CN-1))*2;const r=Math.sqrt(1-y*y);const th=ga*i;
+    a[i*3]=Math.cos(th)*r*.52;a[i*3+1]=y*.52;a[i*3+2]=Math.sin(th)*r*.52;}return a;}
+function tWeb(){const a=new Float32Array(CN*3);const SP=8,RG=5;
+  for(let i=0;i<CN;i++){let x,y;
+    if(i%5<2){const sp=Math.floor(Math.random()*SP);const ang=sp*(Math.PI*2/SP);
+      const r=.06+Math.random()*.56;x=Math.cos(ang)*r;y=Math.sin(ang)*r;}
+    else{const rg=1+Math.floor(Math.random()*RG);const r=rg*.115;
+      const ang=Math.random()*Math.PI*2;
+      const seg=Math.floor(ang/(Math.PI*2/SP)),a0=seg*(Math.PI*2/SP),a1=a0+Math.PI*2/SP;
+      const f=(ang-a0)/(a1-a0);
+      const p0x=Math.cos(a0)*r,p0y=Math.sin(a0)*r,p1x=Math.cos(a1)*r,p1y=Math.sin(a1)*r;
+      x=p0x+(p1x-p0x)*f;y=p0y+(p1y-p0y)*f;}
+    a[i*3]=x;a[i*3+1]=y;a[i*3+2]=(Math.random()-.5)*.03;}return a;}
+function tDb(){const a=new Float32Array(CN*3);const LV=[-.3,0,.3];
+  for(let i=0;i<CN;i++){const lv=LV[i%3];const ang=Math.random()*Math.PI*2;
+    if(i%7<4){a[i*3]=Math.cos(ang)*.4;a[i*3+1]=lv+(Math.random()-.5)*.09;a[i*3+2]=Math.sin(ang)*.4;}
+    else{const r=Math.sqrt(Math.random())*.4;
+      a[i*3]=Math.cos(ang)*r;a[i*3+1]=lv+.05;a[i*3+2]=Math.sin(ang)*r;}}return a;}
+function tTorus(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const u=Math.random()*Math.PI*2,v=Math.random()*Math.PI*2;
+    const R=.4,r=.14;
+    a[i*3]=(R+r*Math.cos(v))*Math.cos(u);
+    a[i*3+1]=r*Math.sin(v);
+    a[i*3+2]=(R+r*Math.cos(v))*Math.sin(u);}return a;}
+/* helpers for polyline / surface shapes */
+function fromSegs(segs,th){const a=new Float32Array(CN*3);let L=0;
+  for(const g of segs)L+=Math.hypot(g[3]-g[0],g[4]-g[1],g[5]-g[2]);
+  for(let i=0;i<CN;i++){let d=Math.random()*L,x=0,y=0,z=0;
+    for(const g of segs){const l=Math.hypot(g[3]-g[0],g[4]-g[1],g[5]-g[2]);
+      if(d<=l){const f=d/l;x=g[0]+(g[3]-g[0])*f;y=g[1]+(g[4]-g[1])*f;z=g[2]+(g[5]-g[2])*f;break;}
+      d-=l;}
+    a[i*3]=x+(Math.random()-.5)*th;a[i*3+1]=y+(Math.random()-.5)*th;a[i*3+2]=z+(Math.random()-.5)*th;}
+  return a;}
+function tCubeGrid(){const a=new Float32Array(CN*3);const G=5;
+  for(let i=0;i<CN;i++){
+    a[i*3]=(Math.floor(Math.random()*G)/(G-1)-.5)*.85;
+    a[i*3+1]=(Math.floor(Math.random()*G)/(G-1)-.5)*.85;
+    a[i*3+2]=(Math.floor(Math.random()*G)/(G-1)-.5)*.85;}return a;}
+function tTable(){const a=new Float32Array(CN*3);const R=7,C=10;
+  for(let i=0;i<CN;i++){
+    a[i*3]=(Math.floor(Math.random()*C)/(C-1)-.5)*.95;
+    a[i*3+1]=(Math.floor(Math.random()*R)/(R-1)-.5)*.6;
+    a[i*3+2]=(Math.random()-.5)*.03;}return a;}
+function tHelix(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const t=(i/CN)*Math.PI*6;const st=i%2?0:Math.PI;
+    const y=(i/CN-.5)*1.05;
+    if(i%9===8){const t2=Math.random()*Math.PI*6;const y2=(t2/(Math.PI*6)-.5)*1.05;
+      const f=Math.random();
+      a[i*3]=Math.cos(t2)* .3*(1-2*f)+0;a[i*3]=(Math.cos(t2)*.3)*(1-f)+(Math.cos(t2+Math.PI)*.3)*f;
+      a[i*3+1]=y2;a[i*3+2]=(Math.sin(t2)*.3)*(1-f)+(Math.sin(t2+Math.PI)*.3)*f;}
+    else{a[i*3]=Math.cos(t+st)*.3;a[i*3+1]=y;a[i*3+2]=Math.sin(t+st)*.3;}}return a;}
+function tWave(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const x=(Math.random()-.5)*1.1,z=(Math.random()-.5)*.8;
+    a[i*3]=x;a[i*3+1]=Math.sin(x*6)*.22+Math.sin(z*4)*.1;a[i*3+2]=z;}return a;}
+function tBars(){const a=new Float32Array(CN*3);const H=[.25,.5,.35,.7,.45,.85,.6];
+  for(let i=0;i<CN;i++){const b=i%H.length;const h=H[b];
+    a[i*3]=(b/(H.length-1)-.5)*.95;
+    a[i*3+1]=-.4+Math.random()*h;
+    a[i*3+2]=(Math.random()-.5)*.1;}return a;}
+function tClusters(){const a=new Float32Array(CN*3);
+  const CS=[[-.4,.25,0],[.38,.3,.1],[.05,-.32,-.05]];
+  for(let i=0;i<CN;i++){const c=CS[i%3];
+    const g=()=>((Math.random()+Math.random()+Math.random())-1.5)/1.5*.2;
+    a[i*3]=c[0]+g();a[i*3+1]=c[1]+g();a[i*3+2]=c[2]+g();}return a;}
+function tPyramid(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const h=Math.random();const r=(1-h)*.5;
+    const ang=Math.floor(Math.random()*4)*Math.PI/2+Math.PI/4;
+    const f=Math.random();
+    const ang2=Math.floor(Math.random()*4)*Math.PI/2+Math.PI/4;
+    const x1=Math.cos(ang)*r,z1=Math.sin(ang)*r,x2=Math.cos(ang2)*r,z2=Math.sin(ang2)*r;
+    a[i*3]=x1+(x2-x1)*f;a[i*3+1]=h*.8-.4;a[i*3+2]=z1+(z2-z1)*f;}return a;}
+function tCoil(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const t=(i/CN)*Math.PI*8;
+    a[i*3]=Math.cos(t)*.42;a[i*3+1]=(i/CN-.5)*.9;a[i*3+2]=Math.sin(t)*.42;}return a;}
+function tHourglass(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const y=(Math.random()-.5);const r=Math.abs(y)*.75+.04;
+    const ang=Math.random()*Math.PI*2;
+    a[i*3]=Math.cos(ang)*r*.6;a[i*3+1]=y*.9;a[i*3+2]=Math.sin(ang)*r*.6;}return a;}
+function tChain(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const u=Math.random()*Math.PI*2,v=Math.random()*Math.PI*2;
+    const R=.26,r=.09;const left=i%2===0;
+    const x=(R+r*Math.cos(v))*Math.cos(u),yy=r*Math.sin(v),z=(R+r*Math.cos(v))*Math.sin(u);
+    if(left){a[i*3]=x-.28;a[i*3+1]=yy;a[i*3+2]=z;}
+    else{a[i*3]=x+.28;a[i*3+1]=z;a[i*3+2]=yy;}}return a;}
+function tTree(){const a=new Float32Array(CN*3);const LV=4;
+  for(let i=0;i<CN;i++){const lv=i%LV;const y=.42-lv*.27;
+    const n=Math.pow(2,lv);const k=Math.floor(Math.random()*n);
+    const x=((k+.5)/n-.5)*1.0;
+    if(i%5===4&&lv<LV-1){const nk=Math.floor(k*2+Math.random()*2);
+      const x2=((nk+.5)/(n*2)-.5)*1.0;const f=Math.random();
+      a[i*3]=x+(x2-x)*f;a[i*3+1]=y+(-.27)*f;a[i*3+2]=0;}
+    else{a[i*3]=x+(Math.random()-.5)*.05;a[i*3+1]=y+(Math.random()-.5)*.05;a[i*3+2]=(Math.random()-.5)*.05;}}
+  return a;}
+function tMagnifier(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){
+    if(i%4<3){const ang=Math.random()*Math.PI*2;const r=.34+(Math.random()-.5)*.05;
+      a[i*3]=Math.cos(ang)*r-.08;a[i*3+1]=Math.sin(ang)*r+.08;a[i*3+2]=(Math.random()-.5)*.05;}
+    else{const f=Math.random();
+      a[i*3]=.16+f*.36;a[i*3+1]=-.16-f*.36;a[i*3+2]=(Math.random()-.5)*.05;}}return a;}
+function tCheck(){return fromSegs([[-.45,.05,0,-.12,-.3,0],[-.12,-.3,0,.5,.38,0]],.07);}
+function tBolt(){return fromSegs([[.18,.5,0,-.2,.05,0],[-.2,.05,0,.08,.02,0],[.08,.02,0,-.18,-.5,0]],.07);}
+function tEye(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){
+    if(i%3===0){const t=Math.random()*Math.PI*2;
+      a[i*3]=Math.cos(t)*.55;a[i*3+1]=Math.sin(t)*.28*Math.abs(Math.sin(t))**.3*Math.sign(Math.sin(t));a[i*3+2]=0;}
+    else if(i%3===1){const t=Math.random()*Math.PI*2;const r=.18+(Math.random()-.5)*.03;
+      a[i*3]=Math.cos(t)*r;a[i*3+1]=Math.sin(t)*r;a[i*3+2]=.02;}
+    else{const g=()=>((Math.random()+Math.random())-1)*.07;
+      a[i*3]=g();a[i*3+1]=g();a[i*3+2]=.04;}}return a;}
+function tFunnel(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const y=Math.random();const r=y<.45?.09:.09+(y-.45)*.85;
+    const ang=Math.random()*Math.PI*2;
+    a[i*3]=Math.cos(ang)*r;a[i*3+1]=y*.95-.45;a[i*3+2]=Math.sin(ang)*r;}return a;}
+function tRings(){const a=new Float32Array(CN*3);
+  for(let i=0;i<CN;i++){const k=i%3;const t=Math.random()*Math.PI*2;const r=.45;
+    if(k===0){a[i*3]=Math.cos(t)*r;a[i*3+1]=Math.sin(t)*r;a[i*3+2]=0;}
+    else if(k===1){a[i*3]=Math.cos(t)*r;a[i*3+1]=0;a[i*3+2]=Math.sin(t)*r;}
+    else{a[i*3]=0;a[i*3+1]=Math.cos(t)*r;a[i*3+2]=Math.sin(t)*r;}}return a;}
+function tArrowUp(){return fromSegs([[0,-.5,0,0,.42,0],[0,.42,0,-.28,.12,0],[0,.42,0,.28,.12,0]],.08);}
+function tCloud(){const a=new Float32Array(CN*3);
+  const CS=[[-.28,-.02,0,.2],[0,.12,0,.26],[.3,-.02,0,.22],[0,-.1,0,.3]];
+  for(let i=0;i<CN;i++){const c=CS[i%CS.length];
+    const u=Math.random()*Math.PI*2,v=Math.acos(2*Math.random()-1);
+    a[i*3]=c[0]+Math.sin(v)*Math.cos(u)*c[3];
+    a[i*3+1]=c[1]+Math.abs(Math.cos(v))*c[3]*.7;
+    a[i*3+2]=c[2]+Math.sin(v)*Math.sin(u)*c[3]*.5;}return a;}
+const SHAPES=[tSphere(),tWeb(),tDb(),tTable(),tTorus(),tCheck(),tHelix(),tBars(),
+  tFunnel(),tCubeGrid(),tEye(),tClusters(),tCoil(),tTree(),tMagnifier(),tWave(),
+  tChain(),tPyramid(),tHourglass(),tBolt(),tCloud(),tRings(),tArrowUp()];
+const coreGeo=new THREE.BufferGeometry();
+coreGeo.setAttribute("position",new THREE.BufferAttribute(Float32Array.from(SHAPES[0]),3));
+const hubCore=new THREE.Points(coreGeo,new THREE.PointsMaterial({color:0xeef2f0,size:0.021,
+  transparent:true,opacity:.85,depthWrite:false,blending:THREE.AdditiveBlending}));
+const nucleus=new THREE.Mesh(new THREE.IcosahedronGeometry(0.07,2),
+  new THREE.MeshStandardMaterial({color:0x111111,metalness:.9,roughness:.3,emissive:0xffffff,emissiveIntensity:.7}));
+hub.add(nucleus);
+hub.add(skin,wire);
+function morphNoise(x,y,z,t){
+  return Math.sin(x*1.9+t*.9)*.42+Math.sin(y*2.6+t*.6)*.3
+    +Math.sin(z*2.2+t*1.15)*.34+Math.sin((x+y+z)*1.4-t*.5)*.3;
+}
+function morph(geo,t,amp){
+  const pos=geo.attributes.position.array,base=geo.userData.base;
+  for(let i=0;i<pos.length;i+=3){
+    const bx=base[i],by=base[i+1],bz=base[i+2];
+    const d=1+amp*morphNoise(bx,by,bz,t);
+    pos[i]=bx*d;pos[i+1]=by*d;pos[i+2]=bz*d;
+  }
+  geo.attributes.position.needsUpdate=true;
+}
 const ringG=new THREE.Group();
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1.7,0.006,8,160),
   new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3}));
 const ringDot=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,12),
-  new THREE.MeshBasicMaterial({color:0x39ffb4}));
+  new THREE.MeshBasicMaterial({color:0xff3b30}));
 ringDot.position.set(1.7,0,0);
 ringG.add(ring,ringDot);ringG.rotation.x=Math.PI*0.42;ringG.rotation.y=0.25;
-hub.add(hubCore,shellA,shellB,ringG);world.add(hub);
+hub.add(hubCore,ringG);world.add(hub);
 
-{ const n=700,pos=new Float32Array(n*3);
-  for(let i=0;i<n;i++){pos[i*3]=(Math.random()-.5)*26;pos[i*3+1]=(Math.random()-.5)*14;pos[i*3+2]=(Math.random()-.5)*18-3;}
+/* rolling particle terrain — the luminous ground */
+let terrain,terrainPos,TCOLS=150,TROWS=34;
+{ const n=TCOLS*TROWS;
+  terrainPos=new Float32Array(n*3);
+  const cols=new Float32Array(n*3);
+  const cMint=new THREE.Color(0xff3b30),cDim=new THREE.Color(0x44464a),cWhite=new THREE.Color(0xcfd4d0);
+  let k=0;
+  for(let r=0;r<TROWS;r++)for(let c=0;c<TCOLS;c++){
+    terrainPos[k*3]=(c/(TCOLS-1)-.5)*30;
+    terrainPos[k*3+1]=-3.4;
+    terrainPos[k*3+2]=-(r/(TROWS-1))*14+3;
+    const m=Math.random();
+    const col=m<.035?cMint.clone():(m<.2?cWhite.clone():cDim.clone());
+    cols[k*3]=col.r;cols[k*3+1]=col.g;cols[k*3+2]=col.b;k++;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.BufferAttribute(terrainPos,3));
+  geo.setAttribute("color",new THREE.BufferAttribute(cols,3));
+  terrain=new THREE.Points(geo,new THREE.PointsMaterial({size:0.045,vertexColors:true,
+    transparent:true,opacity:.55,depthWrite:false,blending:THREE.AdditiveBlending}));
+  world.add(terrain);
+}
+/* ambient drift motes */
+{ const n=900,pos=new Float32Array(n*3);
+  for(let i=0;i<n;i++){pos[i*3]=(Math.random()-.5)*26;pos[i*3+1]=(Math.random()-.5)*12;pos[i*3+2]=(Math.random()-.5)*16-2;}
   const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
-  world.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0xaaaaaa,size:0.016,transparent:true,opacity:.12,depthWrite:false}))); }
+  world.add(new THREE.Points(geo,new THREE.PointsMaterial({color:0x9aa0a7,size:0.02,transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending}))); }
 
 const glowTex=(()=>{ const c=document.createElement("canvas");c.width=c.height=64;
   const g=c.getContext("2d");
@@ -779,14 +1004,24 @@ function makeLabel(text){ const c=document.createElement("canvas");c.width=512;c
 let nodeGroup=new THREE.Group();world.add(nodeGroup);
 let flows=[],NODES3=[];
 
+let LAST_LIST=[];
+function frustumHalfWidth(){
+  return Math.tan(camera.fov*Math.PI/360)*camera.position.z*camera.aspect;
+}
 function buildNodes(list){
+  LAST_LIST=list;
   world.remove(nodeGroup);nodeGroup=new THREE.Group();world.add(nodeGroup);
   flows=[];NODES3=[];
   const N=Math.max(list.length,1);
+  /* fit the ellipse to the viewport: right two-thirds, words own the left */
+  const halfW=frustumHalfWidth()/0.86;
+  const xR=Math.min(halfW*.52,6.4), zR=Math.min(xR*.4,2.4);
+  world.position.x=halfW*.86*.16;
   list.forEach((n,i)=>{
     const a=(i/N)*Math.PI*2+0.9;
     const y=Math.sin(a*2)*0.7;
-    const p=new THREE.Vector3(Math.cos(a)*6.3,y,Math.sin(a)*2.4);
+    const p=new THREE.Vector3(Math.cos(a)*xR,y,Math.sin(a)*zR);
+    if(Math.abs(p.x)<1.75)p.x=(p.x<0?-1:1)*1.75;
     const col=COL[n.status]??0x3a4046;
     const dim=n.status==="quarantined";
 
@@ -798,8 +1033,21 @@ function buildNodes(list){
       new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:dim?.14:.38,side:THREE.DoubleSide,depthWrite:false}));
     halo.position.copy(p);
 
-    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:col,transparent:true,opacity:dim?.06:.16,depthWrite:false,blending:THREE.AdditiveBlending}));
-    glow.scale.setScalar(0.6);glow.position.copy(p);
+    /* particle swarm around the node — density by health */
+    const cn=dim?70:190;
+    const cpos=new Float32Array(cn*3);
+    for(let ci=0;ci<cn;ci++){
+      const g1=(Math.random()+Math.random()+Math.random()-1.5)/1.5;
+      const g2=(Math.random()+Math.random()+Math.random()-1.5)/1.5;
+      const g3=(Math.random()+Math.random()+Math.random()-1.5)/1.5;
+      cpos[ci*3]=g1*.55;cpos[ci*3+1]=g2*.42;cpos[ci*3+2]=g3*.4;
+    }
+    const cgeo=new THREE.BufferGeometry();
+    cgeo.setAttribute("position",new THREE.BufferAttribute(cpos,3));
+    const glow=new THREE.Points(cgeo,new THREE.PointsMaterial({color:col,size:0.024,
+      transparent:true,opacity:dim?.22:.5,depthWrite:false,blending:THREE.AdditiveBlending}));
+    glow.position.copy(p);
+    glow.userData.spin=.12+Math.random()*.2;
     nodeGroup.add(halo);
 
     const c1=p.clone().multiplyScalar(.3).add(new THREE.Vector3(0,.9+Math.sin(i*2.1)*.3,0));
@@ -826,8 +1074,9 @@ if(window.NODES&&window.NODES.length)buildNodes(window.NODES);
 function size(){ const r=host.getBoundingClientRect();
   renderer.setSize(r.width,r.height,false);
   camera.aspect=r.width/r.height;camera.updateProjectionMatrix(); }
-addEventListener("resize",()=>{size();if(reduced)renderer.render(scene,camera);});
-new ResizeObserver(()=>{size();if(reduced)renderer.render(scene,camera);}).observe(host);
+function refit(){size();if(LAST_LIST.length)buildNodes(LAST_LIST);if(reduced)renderer.render(scene,camera);}
+addEventListener("resize",refit);
+new ResizeObserver(refit).observe(host);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(size);
 size();
 
@@ -865,16 +1114,46 @@ function frame(t){
   world.rotation.y=Math.sin(tt*0.1)*0.14;
   world.rotation.x+=(targetRX-world.rotation.x)*.028;
   camera.position.x=0;camera.position.z=11.6;camera.lookAt(0,0,0);
-  hubCore.rotation.y=tt*.3;
-  const b=1+Math.sin(tt*1.3)*.05;hubCore.scale.setScalar(b);
-  hubCore.material.emissiveIntensity=.4+Math.sin(tt*1.3)*.18;
-  shellA.rotation.y=tt*.16;shellA.rotation.z=tt*.05;
-  shellB.rotation.y=-tt*.07;shellB.rotation.x=Math.sin(tt*.15)*.2;
+  /* shape cycle: hold 4.4s, morph 1.8s, eased */
+  {
+    const P=6.2,M=1.8,ph=tt%P,ci=Math.floor(tt/P)%SHAPES.length;
+    const prev=SHAPES[(ci+SHAPES.length-1)%SHAPES.length],cur=SHAPES[ci];
+    let e=ph<M?ph/M:1;
+    e=e<.5?4*e*e*e:1-Math.pow(-2*e+2,3)/2;
+    const pos=coreGeo.attributes.position.array;
+    for(let i=0;i<pos.length;i+=3){
+      const j=Math.sin(tt*1.7+i)*.008;
+      pos[i]=prev[i]+(cur[i]-prev[i])*e+j;
+      pos[i+1]=prev[i+1]+(cur[i+1]-prev[i+1])*e+Math.cos(tt*1.4+i)*.008;
+      pos[i+2]=prev[i+2]+(cur[i+2]-prev[i+2])*e+j;
+    }
+    coreGeo.attributes.position.needsUpdate=true;
+  }
+  hubCore.rotation.y=tt*.25;hubCore.rotation.x=Math.sin(tt*.2)*.25;
+  nucleus.material.emissiveIntensity=.5+Math.sin(tt*1.3)*.2;
+  skin.rotation.y=tt*.06;wire.rotation.y=-tt*.04;
   ringG.rotation.z=tt*.1;
+  /* terrain: layered travelling waves */
+  if(terrain){
+    const pos=terrain.geometry.attributes.position;
+    let k=0;
+    for(let r=0;r<TROWS;r++)for(let c=0;c<TCOLS;c++){
+      const x=terrainPos[k*3],z=terrainPos[k*3+2];
+      pos.array[k*3+1]=-3.4
+        +Math.sin(x*.42+tt*.7)*Math.cos(z*.5+tt*.45)*.55
+        +Math.sin(x*.13+tt*.3)*.8
+        +Math.sin(z*.3-tt*.5)*.3;
+      k++;
+    }
+    pos.needsUpdate=true;
+  }
+
   const rd=tt*.5;ringDot.position.set(Math.cos(rd)*1.7,Math.sin(rd)*1.7,0);
   for(const n of NODES3){
     n.mesh.position.y=n.base.y+Math.sin(tt*.8+n.seed)*.05;
     n.glow.position.copy(n.mesh.position);
+    n.glow.rotation.y=tt*n.glow.userData.spin;
+    n.glow.rotation.z=tt*n.glow.userData.spin*.6;
     n.halo.position.copy(n.mesh.position);
     n.halo.quaternion.copy(camera.quaternion);
     n.label.position.set(n.mesh.position.x,n.mesh.position.y-0.62,n.mesh.position.z);

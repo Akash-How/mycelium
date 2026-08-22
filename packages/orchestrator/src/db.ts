@@ -91,6 +91,15 @@ CREATE TABLE IF NOT EXISTS spend (
   page_loads INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS discovery (
+  id INTEGER PRIMARY KEY,
+  source_id INTEGER NOT NULL REFERENCES source(id),
+  entity_key TEXT NOT NULL,
+  first_seen_at TEXT NOT NULL DEFAULT (datetime('now')),
+  payload_json TEXT NOT NULL,
+  seeded INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS geo_probe (
   id INTEGER PRIMARY KEY,
   source_id INTEGER NOT NULL REFERENCES source(id),
@@ -101,6 +110,7 @@ CREATE TABLE IF NOT EXISTS geo_probe (
   currency_set TEXT NOT NULL
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS discovery_unique ON discovery(source_id, entity_key);
 CREATE UNIQUE INDEX IF NOT EXISTS fixture_unique ON golden_fixture(source_id, field, row_key);
 CREATE INDEX IF NOT EXISTS run_source_time ON run(source_id, started_at DESC);
 CREATE INDEX IF NOT EXISTS incident_source_time ON incident(source_id, detected_at DESC);

@@ -9,7 +9,94 @@ import { openDb } from "@mycelium/orchestrator/src/db.js";
 const db = openDb();
 const app = new Hono();
 
+// the dataset is a public product: any origin may read it
+app.use("*", async (c, next) => {
+  await next();
+  c.header("Access-Control-Allow-Origin", "*");
+  c.header("Access-Control-Allow-Methods", "GET");
+});
+
 app.get("/health", (c) => c.json({ ok: true }));
+
+// self-describing index so consumers can discover the surface
+app.get("/api", (c) =>
+  c.json({
+    name: "Mycelium",
+    description:
+      "Self-healing web data network. All data is verified before serving.",
+    endpoints: {
+      "/export.json?source=N": "latest verified rows per source (omit source for all)",
+      "/export.csv?source=N": "same dataset as tidy CSV (field,row_index,value)",
+      "/history?source=N": "full time series: every verified run's rows for one source",
+      "/sources": "the fleet: status, contract, certification",
+      "/runs?source=N&limit=M": "run log: verdicts and row counts",
+      "/incidents": "every break: symptom, machine-written heal prompt, gates, decision",
+      "/new?hours=N": "entities that appeared since the baseline — the first-submission signal",
+      "/watchlist": "what each source tracks, and when its baseline was seeded",
+      "/geo": "signal counts per market from 8-country page probes",
+      "/reliability": "fleet totals, heal rate, mean recovery",
+    },
+  }),
+);
+
+// newly-appeared entities: in bug bounty the first submission wins, so this
+// is the endpoint that matters. Only fed by runs the sentinel scored healthy.
+app.get("/new", (c) => {
+  const hours = Math.min(Number(c.req.query("hours") ?? 168), 24 * 90);
+  const rows = db
+    .prepare(
+      `SELECT d.first_seen_at, d.entity_key, d.payload_json, s.domain, s.id AS source_id
+       FROM discovery d JOIN source s ON s.id = d.source_id
+       WHERE d.seeded = 0
+         AND d.first_seen_at >= datetime('now', '-' || ? || ' hours')
+       ORDER BY d.first_seen_at DESC LIMIT 300`,
+    )
+    .all(hours) as any[];
+  return c.json(
+    rows.map((r) => ({
+      first_seen_at: r.first_seen_at,
+      source: r.domain,
+      source_id: r.source_id,
+      key: r.entity_key,
+      entity: JSON.parse(r.payload_json),
+    })),
+  );
+});
+
+// what each source is currently tracking, and when its baseline was seeded
+app.get("/watchlist", (c) => {
+  const rows = db
+    .prepare(
+      `SELECT s.domain, s.id AS source_id, COUNT(*) AS tracked,
+              SUM(CASE WHEN d.seeded = 0 THEN 1 ELSE 0 END) AS discovered_since_baseline,
+              MIN(d.first_seen_at) AS baseline_at, MAX(d.first_seen_at) AS latest_at
+       FROM discovery d JOIN source s ON s.id = d.source_id
+       GROUP BY d.source_id ORDER BY tracked DESC`,
+    )
+    .all();
+  return c.json(rows);
+});
+
+// the accumulated time series — the dataset's real value grows here
+app.get("/history", (c) => {
+  const sourceId = c.req.query("source");
+  if (!sourceId) return c.json({ error: "pass ?source=N (see /sources)" }, 400);
+  const rows = db
+    .prepare(
+      `SELECT started_at, country, verdict, row_count, rows_json
+       FROM run WHERE source_id = ? AND verdict = 'healthy' AND rows_json IS NOT NULL
+       ORDER BY started_at ASC LIMIT 500`,
+    )
+    .all(sourceId) as any[];
+  return c.json(
+    rows.map((r) => ({
+      as_of: r.started_at,
+      country: r.country,
+      row_count: r.row_count,
+      rows: JSON.parse(r.rows_json),
+    })),
+  );
+});
 
 app.get("/sources", (c) => {
   const rows = db

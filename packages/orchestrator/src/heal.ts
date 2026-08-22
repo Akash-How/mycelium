@@ -65,7 +65,7 @@ export async function healIncident(
     .prepare(
       "SELECT field, row_key AS rowKey, expected FROM golden_fixture WHERE source_id = ?",
     )
-    .all(sourceId) as GoldenFixture[];
+    .all(sourceId) as unknown as GoldenFixture[];
   const lastHealthy = db
     .prepare(
       `SELECT rows_json FROM run

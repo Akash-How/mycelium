@@ -1,5 +1,5 @@
 {
-  "intent": "Track what AI APIs, GPU clouds and developer platforms actually cost across regions: models, plans, per-unit prices, currencies and limits.",
+  "intent": "Track every public bug bounty program across the major platforms \u2014 and surface newly launched ones the moment they appear, because the first submission wins.",
   "sources": [
     {
       "key": "deepinfra",
@@ -10,10 +10,34 @@
       "contract": {
         "minRows": 10,
         "fields": [
-          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed on the pricing page, e.g. in the model pricing table or cards", "sample": "Llama-3.3-70B-Instruct" },
-          { "name": "input_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only without the dollar sign", "sample": "0.23" },
-          { "name": "output_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million output tokens, numeric only without the dollar sign", "sample": "0.40" },
-          { "name": "category", "type": "string", "required": false, "description": "The model type or category label if shown, such as text generation or embeddings", "sample": "text-generation" }
+          {
+            "name": "model_name",
+            "type": "string",
+            "required": true,
+            "description": "The AI model's full name as listed on the pricing page, e.g. in the model pricing table or cards",
+            "sample": "Llama-3.3-70B-Instruct"
+          },
+          {
+            "name": "input_price_per_1m",
+            "type": "number",
+            "required": true,
+            "description": "Price in USD per 1 million input tokens, numeric only without the dollar sign",
+            "sample": "0.23"
+          },
+          {
+            "name": "output_price_per_1m",
+            "type": "number",
+            "required": true,
+            "description": "Price in USD per 1 million output tokens, numeric only without the dollar sign",
+            "sample": "0.40"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "The model type or category label if shown, such as text generation or embeddings",
+            "sample": "text-generation"
+          }
         ]
       }
     },
@@ -26,10 +50,34 @@
       "contract": {
         "minRows": 10,
         "fields": [
-          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed in the pricing tables", "sample": "MiniMax M3" },
-          { "name": "input_price_per_1m_tokens", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only", "sample": "0.3" },
-          { "name": "output_price_per_1m_tokens", "type": "number", "required": true, "description": "Price in USD per 1 million output tokens, numeric only", "sample": "1.2" },
-          { "name": "model_category", "type": "string", "required": false, "description": "Model family or section heading the model appears under", "sample": "Chat" }
+          {
+            "name": "model_name",
+            "type": "string",
+            "required": true,
+            "description": "The AI model's full name as listed in the pricing tables",
+            "sample": "MiniMax M3"
+          },
+          {
+            "name": "input_price_per_1m_tokens",
+            "type": "number",
+            "required": true,
+            "description": "Price in USD per 1 million input tokens, numeric only",
+            "sample": "0.3"
+          },
+          {
+            "name": "output_price_per_1m_tokens",
+            "type": "number",
+            "required": true,
+            "description": "Price in USD per 1 million output tokens, numeric only",
+            "sample": "1.2"
+          },
+          {
+            "name": "model_category",
+            "type": "string",
+            "required": false,
+            "description": "Model family or section heading the model appears under",
+            "sample": "Chat"
+          }
         ]
       }
     },
@@ -42,9 +90,27 @@
       "contract": {
         "minRows": 3,
         "fields": [
-          { "name": "plan_name", "type": "string", "required": true, "description": "The plan tier name shown on the pricing card, like Hobby or Pro", "sample": "Pro" },
-          { "name": "monthly_price", "type": "number", "required": true, "description": "The plan's monthly price in USD, numeric only without the dollar sign", "sample": "20" },
-          { "name": "plan_description", "type": "string", "required": false, "description": "The short plan description or usage allowance shown on the card", "sample": "Includes $20 of monthly usage credits" }
+          {
+            "name": "plan_name",
+            "type": "string",
+            "required": true,
+            "description": "The plan tier name shown on the pricing card, like Hobby or Pro",
+            "sample": "Pro"
+          },
+          {
+            "name": "monthly_price",
+            "type": "number",
+            "required": true,
+            "description": "The plan's monthly price in USD, numeric only without the dollar sign",
+            "sample": "20"
+          },
+          {
+            "name": "plan_description",
+            "type": "string",
+            "required": false,
+            "description": "The short plan description or usage allowance shown on the card",
+            "sample": "Includes $20 of monthly usage credits"
+          }
         ]
       }
     },
@@ -57,9 +123,27 @@
       "contract": {
         "minRows": 5,
         "fields": [
-          { "name": "tier_name", "type": "string", "required": true, "description": "The model or model-size tier named in the pricing table rows", "sample": "Qwen3 8B" },
-          { "name": "input_price", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens for this row, numeric only", "sample": "0.1" },
-          { "name": "price_unit_description", "type": "string", "required": false, "description": "What the price is charged per, like $ / 1M input tokens", "sample": "$ / 1M input tokens" }
+          {
+            "name": "tier_name",
+            "type": "string",
+            "required": true,
+            "description": "The model or model-size tier named in the pricing table rows",
+            "sample": "Qwen3 8B"
+          },
+          {
+            "name": "input_price",
+            "type": "number",
+            "required": true,
+            "description": "Price in USD per 1 million input tokens for this row, numeric only",
+            "sample": "0.1"
+          },
+          {
+            "name": "price_unit_description",
+            "type": "string",
+            "required": false,
+            "description": "What the price is charged per, like $ / 1M input tokens",
+            "sample": "$ / 1M input tokens"
+          }
         ]
       }
     },
@@ -72,9 +156,27 @@
       "contract": {
         "minRows": 4,
         "fields": [
-          { "name": "gpu_type", "type": "string", "required": true, "description": "The GPU or instance type name in the on-demand pricing table", "sample": "NVIDIA H100 SXM" },
-          { "name": "price_per_gpu_per_hour", "type": "number", "required": true, "description": "On-demand hourly price per GPU in USD, numeric only", "sample": "3.99" },
-          { "name": "gpu_count", "type": "number", "required": false, "description": "Number of GPUs in the instance if shown", "sample": "8" }
+          {
+            "name": "gpu_type",
+            "type": "string",
+            "required": true,
+            "description": "The GPU or instance type name in the on-demand pricing table",
+            "sample": "NVIDIA H100 SXM"
+          },
+          {
+            "name": "price_per_gpu_per_hour",
+            "type": "number",
+            "required": true,
+            "description": "On-demand hourly price per GPU in USD, numeric only",
+            "sample": "3.99"
+          },
+          {
+            "name": "gpu_count",
+            "type": "number",
+            "required": false,
+            "description": "Number of GPUs in the instance if shown",
+            "sample": "8"
+          }
         ]
       }
     },
@@ -87,9 +189,27 @@
       "contract": {
         "minRows": 4,
         "fields": [
-          { "name": "resource", "type": "string", "required": true, "description": "The compute resource being priced, like a GPU model or CPU or memory", "sample": "Nvidia H100" },
-          { "name": "price", "type": "number", "required": true, "description": "The listed price as a number, without currency symbol", "sample": "0.001097" },
-          { "name": "unit", "type": "string", "required": true, "description": "The billing unit the price applies to, like per second or per hour", "sample": "per second" }
+          {
+            "name": "resource",
+            "type": "string",
+            "required": true,
+            "description": "The compute resource being priced, like a GPU model or CPU or memory",
+            "sample": "Nvidia H100"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "required": true,
+            "description": "The listed price as a number, without currency symbol",
+            "sample": "0.001097"
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "required": true,
+            "description": "The billing unit the price applies to, like per second or per hour",
+            "sample": "per second"
+          }
         ]
       }
     },
@@ -102,10 +222,34 @@
       "contract": {
         "minRows": 10,
         "fields": [
-          { "name": "model_name", "type": "string", "required": true, "description": "The AI model's full name as listed on the pricing page", "sample": "deepseek-v3" },
-          { "name": "input_price_per_1m", "type": "number", "required": true, "description": "Price in USD per 1 million input tokens, numeric only", "sample": "0.28" },
-          { "name": "output_price_per_1m", "type": "number", "required": false, "description": "Price in USD per 1 million output tokens, numeric only", "sample": "1.14" },
-          { "name": "category", "type": "string", "required": false, "description": "The model category or section if shown, like LLM or image", "sample": "LLM" }
+          {
+            "name": "model_name",
+            "type": "string",
+            "required": true,
+            "description": "The AI model's full name as listed on the pricing page",
+            "sample": "deepseek-v3"
+          },
+          {
+            "name": "input_price_per_1m",
+            "type": "number",
+            "required": true,
+            "description": "Price in USD per 1 million input tokens, numeric only",
+            "sample": "0.28"
+          },
+          {
+            "name": "output_price_per_1m",
+            "type": "number",
+            "required": false,
+            "description": "Price in USD per 1 million output tokens, numeric only",
+            "sample": "1.14"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "The model category or section if shown, like LLM or image",
+            "sample": "LLM"
+          }
         ]
       }
     },
@@ -118,19 +262,213 @@
       "contract": {
         "minRows": 5,
         "fields": [
-          { "name": "name", "type": "string", "required": true, "description": "The hardware or model name in the pricing table, like Nvidia A100 or a public model", "sample": "Nvidia A100 (80GB) GPU" },
-          { "name": "price", "type": "number", "required": true, "description": "The listed price in USD as a number without the dollar sign", "sample": "0.001400" },
-          { "name": "unit", "type": "string", "required": true, "description": "The billing unit the price applies to, like per second or per 1M tokens", "sample": "per second" }
+          {
+            "name": "name",
+            "type": "string",
+            "required": true,
+            "description": "The hardware or model name in the pricing table, like Nvidia A100 or a public model",
+            "sample": "Nvidia A100 (80GB) GPU"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "required": true,
+            "description": "The listed price in USD as a number without the dollar sign",
+            "sample": "0.001400"
+          },
+          {
+            "name": "unit",
+            "type": "string",
+            "required": true,
+            "description": "The billing unit the price applies to, like per second or per 1M tokens",
+            "sample": "per second"
+          }
         ]
       }
+    },
+    {
+      "key": "yeswehack",
+      "url": "https://api.yeswehack.com/programs?page=1",
+      "proposedBy": "seed",
+      "probeScore": 42,
+      "contract": {
+        "minRows": 10,
+        "fields": [
+          {
+            "name": "title",
+            "type": "string",
+            "required": true,
+            "description": "The bug bounty program name as listed in the directory",
+            "sample": "toom Baumarkt GmbH - Webshop"
+          },
+          {
+            "name": "bounty_reward_max",
+            "type": "number",
+            "required": false,
+            "description": "Maximum bounty reward in the program currency",
+            "sample": "5000"
+          },
+          {
+            "name": "activity_area",
+            "type": "string",
+            "required": false,
+            "description": "The industry or sector the program operates in",
+            "sample": "Retail"
+          },
+          {
+            "name": "type",
+            "type": "string",
+            "required": false,
+            "description": "Program type: bug-bounty or vdp",
+            "sample": "bug-bounty"
+          }
+        ]
+      },
+      "collectorId": "c_mt4r56otf8phmeqn9"
+    },
+    {
+      "key": "bugcrowd",
+      "url": "https://bugcrowd.com/engagements.json?page=1",
+      "proposedBy": "seed",
+      "probeScore": 24,
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "required": true,
+            "description": "The engagement or program name as listed",
+            "sample": "Nubank Brasil Managed Bug Bounty Program"
+          },
+          {
+            "name": "tagline",
+            "type": "string",
+            "required": false,
+            "description": "Short description of the program scope",
+            "sample": "Fight complexity to empower people"
+          },
+          {
+            "name": "industryName",
+            "type": "string",
+            "required": false,
+            "description": "The industry the program belongs to",
+            "sample": "Financial Services"
+          },
+          {
+            "name": "briefUrl",
+            "type": "string",
+            "required": false,
+            "description": "Relative link to the program brief page",
+            "sample": "/nubank"
+          }
+        ]
+      },
+      "collectorId": null
+    },
+    {
+      "key": "intigriti",
+      "url": "https://www.intigriti.com/researchers/bug-bounty-programs",
+      "proposedBy": "seed",
+      "probeScore": 117,
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          {
+            "name": "program_name",
+            "type": "string",
+            "required": true,
+            "description": "The company or program name on the listing card",
+            "sample": "Intigriti"
+          },
+          {
+            "name": "bounty_range",
+            "type": "string",
+            "required": false,
+            "description": "The reward range shown on the card",
+            "sample": "50 - 5000"
+          },
+          {
+            "name": "program_type",
+            "type": "string",
+            "required": false,
+            "description": "Bug bounty or responsible disclosure",
+            "sample": "Bug bounty"
+          }
+        ]
+      },
+      "collectorId": "c_mt4r55051pvpl2mlbn"
+    },
+    {
+      "key": "immunefi",
+      "url": "https://immunefi.com/bug-bounty/",
+      "proposedBy": "seed",
+      "probeScore": 55,
+      "contract": {
+        "minRows": 5,
+        "fields": [
+          {
+            "name": "project_name",
+            "type": "string",
+            "required": true,
+            "description": "The web3 project running the bounty",
+            "sample": "Ethereum Foundation"
+          },
+          {
+            "name": "max_bounty",
+            "type": "number",
+            "required": false,
+            "description": "Maximum bounty in USD",
+            "sample": "250000"
+          },
+          {
+            "name": "category",
+            "type": "string",
+            "required": false,
+            "description": "Project category such as DeFi or infrastructure",
+            "sample": "DeFi"
+          }
+        ]
+      },
+      "collectorId": null
     }
   ],
   "discarded": [
-    { "url": "https://groq.com/pricing", "reason": "probe returned near-empty page (1 price signal)", "probeScore": 1 },
-    { "url": "https://mistral.ai/pricing", "reason": "marketing page, only 7 price signals — pricing lives in gated docs", "probeScore": 7 },
-    { "url": "https://api-docs.deepseek.com/quick_start/pricing", "reason": "probe found 0 price signals", "probeScore": 0 },
-    { "url": "https://openrouter.ai/models", "reason": "only 20 signals on first page — model list is lazy-loaded", "probeScore": 20 },
-    { "url": "https://render.com/pricing", "reason": "probe returned near-empty page (1 price signal) — client-rendered", "probeScore": 1 },
-    { "url": "https://www.runpod.io/pricing", "reason": "scraper create failed twice: 600-poll timeout, then AI generation error — reserve promoted in its place", "probeScore": 84 }
-  ]
+    {
+      "url": "https://groq.com/pricing",
+      "reason": "probe returned near-empty page (1 price signal)",
+      "probeScore": 1
+    },
+    {
+      "url": "https://mistral.ai/pricing",
+      "reason": "marketing page, only 7 price signals \u2014 pricing lives in gated docs",
+      "probeScore": 7
+    },
+    {
+      "url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "reason": "probe found 0 price signals",
+      "probeScore": 0
+    },
+    {
+      "url": "https://openrouter.ai/models",
+      "reason": "only 20 signals on first page \u2014 model list is lazy-loaded",
+      "probeScore": 20
+    },
+    {
+      "url": "https://render.com/pricing",
+      "reason": "probe returned near-empty page (1 price signal) \u2014 client-rendered",
+      "probeScore": 1
+    },
+    {
+      "url": "https://www.runpod.io/pricing",
+      "reason": "scraper create failed twice: 600-poll timeout, then AI generation error \u2014 reserve promoted in its place",
+      "probeScore": 84
+    },
+    {
+      "url": "https://hackerone.com/opportunities/all",
+      "reason": "public directory is a client-rendered SPA; data arrives via GraphQL POST which `scrape` (GET-only) cannot reach. Unlocker DID defeat Cloudflare (200 + cf-ray) \u2014 deferred to a JS-rendering collector, not a blocking failure",
+      "probeScore": 0
+    }
+  ],
+  "previousIntent": "Track what AI APIs, GPU clouds and developer platforms actually cost across regions. Retired as the demo vertical; its collectors and full incident history remain in the audit trail as proof the engine is vertical-agnostic."
 }

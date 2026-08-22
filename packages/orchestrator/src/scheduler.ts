@@ -5,6 +5,7 @@ import { extractJson, runScraper } from "./bdata.js";
 import { baselineFor, healIncident } from "./heal.js";
 import { ensureGeoSchema, probeSource } from "./geo.js";
 import { normalizeRows } from "./normalize.js";
+import { ensureWatchSchema, recordSightings } from "./watch.js";
 
 // The organism's pulse: a visible loop over per-source nextRunAt timestamps,
 // capped by config, jittered so N countries never fire at once.
@@ -121,6 +122,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function loop(db: Db, cfg: MyceliumConfig) {
   ensureGeoSchema(db);
+  ensureWatchSchema(db);
   console.log("[scheduler] heartbeat started");
   for (;;) {
     try {

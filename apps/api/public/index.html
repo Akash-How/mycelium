@@ -295,10 +295,23 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .ds .more{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);padding-top:12px}
 
 /* ============ ascii finale ============ */
-.ascii-stage{position:relative;height:92vh;overflow:hidden;background:var(--bg);margin-top:8vh;
-  display:flex;align-items:center;justify-content:center}
-.ascii-stage canvas{position:absolute;inset:0;width:100%;height:100%}
-.ascii-mark{position:relative;z-index:2;font-family:var(--disp);
+.ascii-stage{position:relative;height:108vh;overflow:hidden;background:var(--bg);margin-top:8vh;
+  display:flex;align-items:center;justify-content:center;
+  perspective:1100px;perspective-origin:50% 45%}
+.ascii-stage canvas{position:absolute;inset:-8%;width:116%;height:116%;
+  transform:translateZ(-320px) scale(1.34);transform-origin:50% 50%;will-change:transform}
+/* a second, fainter plane further back gives the field real depth */
+.ascii-stage .haze{position:absolute;inset:-14%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,30,45,.09),transparent 72%);
+  transform:translateZ(-620px) scale(1.8);will-change:transform}
+.ascii-stage .grid3d{position:absolute;inset:0;pointer-events:none;opacity:.16;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 78px,rgba(255,255,255,.055) 78px 79px),
+    repeating-linear-gradient(0deg,transparent 0 78px,rgba(255,255,255,.055) 78px 79px);
+  transform:rotateX(64deg) translateZ(-180px) scale(2.4);transform-origin:50% 100%;
+  mask-image:linear-gradient(to top,#000,transparent 62%);
+  -webkit-mask-image:linear-gradient(to top,#000,transparent 62%)}
+.ascii-mark{position:relative;z-index:2;transform-style:preserve-3d;will-change:transform;font-family:var(--disp);
   font-size:clamp(58px,13vw,210px);line-height:.9;letter-spacing:-.01em;
   color:var(--pink);mix-blend-mode:screen;user-select:none;pointer-events:none;
   text-shadow:0 0 60px rgba(255,30,45,.32)}
@@ -485,6 +498,8 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 </section>
 
 <section class="ascii-stage" id="finale" aria-label="Mycelium">
+  <div class="haze"></div>
+  <div class="grid3d"></div>
   <canvas id="asciiCv"></canvas>
   <h2 class="ascii-mark">MYCELIUM</h2>
   <span class="ascii-sub">a network that keeps itself alive</span>
@@ -766,108 +781,574 @@ async function load(){
   }catch(e){}
 
 }
-/* ====== ascii finale: a 3D mycelium, rotated live, dithered to text ====== */
+/* ============ ascii finale ============ */
+.ascii-stage{position:relative;height:108vh;overflow:hidden;background:var(--bg);margin-top:8vh;
+  display:flex;align-items:center;justify-content:center;
+  perspective:1100px;perspective-origin:50% 45%}
+.ascii-stage canvas{position:absolute;inset:-8%;width:116%;height:116%;
+  transform:translateZ(-320px) scale(1.34);transform-origin:50% 50%;will-change:transform}
+/* a second, fainter plane further back gives the field real depth */
+.ascii-stage .haze{position:absolute;inset:-14%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,30,45,.09),transparent 72%);
+  transform:translateZ(-620px) scale(1.8);will-change:transform}
+.ascii-stage .grid3d{position:absolute;inset:0;pointer-events:none;opacity:.16;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 78px,rgba(255,255,255,.055) 78px 79px),
+    repeating-linear-gradient(0deg,transparent 0 78px,rgba(255,255,255,.055) 78px 79px);
+  transform:rotateX(64deg) translateZ(-180px) scale(2.4);transform-origin:50% 100%;
+  mask-image:linear-gradient(to top,#000,transparent 62%);
+  -webkit-mask-image:linear-gradient(to top,#000,transparent 62%)}
+.ascii-mark{position:relative;z-index:2;transform-style:preserve-3d;will-change:transform;font-family:var(--disp);
+  font-size:clamp(58px,13vw,210px);line-height:.9;letter-spacing:-.01em;
+  color:var(--pink);mix-blend-mode:screen;user-select:none;pointer-events:none;
+  text-shadow:0 0 60px rgba(255,30,45,.32)}
+.ascii-sub{position:absolute;z-index:2;bottom:9vh;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--faint);white-space:nowrap;pointer-events:none}
+
+/* ============ footer ============ */
+.foot{padding-top:12vh;padding-bottom:3vh;border-top:1px solid var(--line)}
+.foot-main{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding-bottom:9vh}
+.foot-brand{grid-column:1/8}
+.foot-brand p{max-width:560px;margin-top:4vh;font-size:clamp(18px,1.6vw,24px);font-weight:300;line-height:1.5;color:var(--dim)}
+.foot-brand p b{color:var(--txt);font-weight:500}
+.foot-cta{grid-column:9/13;align-self:end}
+.foot-cta .label{display:block;margin-bottom:20px}
+.foot-action{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-top:1px solid var(--faint);border-bottom:1px solid var(--faint);font-size:clamp(16px,1.6vw,22px);font-weight:300;color:var(--txt)!important;transition:border-color .3s,color .3s;cursor:pointer}
+.foot-action:hover{border-color:var(--ok);color:var(--ok)!important}
+.foot-nav{display:flex;justify-content:space-between;align-items:center;gap:30px;padding:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.foot-nav nav{display:flex;gap:clamp(18px,3vw,48px);flex-wrap:wrap}
+.foot-nav a{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
+.foot-status{display:flex;align-items:center;gap:10px;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+.foot-status i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,30,45,.1)}
+.foot-bottom{display:flex;justify-content:space-between;gap:30px;padding-top:26px;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+
+.empty{font-family:var(--mono);font-size:12px;color:var(--dim);padding:26px 0;letter-spacing:.08em}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:1000px){
+  .section-rail{display:none}
+  .hero .strap .big{grid-column:1/11}
+  .hero-meta{display:none}
+  .stats{grid-template-columns:1fr 1fr;gap:8vh 5vw}
+  .stat,.stat:nth-child(n){grid-column:auto;grid-row:auto;margin-top:0}
+  .frow{grid-template-columns:1fr auto!important}
+  .frow .cid,.frow .ticks{display:none}
+  .inc>summary{grid-template-columns:1fr auto}
+  .inc .when,.inc .snip,.mini-gates{display:none}
+  .inc-body{display:block}
+  .inc-col{border-left:0;padding-left:0;margin-bottom:5vh}
+  .ds{grid-column:span 12}
+  .foot-main{grid-template-columns:1fr;gap:8vh}
+  .foot-brand,.foot-cta{grid-column:auto}
+}
+</style>
+</head>
+<body>
+
+<div id="pre">
+  <div class="top"><span>MYCELIUM</span><span>SELF-HEALING DATA NETWORK</span></div>
+  <div class="pre-spacer"></div>
+  <div class="term" id="preTerm">
+    <div class="ln">$ bdata login — authenticated</div>
+    <div class="ln">$ fleet: 6 collectors · contracts loaded</div>
+    <div class="ln">$ sentinel armed · three gates · auto-approve BANNED</div>
+    <div class="ln">$ heartbeat running — the network maintains itself</div>
+  </div>
+  <div class="bot">
+    <div class="pct" id="prePct">0%</div>
+    <button class="skip" id="preSkip">SKIP ␣</button>
+  </div>
+  <div class="bar" id="preBar"></div>
+</div>
+
+<div id="topblur"></div>
+
+<nav class="section-rail" aria-label="sections">
+  <a href="#top" class="on"><span class="rail-name">Top</span><span class="rail-mark"></span></a>
+  <a href="#dashboard"><span class="rail-name">Live board</span><span class="rail-mark"></span></a>
+  <a href="#fleet"><span class="rail-name">Sources</span><span class="rail-mark"></span></a>
+  <a href="#loop"><span class="rail-name">Self-healing</span><span class="rail-mark"></span></a>
+  <a href="#stats"><span class="rail-name">Proof</span><span class="rail-mark"></span></a>
+  <a href="#end"><span class="rail-name">End</span><span class="rail-mark"></span></a>
+</nav>
+
+<div id="app">
+
+<header class="sec hero" id="top">
+  <div class="topbar">
+    <span class="brand">MYCELIUM</span>
+    <span class="label">Built on Bright Data Scraper Studio</span>
+  </div>
+  <div class="stage">
+    <div class="organism">
+      <canvas id="net"></canvas>
+      <div class="node-tip" id="tip"></div>
+    </div>
+    <h1 class="hw-wrap" aria-label="Pages into proof">
+      <span class="hw hw1">PAGES</span>
+      <span class="hw hw2">INTO</span>
+      <span class="hw hw3">PROOF</span>
+    </h1>
+  </div>
+  <div class="strap">
+    <div class="hero-meta">
+      <div class="hm-row"><span>Collectors live</span><span class="val" id="hm-fleet">—</span></div>
+      <div class="hm-row"><span>Rows serving</span><span class="val" id="hm-rows">—</span></div>
+      <div class="hm-row"><span>Status</span><span class="hm-live"><i></i>LIVE · <span id="hm-time">syncing</span></span></div>
+    </div>
+    <p class="big">In bug bounty the <b>first submission wins.</b> <s>So you refresh directories by hand.</s> This network watches every platform, repairs its own scrapers, and tells you the moment a new program lands.</p>
+    <span class="scroll">SCROLL ↓</span>
+  </div>
+</header>
+
+<div class="phases" id="phases">
+  <div class="phase"><span class="n">01</span>DETECT</div>
+  <div class="phase"><span class="n">02</span>DIAGNOSE</div>
+  <div class="phase"><span class="n">03</span>HEAL</div>
+  <div class="phase"><span class="n">04</span>VERIFY</div>
+</div>
+
+<section class="sec dash" id="dashboard" aria-label="dashboard">
+  <div class="head">
+    <div><span class="label">Live board — newest first</span>
+    <p class="mkt-title">Every program, <b>newest first, with what it pays.</b></p></div>
+  </div>
+  <div class="sig-tiles" id="sigTiles"></div>
+
+  <div class="dash-grid">
+    <div class="dash-col">
+      <div class="lb-head">
+        <span class="label">Newest programs</span>
+        <span class="label" id="newMeta"></span>
+      </div>
+      <div id="newRows"></div>
+    </div>
+    <div class="dash-col">
+      <div class="lb-head">
+        <span class="label">Highest rewards</span>
+        <span class="label" id="lbMeta"></span>
+      </div>
+      <div id="lbRows"></div>
+    </div>
+  </div>
+  <div class="brk">
+    <div class="brk-col">
+      <span class="label">Where the money sits</span>
+      <div id="tierRows"></div>
+    </div>
+    <div class="brk-col">
+      <div class="label">Coverage by platform</div>
+      <div id="platRows"></div>
+    </div>
+    <div class="brk-col">
+      <span class="label">How programs open up</span>
+      <div id="accRows"></div>
+      <div class="pool" id="poolBox"></div>
+    </div>
+  </div>
+  <p class="mkt-note">Every figure here comes from a <b>gate-verified</b> sweep. Nothing unverified is served.</p>
+</section>
+
+<section class="sec" id="fleet" aria-label="fleet">
+  <div class="fleethead">
+    <span class="label">The fleet — self-built</span>
+    <span class="label" id="fleetCount"></span>
+  </div>
+  <div class="fleet-rows" id="fleetRows"></div>
+</section>
+
+<section class="sec incsec" id="loop" aria-label="incidents">
+  <span class="label">The loop — detect · diagnose · heal · verify</span>
+  <p class="incline" id="incHeadline"><span class="fire">LIVE RECORD</span>Every break this fleet has survived, <b>with the receipts.</b></p>
+  <div class="inc-toolbar">
+    <span class="inc-stats" id="incStats"></span>
+    <button class="fbtn on" data-f="all">All</button>
+    <button class="fbtn" data-f="approved">Approved</button>
+    <button class="fbtn" data-f="quarantined">Quarantined</button>
+    <button class="fbtn" data-f="rejected">Rejected</button>
+  </div>
+  <div id="incList"></div>
+</section>
+
+<section class="sec stats" id="stats" aria-label="reliability">
+  <div class="stat cool"><span class="label">Verified-healthy runs</span><div class="v" id="s-up">—</div>
+    <p class="q">every scheduled sweep, scored against its contract and a rolling baseline of itself.</p></div>
+  <div class="stat"><span class="label">Rows serving</span><div class="v" id="s-rows">—</div>
+    <p class="q">the latest verified extraction, one API call away. /export.json</p></div>
+  <div class="stat cool"><span class="label">Heals · unattended</span><div class="v" id="s-heals">—</div>
+    <p class="q">repair orders written by machine, executed by Bright Data, trusted only after three gates.</p></div>
+  <div class="stat"><span class="label">Mean recovery</span><div class="v" id="s-mttr">—<span class="u">min</span></div>
+    <p class="q">break detected → verified fix. no human in the loop.</p></div>
+  <div class="stat hot"><span class="label">Quarantined</span><div class="v" id="s-quar">—</div>
+    <p class="q">a system that serves data must know when to bench itself.</p></div>
+</section>
+
+<section class="ascii-stage" id="finale" aria-label="Mycelium">
+  <div class="haze"></div>
+  <div class="grid3d"></div>
+  <canvas id="asciiCv"></canvas>
+  <h2 class="ascii-mark">MYCELIUM</h2>
+  <span class="ascii-sub">a network that keeps itself alive</span>
+</section>
+
+<footer class="sec foot" id="end">
+  <div class="foot-main">
+    <div class="foot-brand">
+      <p>We didn't write a scraper. We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
+    </div>
+    <div class="foot-cta">
+      <span class="label">Consume the network</span>
+      <a class="foot-action" href="/export.json">export.json <span>→</span></a>
+    </div>
+  </div>
+  <div class="foot-nav">
+    <nav>
+      <a href="/api">api index</a>
+      <a href="/export.csv">export.csv</a>
+      <a href="/history?source=1">history</a>
+      <a href="/reliability">reliability</a>
+      <a href="/incidents">incidents</a>
+      <a href="/top">top</a>
+    </nav>
+    <span class="foot-status"><i></i>FLEET LIVE · SWEEPING ON SCHEDULE</span>
+  </div>
+  <div class="foot-bottom">
+    <span>EVERY REPAIR PASSES THREE GATES · AUTO-APPROVE IS BANNED</span>
+    <span>BUILT ON BRIGHT DATA SCRAPER STUDIO · MIT</span>
+  </div>
+</footer>
+
+</div>
+
+<script src="/vendor/lenis.min.js"></script>
+<script src="/vendor/gsap.min.js"></script>
+<script src="/vendor/ScrollTrigger.min.js"></script>
+<script>
+const $=(id)=>document.getElementById(id);
+const esc=(s)=>String(s??"").replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SC={active:"var(--ok)",healthy:"var(--ok)",approved:"var(--ok)",degraded:"var(--warn)",pending:"var(--warn)",broken:"var(--pink)",error:"var(--pink)",rejected:"var(--pink)",quarantined:"var(--faint)",retired:"var(--faint)",creating:"var(--faint)",unproven:"var(--faint)"};
+
+/* ============ preloader ============ */
+(function(){
+  const pre=$("pre"),pct=$("prePct"),bar=$("preBar");
+  const lines=[...document.querySelectorAll("#preTerm .ln")];
+  const seen=sessionStorage.getItem("myc-pre");
+  let p=0,done=false;
+  function finish(){ if(done)return; done=true; sessionStorage.setItem("myc-pre","1");
+    pct.textContent="100%"; bar.style.width="100%";
+    setTimeout(()=>{pre.classList.add("done"); setTimeout(()=>pre.remove(),800);}, seen?60:350); }
+  $("preSkip").onclick=finish;
+  addEventListener("keydown",(e)=>{if(e.key===" ")finish();},{once:true});
+  if(seen||reduced){ finish(); return; }
+  lines.forEach((l,i)=>setTimeout(()=>l.classList.add("on"),260*i+200));
+  const iv=setInterval(()=>{ p=Math.min(99,p+Math.random()*14);
+    pct.textContent=Math.floor(p)+"%"; bar.style.width=p+"%";
+    if(p>=99){clearInterval(iv); setTimeout(finish,300);} },130);
+})();
+
+/* ============ rail highlight ============ */
+const railLinks=[...document.querySelectorAll(".section-rail a")];
+const railMap={top:0,dashboard:1,fleet:2,loop:3,stats:4,end:5};
+new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
+  const i=railMap[e.target.id]; if(i==null)return;
+  railLinks.forEach((a,j)=>a.classList.toggle("on",j===i)); }); },{rootMargin:"-40% 0px -50% 0px"})
+  .observe($("top")), ["dashboard","fleet","loop","stats","end"].forEach((id)=>{
+  new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
+    railLinks.forEach((a,j)=>a.classList.toggle("on",j===railMap[id])); }); },{rootMargin:"-40% 0px -50% 0px"}).observe($(id)); });
+
+/* ============ phases: ambient cycle ============ */
+(function(){ const ph=[...document.querySelectorAll(".phase")]; let i=0;
+  ph[0].classList.add("on");
+  if(reduced)return;
+  setInterval(()=>{ ph[i].classList.remove("on"); ph[i].classList.add("past");
+    i=(i+1)%ph.length; if(i===0)ph.forEach(p=>p.classList.remove("past"));
+    ph[i].classList.add("on"); },2400); })();
+
+/* ============ data ============ */
+if($("copyEp"))$("copyEp").onclick=()=>{navigator.clipboard.writeText(location.origin+"/export.json");$("copyEp").textContent="COPIED ✓";setTimeout(()=>$("copyEp").textContent="GET /export.json ⧉",1200);};
+
+const TWEENED=new Set();
+function tweenText(el,target,{decimals=0,suffix=""}={}){
+  const fmt=(v)=>v.toFixed(decimals)+suffix;
+  if(reduced||!window.gsap||TWEENED.has(el.id)){el.textContent=fmt(target);return;}
+  TWEENED.add(el.id);
+  const o={v:0};
+  gsap.to(o,{v:target,duration:1.4,ease:"power3.out",delay:.25,
+    onUpdate:()=>{el.textContent=fmt(o.v);},onComplete:()=>{el.textContent=fmt(target);}});
+}
+
+let NODES=[];
+function syncOrganism(){ window.NODES=NODES; if(window.__net3d)window.__net3d.setNodes(NODES); }
+
+let LAST_INCIDENTS=[],INC_FILTER="all";
+document.querySelectorAll(".fbtn").forEach((b)=>b.onclick=()=>{ INC_FILTER=b.dataset.f;
+  document.querySelectorAll(".fbtn").forEach((x)=>x.classList.toggle("on",x===b)); renderIncidents(); });
+const ago=(ts)=>{ if(!ts)return""; const s=(Date.now()-new Date(ts.replace(" ","T")+"Z").getTime())/1000;
+  if(s<3600)return Math.max(1,Math.round(s/60))+"M AGO"; if(s<86400)return Math.round(s/3600)+"H AGO"; return Math.round(s/86400)+"D AGO"; };
+function copyPrompt(btn,txt){ navigator.clipboard.writeText(txt); btn.textContent="COPIED ✓"; setTimeout(()=>(btn.textContent="COPY PROMPT"),1200); }
+
+function renderIncidents(){
+  const openIds=new Set([...document.querySelectorAll(".inc[open]")].map((d)=>d.dataset.id));
+  const all=LAST_INCIDENTS;
+  const shown=INC_FILTER==="all"?all:all.filter((i)=>i.decision===INC_FILTER);
+  const approved=all.filter((i)=>i.decision==="approved").length;
+  const quar=all.filter((i)=>i.decision==="quarantined").length;
+  const mttrs=all.filter((i)=>i.time_to_recovery_s).map((i)=>i.time_to_recovery_s);
+  const mttr=mttrs.length?Math.round(mttrs.reduce((a,b)=>a+b,0)/mttrs.length/60):null;
+  $("incStats").innerHTML=`<b>${all.length}</b> INCIDENTS · <b>${approved}</b> HEALED · <b>${quar}</b> QUARANTINED${mttr?` · MEAN RECOVERY <b>${mttr} MIN</b>`:""}`;
+
+  $("incList").innerHTML=shown.length?shown.map((i,idx)=>{
+    const g=i.gates;
+    const gates=g?["contract","golden","continuity"].map((k)=>
+      `<div class="gate ${g[k]?"pass":"fail"}">${k}<span class="res">${g[k]?"pass":"fail"}</span></div>`).join(""):"<div class='gate'>not reached</div>";
+    const mini=g?["contract","golden","continuity"].map((k)=>`<i class="${g[k]?"pass":"fail"}" title="${k}"></i>`).join(""):"";
+    const fields=(i.symptom?.brokenFields??[]).join(", ")||"—";
+    const pv=i.preview_sample?.length?`<pre>${esc(JSON.stringify(i.preview_sample,null,1).slice(0,700))}</pre>`:"";
+    const note=i.symptom?.note?esc(i.symptom.note):"";
+    const recov=i.time_to_recovery_s
+      ?`<div class="recovery">BREAK → VERIFIED FIX IN <b>${Math.round(i.time_to_recovery_s/60)} MIN</b> — UNATTENDED</div>`
+      :i.decision==="quarantined"?`<div class="recovery">BENCHED — <b>REFUSING TO SERVE UNVERIFIED DATA</b></div>`:"";
+    return `<details class="inc" data-id="${i.id}" ${openIds.has(String(i.id))?"open":""}>
+      <summary>
+        <span class="when">${esc((i.detected_at??"").slice(5,16))} · ${ago(i.detected_at)}</span>
+        <span class="who">${esc(i.domain.replace("www.",""))}</span>
+        <span class="snip">${esc(fields)} · rows ${i.symptom?.rowsBefore??"?"} → <b>${i.symptom?.rowsAfter??"?"}</b></span>
+        <span class="mini-gates">${mini}</span>
+        <span class="decision st ${esc(i.decision)}">${esc(i.decision)}</span>
+      </summary>
+      <div class="inc-body">
+        <div class="inc-col"><span class="clbl"><span class="n">01</span> DETECTED — BY THE SENTINEL</span>
+          <div class="sym-fields">${esc(fields)}</div>
+          <div class="sym-rows">rows ${i.symptom?.rowsBefore??"?"} → <b>${i.symptom?.rowsAfter??"?"}</b></div></div>
+        <div class="inc-col"><span class="clbl"><span class="n">02</span> REPAIR ORDER — MACHINE-WRITTEN, SENT TO BRIGHT DATA</span>
+          <div class="prompt-txt" id="p-${idx}">${esc(i.prompt??"")}</div>
+          <button class="copy-p" onclick="copyPrompt(this,document.getElementById('p-${idx}').textContent)">COPY PROMPT</button></div>
+        <div class="inc-col"><span class="clbl"><span class="n">03</span> VERIFIED — THREE GATES, ALL OR NOTHING</span>
+          <div class="gates">${gates}</div>${recov}</div>
+        ${note||pv?`<div class="case">${note}${pv}</div>`:""}
+      </div>
+    </details>`;
+  }).join(""):`<div class="empty">NO ${INC_FILTER==="all"?"":INC_FILTER.toUpperCase()+" "}INCIDENTS — THE FLEET IS SWEEPING ON SCHEDULE.</div>`;
+}
+
+async function load(){
+  let rel,sources,incidents,exp,runs;
+  try{ [rel,sources,incidents,exp,runs]=await Promise.all([
+    fetch("/reliability").then(r=>r.json()), fetch("/sources").then(r=>r.json()),
+    fetch("/incidents").then(r=>r.json()), fetch("/export.json").then(r=>r.json()),
+    fetch("/runs?limit=200").then(r=>r.json()) ]);
+  }catch{ $("hm-time").textContent="RETRYING"; return; }
+  $("hm-time").textContent=new Date().toLocaleTimeString();
+
+  const uptime=rel.runs.total?(rel.runs.healthy/rel.runs.total)*100:0;
+  const mttr=rel.heals.mean_recovery_s?Math.round(rel.heals.mean_recovery_s/60):null;
+  const rowsServing=exp.filter(e=>e.country==="global").reduce((a,e)=>a+e.rows.length,0)||exp.reduce((a,e)=>a+e.rows.length,0);
+  tweenText($("s-up"),uptime,{decimals:1,suffix:"%"});
+  tweenText($("s-rows"),rowsServing,{});
+  $("s-heals").textContent=rel.heals.approved+"/"+rel.heals.incidents;
+  $("s-mttr").innerHTML=(mttr??"—")+'<span class="u">min</span>';
+  tweenText($("s-quar"),rel.fleet.quarantined??0,{});
+  $("hm-fleet").textContent=(rel.fleet.active??0)+" / "+rel.fleet.total;
+  $("hm-rows").textContent=rowsServing;
+  $("fleetCount").textContent=`${rel.fleet.active} ACTIVE · ${rel.fleet.quarantined} QUARANTINED · ${rel.fleet.total-rel.fleet.active-rel.fleet.quarantined} BENCHED`;
+
+  const runsBySource={};
+  for(const r of runs)(runsBySource[r.source_id]??=[]).push(r);
+
+  NODES=sources.filter(s=>s.status!=="retired").map((s,i)=>({
+    domain:s.domain.replace(/^(www|api|app)\./,""),label:s.domain.replace(/^(www|api|app)\./,"").split(".")[0],
+    cid:s.collector_id,status:s.status,lastVerdict:s.last_verdict,
+    rows:exp.find(e=>e.source_id===s.id)?.rows.length,seed:i*.37+.1 }));
+  syncOrganism();
+
+  const openSrc=new Set([...document.querySelectorAll(".fsrc[open]")].map((d)=>d.dataset.id));
+  const retiredCount=sources.filter((s)=>s.status==="retired").length;
+  $("fleetRows").innerHTML=sources.filter((s)=>s.status!=="retired").map((s)=>{
+    const hist=(runsBySource[s.id]??[]).slice(0,16);
+    const ticks=[...hist].reverse().map((r)=>{ const c=SC[r.verdict]??"var(--line)";
+      const h=r.verdict==="healthy"?18:r.verdict==="degraded"?11:6;
+      return `<span class="tick" style="background:${c};height:${h}px" title="${esc(r.started_at)} · ${esc(r.verdict??"unscored")} · ${r.row_count??0} rows"></span>`; }).join("");
+
+    /* expanded body: contract · run log · latest extraction */
+    const contract=s.contract;
+    const cRows=contract?.fields?.map((f)=>
+      `<div class="crow"><span class="xn" title="${esc(f.description)}">${esc(f.name)}</span><span class="ty">${esc(f.type)}</span><span class="req ${f.required?"":"opt"}">${f.required?"REQUIRED":"optional"}</span></div>`).join("")
+      ??`<div class="empty">no contract yet — ${esc(s.status)}</div>`;
+    const rRows=hist.slice(0,8).map((r)=>
+      `<div class="rrow"><span>${esc((r.started_at??"").slice(5,16))}</span><span class="st ${esc(r.verdict??"unscored")}" style="text-align:left;min-width:0">${esc(r.verdict??"unscored")}</span><span>${r.row_count??0} rows</span><span>${esc(r.trigger_kind??"")}</span></div>`).join("")
+      ||`<div class="empty">no runs yet</div>`;
+    const ex=exp.find((e)=>e.source_id===s.id&&e.country==="global")??exp.find((e)=>e.source_id===s.id);
+    const first=ex?.rows?.[0]??{};
+    const nameF=Object.keys(first).find((k)=>typeof first[k]==="string");
+    const numF=Object.keys(first).find((k)=>typeof first[k]==="number");
+    const xRows=ex?.rows?.slice(0,6).map((r)=>
+      `<div class="xrow"><span class="xn">${esc(r[nameF])}</span><span class="xv">${r[numF]??"—"}</span></div>`).join("")
+      ??`<div class="empty">no verified rows yet</div>`;
+
+    return `<details class="fsrc" data-id="${s.id}" ${openSrc.has(String(s.id))?"open":""}>
+      <summary><div class="frow">
+        <span class="dom">${esc(s.domain.replace("www.",""))}</span>
+        <span class="cid">${s.collector_id?esc(s.collector_id)+" — live Bright Data endpoint":"no collector — "+esc(s.status)}</span>
+        <span class="ticks">${ticks}</span>
+        <span class="st ${esc(s.status)}">${esc(s.status)}</span>
+      </div></summary>
+      <div class="fsrc-body">
+        <div class="fsrc-col"><span class="clbl"><span class="n">01</span> THE CONTRACT — WHAT THIS SOURCE PROMISES</span>${cRows}</div>
+        <div class="fsrc-col"><span class="clbl"><span class="n">02</span> RUN LOG — SCORED BY THE SENTINEL</span>${rRows}</div>
+        <div class="fsrc-col"><span class="clbl"><span class="n">03</span> LATEST VERIFIED EXTRACTION</span>${xRows}
+          ${ex?`<div class="fsrc-meta" style="border:0;padding-top:12px"><a href="/export.json?source=${s.id}">FULL DATASET → /export.json?source=${s.id}</a></div>`:""}</div>
+        <div class="fsrc-meta">
+          <span>TARGET ${esc(s.url)}</span>
+          ${s.birth_certified_at?`<span>CERTIFIED ${esc(s.birth_certified_at.slice(0,16))}</span>`:"<span>UNCERTIFIED</span>"}
+          ${s.quarantined_at?`<span style="color:var(--pink)">QUARANTINED ${esc(s.quarantined_at.slice(0,16))}</span>`:""}
+        </div>
+      </div>
+    </details>`; }).join("")
+    + (retiredCount?`<div class="empty">+ ${retiredCount} retired from the scaffolding vertical — their collectors, runs and incident history remain in the audit trail.</div>`:"");
+
+  LAST_INCIDENTS=incidents; renderIncidents();
+
+  /* live board: tiles + newest-first feed + highest rewards */
+  try{
+    const [sig,top,newest]=await Promise.all([
+      fetch("/signals").then(r=>r.json()),
+      fetch("/top?limit=10").then(r=>r.json()),
+      fetch("/newest?limit=14&per=2").then(r=>r.json())]);
+    const money=(n)=>"$"+Number(n).toLocaleString();
+    $("sigTiles").innerHTML=[
+      ["Programs tracked",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,""],
+      ["New this week",sig.new_this_week,"newly appeared programs","hot"],
+      ["Top reward",money(sig.top_bounty),"highest published bounty",""],
+      ["Paying programs",sig.paying_programs,`${sig.above_10k} pay $10k+`,""],
+      ["Median reward",money(sig.median_bounty),"of those that publish one",""],
+    ].map(([k,v,s2,cls])=>`<div class="sig ${cls}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s2)}</div></div>`).join("");
+
+    const fmtDate=(d)=>{ if(!d)return"—"; const t=String(d).replace(" ","T");
+      const dt=new Date(t.endsWith("Z")||t.includes("+")?t:t+"Z");
+      if(isNaN(dt))return String(d).slice(0,10);
+      const sameYear=dt.getFullYear()===new Date().getFullYear();
+      return dt.toLocaleDateString(undefined,sameYear?{month:"short",day:"numeric"}:{month:"short",day:"numeric",year:"2-digit"}); };
+    const freshCut=Date.now()-7*864e5;
+    $("newMeta").textContent="/NEWEST";
+    $("newRows").innerHTML=newest.length?newest.map((n)=>{
+      const when=new Date(String(n.date).replace(" ","T")+(String(n.date).endsWith("Z")?"":"Z"));
+      const fresh=n.is_new&&when.getTime()>freshCut;
+      const amt=n.bounty?money(n.bounty):(n.reward_text?esc(n.reward_text):(n.access?esc(String(n.access)):"—"));
+      return `<div class="nw">
+        <span class="dt">${fresh?'<i class="nd" title="first seen this week"></i>':""}${esc(fmtDate(n.date))}</span>
+        <span class="pg"><b>${esc(String(n.program).slice(0,46))}</b><small>· ${esc(n.platform)}</small></span>
+        <span class="amt ${n.bounty?"":"none"}">${amt}</span>
+      </div>`;}).join(""):`<div class="empty">NO PROGRAMS YET.</div>`;
+
+    /* breakdown panels */
+    const bar=(label,val,maxv,hi)=>`<div class="br ${hi?"hi":""}">
+      <span class="bl">${esc(label)}</span>
+      <span class="bg"><i style="width:${maxv?Math.max(2,Math.round(val/maxv*100)):0}%"></i></span>
+      <span class="bv">${esc(val)}</span></div>`;
+    const tiers=sig.tiers||[]; const tMax=Math.max(1,...tiers.map(t=>t.count));
+    $("tierRows").innerHTML=tiers.map(t=>bar(t.label,t.count,tMax,t.label==="$10k+")).join("");
+    const plats=Object.entries(sig.platforms||{}).sort((a,b)=>b[1]-a[1]);
+    const pMax=Math.max(1,...plats.map(p=>p[1]));
+    $("platRows").innerHTML=plats.map(([k,v])=>bar(k.replace(".com","").replace(".ai","").replace("bughunters.google","google"),v,pMax)).join("");
+    const acc=Object.entries(sig.access||{}).sort((a,b)=>b[1]-a[1]);
+    const aMax=Math.max(1,...acc.map(a=>a[1]));
+    $("accRows").innerHTML=acc.length?acc.map(([k,v])=>bar(k,v,aMax,k==="public bounty")).join(""):`<div class="empty">NOT PUBLISHED</div>`;
+    $("poolBox").innerHTML=`<div class="pk">Combined published rewards</div><div class="pv">${esc(money(sig.total_rewards_pool||0))}</div>`;
+
+    const max=top.length?top[0].bounty:1;
+    $("lbMeta").textContent="/TOP";
+    $("lbRows").innerHTML=top.length?top.map((t,i)=>`<div class="lb">
+      <span class="rk">${String(i+1).padStart(2,"0")}</span>
+      <span class="pg">${esc(String(t.program).slice(0,34))}</span>
+      <span class="bt">${esc(money(t.bounty))}</span>
+      <span class="bar"><i style="width:${Math.max(3,Math.round(t.bounty/max*100))}%"></i></span>
+    </div>`).join(""):`<div class="empty">NO PUBLISHED REWARDS YET.</div>`;
+  }catch(e){}
+
+}
+/* ============ ascii finale: mycelium grown, then dithered to text ====== */
 (function(){
   const cv=document.getElementById("asciiCv");
   if(!cv)return;
   const ctx=cv.getContext("2d");
-  const CH=9, LH=1.55;
-  const RAMP=" .·:-=+*o#%@";          // sparse -> dense
-  let cols=0,rows=0,W=0,H=0,DPR=1;
-  const PTS=[];                        // {x,y,z,g} g = generation (0 = trunk)
+  const off=document.createElement("canvas");
+  const octx=off.getContext("2d");
+  const CH=9, RAMP=" .:-=+*#%@";   // density ramp, sparse -> dense
+  let cols=0,rows=0,field=null,W=0,H=0;
 
-  /* grow the organism once, in three dimensions */
-  (function build(){
-    function branch(x,y,z,dx,dy,dz,len,depth,gen){
-      if(depth<=0)return;
-      const steps=Math.max(3,Math.round(len*7));
-      for(let i=0;i<=steps;i++){
-        const t=i/steps;
-        PTS.push({x:x+dx*len*t, y:y+dy*len*t, z:z+dz*len*t, g:gen});
-      }
-      const nx=x+dx*len, ny=y+dy*len, nz=z+dz*len;
-      const kids=depth>5?3:2;
-      for(let k=0;k<kids;k++){
-        const j=()=> (Math.random()-.5)*0.95;
-        let ax=dx+j(), ay=dy+j(), az=dz+j();
-        const m=Math.hypot(ax,ay,az)||1;
-        branch(nx,ny,nz, ax/m,ay/m,az/m, len*(0.62+Math.random()*0.2), depth-1, gen+1);
-      }
-    }
-    /* radial arms from the core, in 3D */
-    const arms=10;
-    for(let i=0;i<arms;i++){
-      const th=(i/arms)*Math.PI*2, ph=Math.acos(2*((i*0.37)%1)-1);
-      branch(0,0,0, Math.sin(ph)*Math.cos(th), Math.cos(ph)*0.6, Math.sin(ph)*Math.sin(th),
-             0.34, 7, 0);
-    }
-    /* spore haze in a shell around it */
-    for(let i=0;i<1400;i++){
-      const u=Math.random()*Math.PI*2, v=Math.acos(2*Math.random()-1);
-      const r=0.55+Math.pow(Math.random(),.5)*0.95;
-      PTS.push({x:Math.sin(v)*Math.cos(u)*r, y:Math.cos(v)*r*0.72, z:Math.sin(v)*Math.sin(u)*r, g:9});
-    }
-  })();
-
-  function size(){
+  /* grow a branching mycelium into the offscreen buffer */
+  function grow(){
     const r=cv.parentElement.getBoundingClientRect();
     W=Math.max(320,r.width); H=Math.max(240,r.height);
-    DPR=Math.min(devicePixelRatio,2);
-    cv.width=W*DPR; cv.height=H*DPR;
-    ctx.setTransform(DPR,0,0,DPR,0,0);
-    cols=Math.floor(W/CH); rows=Math.floor(H/(CH*LH));
+    off.width=Math.ceil(W/2); off.height=Math.ceil(H/2);   // half-res is plenty
+    octx.fillStyle="#000"; octx.fillRect(0,0,off.width,off.height);
+    octx.lineCap="round";
+    const cx=off.width*.5, cy=off.height*.52;
+    function branch(x,y,ang,len,depth,wid){
+      if(depth<=0||len<2)return;
+      const nx=x+Math.cos(ang)*len, ny=y+Math.sin(ang)*len;
+      octx.strokeStyle=`rgba(255,255,255,${0.16+depth*0.05})`;
+      octx.lineWidth=wid;
+      octx.beginPath(); octx.moveTo(x,y);
+      const mx=(x+nx)/2+Math.cos(ang+1.57)*len*.22;
+      const my=(y+ny)/2+Math.sin(ang+1.57)*len*.22;
+      octx.quadraticCurveTo(mx,my,nx,ny); octx.stroke();
+      const kids=depth>6?3:2;
+      for(let i=0;i<kids;i++){
+        branch(nx,ny,ang+(Math.random()-.5)*1.25,len*(0.62+Math.random()*0.24),
+               depth-1,Math.max(.4,wid*.72));
+      }
+    }
+    const arms=9;
+    for(let i=0;i<arms;i++){
+      const a=(i/arms)*Math.PI*2+Math.random()*.3;
+      branch(cx,cy,a,off.width*0.085,8,2.6);
+    }
+    /* spore specks */
+    octx.fillStyle="rgba(255,255,255,.5)";
+    for(let i=0;i<900;i++){
+      const a=Math.random()*Math.PI*2, rr=Math.pow(Math.random(),.6)*off.width*.46;
+      octx.fillRect(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr*.66, 1, 1);
+    }
+    /* soft core bloom */
+    const g=octx.createRadialGradient(cx,cy,0,cx,cy,off.width*.16);
+    g.addColorStop(0,"rgba(255,255,255,.55)"); g.addColorStop(1,"rgba(255,255,255,0)");
+    octx.fillStyle=g; octx.fillRect(0,0,off.width,off.height);
+
+    /* sample to a character-grid density field */
+    cols=Math.floor(W/CH); rows=Math.floor(H/(CH*1.55));
+    const img=octx.getImageData(0,0,off.width,off.height).data;
+    field=new Float32Array(cols*rows);
+    for(let ry=0;ry<rows;ry++)for(let rx=0;rx<cols;rx++){
+      const sx=Math.floor(rx/cols*off.width), sy=Math.floor(ry/rows*off.height);
+      const i=(sy*off.width+sx)*4;
+      field[ry*cols+rx]=img[i]/255;
+    }
+    cv.width=W*Math.min(devicePixelRatio,2); cv.height=H*Math.min(devicePixelRatio,2);
+    ctx.setTransform(Math.min(devicePixelRatio,2),0,0,Math.min(devicePixelRatio,2),0,0);
   }
 
-  const dens=()=>new Float32Array(cols*rows);
-  function frame(t){
-    const tt=t*0.001;
-    const ay=tt*0.16, ax=Math.sin(tt*0.21)*0.28;   // live rotation, both axes
-    const cA=Math.cos(ay),sA=Math.sin(ay),cB=Math.cos(ax),sB=Math.sin(ax);
-    const cx=cols*0.5, cy=rows*0.5;
-    const spread=Math.min(cols,rows*1.9)*0.44;
-    const D=new Float32Array(cols*rows);          // density
-    const Z=new Float32Array(cols*rows);          // nearest depth per cell
-
-    for(let i=0;i<PTS.length;i++){
-      const p=PTS[i];
-      /* rotate Y then X */
-      let rx=p.x*cA - p.z*sA;
-      let rz=p.x*sA + p.z*cA;
-      let ry=p.y*cB - rz*sB;
-      rz     =p.y*sB + rz*cB;
-      /* perspective: nearer points spread wider and read denser */
-      const persp=2.6/(2.6+rz);
-      const gx=Math.round(cx + rx*spread*persp);
-      const gy=Math.round(cy + ry*spread*persp*0.62);
-      if(gx<0||gy<0||gx>=cols||gy>=rows)continue;
-      const idx=gy*cols+gx;
-      /* trunk reads solid, outer generations and haze fade out */
-      const w=(p.g<9 ? 1.0-p.g*0.085 : 0.34)*persp*persp;
-      D[idx]+=w;
-      if(persp>Z[idx])Z[idx]=persp;
-    }
-
+  function draw(t){
+    if(!field)return;
     ctx.clearRect(0,0,W,H);
     ctx.font=`${CH+1}px ${getComputedStyle(document.body).getPropertyValue("--mono")}`;
     ctx.textBaseline="top";
-    for(let gy=0;gy<rows;gy++){
-      for(let gx=0;gx<cols;gx++){
-        const idx=gy*cols+gx;
-        let d=D[idx];
+    const tt=t*0.001;
+    for(let ry=0;ry<rows;ry++){
+      for(let rx=0;rx<cols;rx++){
+        let d=field[ry*cols+rx];
         if(d<=0.02)continue;
-        /* a slow pulse travelling outward keeps it breathing */
-        const rr=Math.hypot(gx-cx,(gy-cy)*1.6);
-        d*=0.82+0.4*Math.sin(tt*1.5-rr*0.12);
+        /* slow travelling shimmer so the mesh breathes */
+        d*= .72+.42*Math.sin(tt*.55+rx*.09+ry*.14);
         if(d<=0.05)continue;
-        const lvl=Math.min(1,d*0.85);
-        const chr=RAMP[Math.min(RAMP.length-1,Math.max(1,Math.round(lvl*(RAMP.length-1))))];
-        const near=Z[idx];
-        /* depth cue: near strokes bright and cool-white, far ones grey */
-        const a=Math.min(.92,0.18+lvl*0.9*near);
-        ctx.fillStyle=near>0.95&&lvl>0.55
-          ? `rgba(236,240,243,${a})`
-          : `rgba(146,154,162,${a*0.8})`;
-        ctx.fillText(chr,gx*CH,gy*CH*LH);
+        const idx=Math.min(RAMP.length-1,Math.max(0,Math.round(d*(RAMP.length-1))));
+        const chr=RAMP[idx];
+        if(chr===" ")continue;
+        ctx.fillStyle=d>0.62?`rgba(226,232,236,${Math.min(.85,d)})`
+                             :`rgba(150,158,165,${Math.min(.6,d*.8)})`;
+        ctx.fillText(chr,rx*CH,ry*CH*1.55);
       }
     }
   }
@@ -876,12 +1357,33 @@ async function load(){
   new IntersectionObserver((es)=>{vis=es[0].isIntersecting;}).observe(cv.parentElement);
   function loop(t){
     requestAnimationFrame(loop);
-    if(!vis||t-last<80)return;     /* ~12fps: ASCII should read printed, not smooth */
-    last=t; frame(t);
+    if(!vis||t-last<90)return;   /* ~11fps: ASCII wants to feel printed, not smooth */
+    last=t; draw(t);
   }
-  size();
-  addEventListener("resize",()=>{size();frame(performance.now());});
-  if(reduced){frame(2000);} else requestAnimationFrame(loop);
+  grow();
+  addEventListener("resize",()=>{grow();draw(performance.now());});
+  if(reduced){draw(0);} else requestAnimationFrame(loop);
+})();
+
+/* the finale tilts toward the pointer so the planes separate visibly */
+(function(){
+  const st=document.querySelector(".ascii-stage");
+  if(!st||reduced)return;
+  let tx=0,ty=0,cx=0,cy=0,raf=0;
+  st.addEventListener("pointermove",(e)=>{
+    const r=st.getBoundingClientRect();
+    tx=((e.clientX-r.left)/r.width-.5)*13;
+    ty=((e.clientY-r.top)/r.height-.5)*-9;
+    if(!raf)raf=requestAnimationFrame(run);
+  });
+  st.addEventListener("pointerleave",()=>{tx=0;ty=0;if(!raf)raf=requestAnimationFrame(run);});
+  function run(){
+    cx+=(tx-cx)*.06; cy+=(ty-cy)*.06;
+    st.style.perspectiveOrigin=`${50+cx*1.6}% ${45+cy*1.6}%`;
+    const mk=st.querySelector(".ascii-mark");
+    if(mk)mk.style.transform=`rotateY(${cx*.5}deg) rotateX(${cy*.4}deg) translateZ(60px)`;
+    raf=(Math.abs(tx-cx)>.01||Math.abs(ty-cy)>.01)?requestAnimationFrame(run):0;
+  }
 })();
 
 /* ============ scroll choreography ============ */
@@ -940,6 +1442,16 @@ function initFX(){
     scrollTrigger:{trigger:".incsec",start:"top 78%",once:true}});
   gsap.from(".mkt-title",{opacity:0,y:26,duration:.9,ease:"power3.out",
     scrollTrigger:{trigger:".mkt",start:"top 78%",once:true}});
+
+  /* the finale is a 3D stage: its planes travel at different depths */
+  gsap.to("#asciiCv",{yPercent:-9,ease:"none",
+    scrollTrigger:{trigger:".ascii-stage",start:"top bottom",end:"bottom top",scrub:.7}});
+  gsap.to(".ascii-stage .grid3d",{yPercent:-22,ease:"none",
+    scrollTrigger:{trigger:".ascii-stage",start:"top bottom",end:"bottom top",scrub:.5}});
+  gsap.to(".ascii-mark",{yPercent:14,ease:"none",
+    scrollTrigger:{trigger:".ascii-stage",start:"top bottom",end:"bottom top",scrub:.9}});
+  gsap.fromTo(".ascii-stage .haze",{scale:1.55},{scale:2.1,ease:"none",
+    scrollTrigger:{trigger:".ascii-stage",start:"top bottom",end:"bottom top",scrub:1}});
 
   /* the ASCII wordmark surfaces as the finale enters */
   gsap.from(".ascii-mark",{scale:.94,opacity:0,duration:1.3,ease:"power3.out",

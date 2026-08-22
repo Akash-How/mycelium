@@ -47,39 +47,46 @@
       "proposedBy": "seed",
       "probeScore": 24,
       "contract": {
-        "minRows": 5,
+        "minRows": 20,
         "fields": [
           {
             "name": "name",
             "type": "string",
             "required": true,
-            "description": "The engagement or program name as listed",
-            "sample": "Nubank Brasil Managed Bug Bounty Program"
+            "description": "The bug bounty program or engagement name",
+            "sample": "OpenAI Safety Bug Bounty"
           },
           {
             "name": "tagline",
             "type": "string",
             "required": false,
-            "description": "Short description of the program scope",
-            "sample": "Fight complexity to empower people"
+            "description": "Short description of the program or company",
+            "sample": "We unite everyday people to unlock their financial progress!"
           },
           {
-            "name": "industryName",
+            "name": "participation",
             "type": "string",
             "required": false,
-            "description": "The industry the program belongs to",
-            "sample": "Financial Services"
+            "description": "Whether the program is open or invite-only",
+            "sample": "invite"
           },
           {
-            "name": "briefUrl",
+            "name": "started_at",
             "type": "string",
             "required": false,
-            "description": "Relative link to the program brief page",
-            "sample": "/nubank"
+            "description": "ISO date the program launched \u2014 the arrival signal",
+            "sample": "2025-07-29T00:00:00.000Z"
+          },
+          {
+            "name": "max_reward",
+            "type": "number",
+            "required": false,
+            "description": "Maximum bounty reward in USD if published",
+            "sample": "10000"
           }
         ]
       },
-      "collectorId": null
+      "collectorId": "c_mt4r58cw1mt6zqk977"
     },
     {
       "key": "intigriti",

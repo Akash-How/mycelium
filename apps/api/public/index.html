@@ -574,7 +574,8 @@ async function load(){
   syncOrganism();
 
   const openSrc=new Set([...document.querySelectorAll(".fsrc[open]")].map((d)=>d.dataset.id));
-  $("fleetRows").innerHTML=sources.map((s)=>{
+  const retiredCount=sources.filter((s)=>s.status==="retired").length;
+  $("fleetRows").innerHTML=sources.filter((s)=>s.status!=="retired").map((s)=>{
     const hist=(runsBySource[s.id]??[]).slice(0,16);
     const ticks=[...hist].reverse().map((r)=>{ const c=SC[r.verdict]??"var(--line)";
       const h=r.verdict==="healthy"?18:r.verdict==="degraded"?11:6;
@@ -614,7 +615,8 @@ async function load(){
           ${s.quarantined_at?`<span style="color:var(--pink)">QUARANTINED ${esc(s.quarantined_at.slice(0,16))}</span>`:""}
         </div>
       </div>
-    </details>`; }).join("");
+    </details>`; }).join("")
+    + (retiredCount?`<div class="empty">+ ${retiredCount} retired from the scaffolding vertical — their collectors, runs and incident history remain in the audit trail.</div>`:"");
 
   LAST_INCIDENTS=incidents; renderIncidents();
 

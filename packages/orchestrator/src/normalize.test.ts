@@ -47,3 +47,32 @@ describe("normalizeRows", () => {
     expect(normalizeRows(null)).toEqual([]);
   });
 });
+
+describe("deduplication", () => {
+  it("collapses rows the scraper emitted multiple times from different DOM matches", () => {
+    const dup = [
+      { program_name: "Adobe Public", bounty_range: "$75 - $15,000" },
+      { program_name: "Adobe Public", bounty_range: "$75 - $15,000" },
+      { program_name: "Adobe Public", bounty_range: "$75 - $15,000" },
+      { program_name: "Dutch Lottery VDP", bounty_range: null },
+    ];
+    const rows = normalizeRows(dup);
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => r.program_name)).toEqual(["Adobe Public", "Dutch Lottery VDP"]);
+  });
+
+  it("keeps same-named entities that differ in any other field", () => {
+    const rows = normalizeRows([
+      { program_name: "Acme", bounty_range: "$100" },
+      { program_name: "Acme", bounty_range: "$500" },
+    ]);
+    expect(rows).toHaveLength(2);
+  });
+
+  it("dedupes inside the nested wrapper shape too", () => {
+    const rows = normalizeRows([
+      { programs: [{ n: "a" }, { n: "a" }, { n: "b" }], input: { url: "x" } },
+    ]);
+    expect(rows).toHaveLength(2);
+  });
+});

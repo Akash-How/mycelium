@@ -33,7 +33,7 @@ app.get("/api", (c) =>
       "/incidents": "every break: symptom, machine-written heal prompt, gates, decision",
       "/new?hours=N": "programs first seen since baseline — the first-submission signal",
       "/newest?limit=N&per=M": "programs newest-first with their reward; per=M takes the M most recent from each platform",
-      "/top?limit=N": "highest-reward programs across every platform",
+      "/top?limit=N&per=M": "highest-reward programs; per=M caps how many each platform contributes",
       "/signals": "aggregate vectors: top bounty, median, count above 10k, new this week",
       "/watchlist": "what each source tracks, and when its baseline was seeded",
       "/reliability": "fleet totals, heal rate, mean recovery",
@@ -114,6 +114,21 @@ app.get("/top", (c) => {
     if (!prev || e.bounty > prev.bounty) best.set(k, e);
   }
   const ranked = [...best.values()].sort((a, b) => b.bounty - a.bounty);
+
+  // One project can run several programs on the same platform (Starknet took
+  // three of the top four), which buries every other platform. `per` keeps the
+  // M highest from each so the board stays representative.
+  const per = Number(c.req.query("per") ?? 0);
+  if (per > 0) {
+    const seen = new Map<string, number>();
+    const balanced = ranked.filter((e) => {
+      const n = seen.get(e.platform) ?? 0;
+      if (n >= per) return false;
+      seen.set(e.platform, n + 1);
+      return true;
+    });
+    return c.json(balanced.slice(0, Number(c.req.query("limit") ?? 25)));
+  }
   return c.json(ranked.slice(0, Number(c.req.query("limit") ?? 25)));
 });
 

@@ -357,6 +357,46 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   .foot-main{grid-template-columns:1fr;gap:8vh}
   .foot-brand,.foot-cta{grid-column:auto}
 }
+
+/* ============ menubar + fullscreen menu ============ */
+#menubar{position:fixed;top:0;left:0;right:0;z-index:130;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;pointer-events:none}
+#menubar .mb-brand{font-family:var(--disp);font-size:17px;letter-spacing:.05em;color:var(--txt);pointer-events:auto}
+#menubar .mb-brand:hover{color:var(--txt)}
+#menubar .mb-mid{position:absolute;left:50%;transform:translateX(-50%);transition:opacity .3s}
+#menuBtn{pointer-events:auto;font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--txt);background:none;border:0;cursor:pointer;padding:8px 0 8px 24px;display:flex;align-items:center;gap:12px;transition:color .25s}
+#menuBtn .dotgrid{display:grid;grid-template-columns:4px 4px;gap:3px}
+#menuBtn .dotgrid i{width:4px;height:4px;background:var(--pink);transition:transform .35s var(--ease)}
+#menuBtn:hover{color:var(--pink)}
+#menuBtn:hover .dotgrid i:nth-child(1){transform:translate(7px,7px)}
+#menuBtn:hover .dotgrid i:nth-child(4){transform:translate(-7px,-7px)}
+#menu{position:fixed;inset:0;z-index:120;background:#07080a;display:flex;flex-direction:column;clip-path:inset(0 0 100% 0);visibility:hidden;transition:clip-path .6s cubic-bezier(.7,0,.3,1),visibility 0s .6s}
+#menu.open{clip-path:inset(0);visibility:visible;transition:clip-path .6s cubic-bezier(.7,0,.3,1)}
+#menu .m-rows{margin-top:68px;border-top:1px solid var(--line);display:flex;flex-direction:column}
+#menu .m-row{display:flex;align-items:center;gap:3vw;padding:0 5vw;height:min(10.5vh,82px);border-bottom:1px solid var(--line);color:var(--txt);position:relative;transform:translateY(28px);opacity:0;transition:transform .55s var(--ease),opacity .55s var(--ease),background .16s,color .16s}
+#menu.open .m-row{transform:none;opacity:1}
+#menu.open .m-row:nth-child(1){transition-delay:.16s}
+#menu.open .m-row:nth-child(2){transition-delay:.21s}
+#menu.open .m-row:nth-child(3){transition-delay:.26s}
+#menu.open .m-row:nth-child(4){transition-delay:.31s}
+#menu.open .m-row:nth-child(5){transition-delay:.36s}
+#menu.open .m-row:nth-child(6){transition-delay:.41s}
+#menu .m-row .idx{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--faint);width:40px;transition:color .16s}
+#menu .m-row .nm{font-family:var(--disp);font-size:clamp(24px,4.4vh,42px);letter-spacing:.03em;line-height:1;flex:1;text-align:center}
+#menu .m-row .tag{font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--faint);width:40px;transition:color .16s;white-space:nowrap;display:flex;justify-content:flex-end}
+#menu .m-row:hover,#menu .m-row.on{background:var(--pink);color:#000}
+#menu .m-row:hover .idx,#menu .m-row.on .idx,#menu .m-row:hover .tag,#menu .m-row.on .tag{color:#000}
+#menu .m-noise{flex:1;min-height:0;margin:14px 5vw;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#menu .m-noise pre{font-family:var(--mono);font-size:11px;line-height:1.6;color:#272c31;user-select:none;white-space:pre;margin:0}
+#menu .m-foot{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+#menu .m-foot a{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);text-align:center;padding:18px 0;transition:background .16s,color .16s}
+#menu .m-foot a+a{border-left:1px solid var(--line)}
+#menu .m-foot a:hover{background:var(--txt);color:#000}
+#menu .m-strip{display:grid;grid-template-columns:2fr 1fr 1fr;height:9px}
+#menu .m-strip i:nth-child(1){background:var(--pink)}
+#menu .m-strip i:nth-child(2){background:var(--txt)}
+#menu .m-strip i:nth-child(3){background:var(--line)}
+html.menu-lock,html.menu-lock body{overflow:hidden}
+@media(max-width:760px){#menubar .mb-mid{opacity:0}#menu .m-row .tag{display:none}}
 </style>
 </head>
 <body>
@@ -379,6 +419,30 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 
 <div id="topblur"></div>
 
+<div id="menubar">
+  <a class="mb-brand" href="#top">MYCELIUM</a>
+  <span class="label mb-mid">Built on Bright Data Scraper Studio</span>
+  <button id="menuBtn" aria-expanded="false" aria-controls="menu"><span class="dotgrid"><i></i><i></i><i></i><i></i></span>MENU</button>
+</div>
+
+<div id="menu" aria-hidden="true">
+  <nav class="m-rows" aria-label="menu">
+    <a class="m-row" href="#dashboard"><span class="idx">01</span><span class="nm">LIVE BOARD</span><span class="tag">Newest</span></a>
+    <a class="m-row" href="#fleet"><span class="idx">02</span><span class="nm">SOURCES</span><span class="tag">Fleet</span></a>
+    <a class="m-row" href="#loop"><span class="idx">03</span><span class="nm">SELF-HEALING</span><span class="tag">Gates</span></a>
+    <a class="m-row" href="#stats"><span class="idx">04</span><span class="nm">PROOF</span><span class="tag">Live</span></a>
+    <a class="m-row" href="#finale"><span class="idx">05</span><span class="nm">MYCELIUM</span><span class="tag">End</span></a>
+    <a class="m-row" href="/api"><span class="idx">06</span><span class="nm">API</span><span class="tag">JSON</span></a>
+  </nav>
+  <div class="m-noise"><pre id="menuNoise" aria-hidden="true"></pre></div>
+  <div class="m-foot">
+    <a href="https://github.com/Akash-How/mycelium" rel="noopener">GITHUB &nearr;</a>
+    <a href="/export.json">EXPORT.JSON</a>
+  </div>
+  <div class="m-strip"><i></i><i></i><i></i></div>
+</div>
+
+
 <nav class="section-rail" aria-label="sections">
   <a href="#top" class="on"><span class="rail-name">Top</span><span class="rail-mark"></span></a>
   <a href="#dashboard"><span class="rail-name">Live board</span><span class="rail-mark"></span></a>
@@ -391,10 +455,6 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 <div id="app">
 
 <header class="sec hero" id="top">
-  <div class="topbar">
-    <span class="brand">MYCELIUM</span>
-    <span class="label">Built on Bright Data Scraper Studio</span>
-  </div>
   <div class="stage">
     <div class="organism">
       <canvas id="net"></canvas>
@@ -1024,6 +1084,59 @@ document.addEventListener("click",(e)=>{
     a.onfinish=()=>{body.style.overflow="";};
   }
 });
+
+/* ============ fullscreen menu ============ */
+(()=>{
+  const menu=document.getElementById("menu"),btn=document.getElementById("menuBtn");
+  const noise=document.getElementById("menuNoise");
+  if(!menu||!btn)return;
+  let open=false,noiseT=null;
+  const G=" .:-=+*o#%@";
+  function scribble(){
+    const box=noise.parentElement;
+    const cols=Math.max(40,Math.min(150,Math.floor(box.clientWidth/6.8)));
+    const rows=Math.max(3,Math.min(9,Math.floor(box.clientHeight/18)));
+    let out="";
+    for(let y=0;y<rows;y++){
+      for(let x=0;x<cols;x++){
+        const v=Math.random();
+        out+=v>0.86?G[4+((Math.random()*(G.length-4))|0)]:v>0.55?G[1+((Math.random()*3)|0)]:" ";
+      }
+      out+="\n";
+    }
+    noise.textContent=out;
+  }
+  function mark(){
+    /* highlight the row for the section currently in view */
+    const y=scrollY+innerHeight*0.4;
+    let cur=null;
+    menu.querySelectorAll('.m-row[href^="#"]').forEach((a)=>{
+      const el=document.querySelector(a.getAttribute("href"));
+      if(el&&el.offsetTop<=y)cur=a;
+      a.classList.remove("on");
+    });
+    if(cur)cur.classList.add("on");
+  }
+  function setOpen(v){
+    open=v;
+    menu.classList.toggle("open",v);
+    menu.setAttribute("aria-hidden",String(!v));
+    btn.lastChild.textContent=v?"CLOSE":"MENU";
+    btn.setAttribute("aria-expanded",String(v));
+    document.documentElement.classList.toggle("menu-lock",v);
+    if(lenis){
+      /* pin the target to the current position first, else leftover glide
+         velocity resumes on start() and the page visibly snaps */
+      if(v){lenis.scrollTo(window.scrollY,{immediate:true});lenis.stop();}
+      else lenis.start();
+    }
+    if(v){mark();scribble();noiseT=setInterval(scribble,130);}
+    else if(noiseT){clearInterval(noiseT);noiseT=null;}
+  }
+  btn.addEventListener("click",()=>setOpen(!open));
+  addEventListener("keydown",(e)=>{if(e.key==="Escape"&&open)setOpen(false);});
+  menu.querySelectorAll("a").forEach((a)=>a.addEventListener("click",()=>setOpen(false)));
+})();
 </script>
 
 <script type="module">

@@ -9,6 +9,50 @@ import { openDb } from "@mycelium/orchestrator/src/db.js";
 const db = openDb();
 const app = new Hono();
 
+// ---- row shapes -----------------------------------------------------------
+// node:sqlite returns untyped records; each query narrows to the columns it
+// actually selects so property access stays checked.
+type DiscoveryRow = {
+  first_seen_at: string; entity_key: string; payload_json: string;
+  domain: string; source_id: number; seeded: number;
+};
+type LatestRunRow = { rows_json: string | null; domain: string };
+type ExportRow = {
+  source_id: number; domain: string; country: string;
+  started_at: string; rows_json: string | null; row_count: number;
+};
+type SourceRow = {
+  id: number; url: string; domain: string; collector_id: string | null;
+  status: string; birth_certified_at: string | null;
+  quarantined_at: string | null; contract_json: string | null;
+  last_verdict: string | null;
+};
+type IncidentRow = Record<string, unknown> & {
+  symptom_json: string | null; gates_json: string | null; preview_json: string | null;
+};
+type GeoRow = Record<string, unknown> & { top_signals: string; currency_set: string };
+type Program = { program: unknown; bounty: number; platform: string; category: unknown };
+
+// ---- field helpers --------------------------------------------------------
+// Every platform names its columns differently; the picker chains below are
+// the union of what the collectors' contracts actually emit.
+type Fields = Record<string, unknown>;
+const programName = (row: Fields) =>
+  row.program_name ?? row.name ?? row.title ?? row.project_name;
+const maxBounty = (row: Fields) =>
+  row.max_bounty ?? row.bounty_reward_max ?? row.max_reward;
+/** collapse listing subdomains (www., api., app.) to the platform's name */
+const platformOf = (domain: string) => domain.replace(/^(www|api|app)\./, "");
+/** "$100,000" | 100000 | junk -> number (0 when unparseable) */
+const num = (v: unknown): number => {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
+    const n = Number(v.replace(/[^0-9.]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+  return 0;
+};
+
 // the dataset is a public product: any origin may read it
 app.use("*", async (c, next) => {
   await next();
@@ -53,7 +97,7 @@ app.get("/new", (c) => {
          AND d.first_seen_at >= datetime('now', '-' || ? || ' hours')
        ORDER BY d.first_seen_at DESC LIMIT 300`,
     )
-    .all(hours) as any[];
+    .all(hours) as unknown as DiscoveryRow[];
   return c.json(
     rows.map((r) => ({
       first_seen_at: r.first_seen_at,
@@ -90,24 +134,19 @@ app.get("/top", (c) => {
          AND r.started_at=(SELECT MAX(r2.started_at) FROM run r2
            WHERE r2.source_id=r.source_id AND r2.verdict='healthy')`,
     )
-    .all() as any[];
-  const num = (v: unknown) => {
-    if (typeof v === "number") return v;
-    if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
-    return 0;
-  };
-  const out: any[] = [];
+    .all() as unknown as LatestRunRow[];
+  const out: Program[] = [];
   for (const r of rows) {
-    const domain = r.domain.replace(/^(www|api|app)\./, "");
-    for (const row of JSON.parse(r.rows_json ?? "[]") as Record<string, unknown>[]) {
-      const name = row.program_name ?? row.name ?? row.title ?? row.project_name;
-      const bounty = num(row.max_bounty ?? row.bounty_reward_max ?? row.max_reward);
+    const domain = platformOf(r.domain);
+    for (const row of JSON.parse(r.rows_json ?? "[]") as Fields[]) {
+      const name = programName(row);
+      const bounty = num(maxBounty(row));
       if (name && bounty > 0) out.push({ program: name, bounty, platform: domain, category: row.category ?? row.activity_area ?? row.industryName ?? null });
     }
   }
   // one entry per program per platform — the same program can appear in
   // several rows of a run (regional variants, repeated cards)
-  const best = new Map<string, any>();
+  const best = new Map<string, Program>();
   for (const e of out) {
     const k = `${e.platform}::${String(e.program).toLowerCase().trim()}`;
     const prev = best.get(k);
@@ -143,12 +182,7 @@ app.get("/newest", (c) => {
        FROM discovery d JOIN source s ON s.id = d.source_id
        WHERE s.status != 'retired'`,
     )
-    .all() as any[];
-  const num = (v: unknown) => {
-    if (typeof v === "number") return v;
-    if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
-    return 0;
-  };
+    .all() as unknown as DiscoveryRow[];
   // Sanity-check published launch dates. Bug bounty platforms did not exist
   // before ~2012, so anything older is an extraction artefact, not history —
   // one collector returned 2001-05-19 for a program launched years later.
@@ -157,16 +191,16 @@ app.get("/newest", (c) => {
   const plausible = (d: unknown) =>
     typeof d === "string" && d >= EPOCH && d <= new Date(Date.now() + 864e5).toISOString();
   const out = rows.map((r) => {
-    const e = JSON.parse(r.payload_json ?? "{}");
+    const e = JSON.parse(r.payload_json ?? "{}") as Fields;
     const launched = plausible(e.started_at) ? (e.started_at as string) : null;
     return {
-      program: e.program_name ?? e.name ?? e.title ?? e.project_name ?? r.entity_key,
-      bounty: num(e.max_bounty ?? e.bounty_reward_max ?? e.max_reward),
+      program: programName(e) ?? r.entity_key,
+      bounty: num(maxBounty(e)),
       reward_text: e.reward_range ?? e.bounty_range ?? null,
       // when a platform publishes no reward, say what it does publish
       // rather than showing an empty cell
       access: e.participation ?? e.type ?? e.program_type ?? null,
-      platform: r.domain.replace(/^(www|api|app)\./, ""),
+      platform: platformOf(r.domain),
       category: e.category ?? e.activity_area ?? e.industryName ?? e.program_type ?? null,
       launched_at: launched,
       first_seen_at: r.first_seen_at,
@@ -178,8 +212,9 @@ app.get("/newest", (c) => {
   // versions preferred genuine arrivals, then entries carrying a launch
   // date — which quietly overrode chronology and put Dec 2025 above
   // Aug 2026. A column showing a date must be sorted by that date.
-  const stamp = (e: any) => new Date(String(e.date).replace(" ", "T")).getTime() || 0;
-  const byRecency = (a: any, b: any) => stamp(b) - stamp(a);
+  type Entry = (typeof out)[number];
+  const stamp = (e: Entry) => new Date(String(e.date).replace(" ", "T")).getTime() || 0;
+  const byRecency = (a: Entry, b: Entry) => stamp(b) - stamp(a);
   out.sort(byRecency);
 
   // Only one platform publishes launch dates, so a global sort hands it the
@@ -187,7 +222,7 @@ app.get("/newest", (c) => {
   // every source a hunter watches is represented.
   const per = Number(c.req.query("per") ?? 0);
   if (per > 0) {
-    const groups = new Map<string, any[]>();
+    const groups = new Map<string, Entry[]>();
     for (const e of out) {
       const g = groups.get(e.platform) ?? [];
       if (g.length < per) { g.push(e); groups.set(e.platform, g); }
@@ -208,28 +243,23 @@ app.get("/signals", (c) => {
          AND r.started_at=(SELECT MAX(r2.started_at) FROM run r2
            WHERE r2.source_id=r.source_id AND r2.verdict='healthy')`,
     )
-    .all() as any[];
-  const num = (v: unknown) => {
-    if (typeof v === "number") return v;
-    if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
-    return 0;
-  };
+    .all() as unknown as LatestRunRow[];
   const seen = new Set<string>();
   const bounties: number[] = [];
   const byPlatform: Record<string, number> = {};
   let paying = 0, total = 0;
   const accessMix: Record<string, number> = {};
   for (const r of rows) {
-    const domain = r.domain.replace(/^(www|api|app)\./, "");
-    for (const row of JSON.parse(r.rows_json ?? "[]") as Record<string, unknown>[]) {
-      const name = row.program_name ?? row.name ?? row.title ?? row.project_name;
+    const domain = platformOf(r.domain);
+    for (const row of JSON.parse(r.rows_json ?? "[]") as Fields[]) {
+      const name = programName(row);
       if (!name) continue;
       const k = `${domain}::${String(name).toLowerCase().trim()}`;
       if (seen.has(k)) continue;
       seen.add(k);
       total++;
       byPlatform[domain] = (byPlatform[domain] ?? 0) + 1;
-      const b = num(row.max_bounty ?? row.bounty_reward_max ?? row.max_reward);
+      const b = num(maxBounty(row));
       if (b > 0) { bounties.push(b); paying++; }
       const acc = String(row.participation ?? row.type ?? row.program_type ?? "").toLowerCase();
       if (acc) {
@@ -243,7 +273,7 @@ app.get("/signals", (c) => {
   bounties.sort((a, b) => a - b);
   const newCount = (db.prepare(
     "SELECT COUNT(*) n FROM discovery WHERE seeded=0 AND first_seen_at >= datetime('now','-7 days')"
-  ).get() as any).n;
+  ).get() as { n: number }).n;
   // reward tiers — where the money actually sits
   const tiers = [
     { label: "$10k+", min: 10000, max: Infinity },
@@ -283,13 +313,13 @@ app.get("/history", (c) => {
        FROM run WHERE source_id = ? AND verdict = 'healthy' AND rows_json IS NOT NULL
        ORDER BY started_at ASC LIMIT 500`,
     )
-    .all(sourceId) as any[];
+    .all(sourceId) as unknown as ExportRow[];
   return c.json(
     rows.map((r) => ({
       as_of: r.started_at,
       country: r.country,
       row_count: r.row_count,
-      rows: JSON.parse(r.rows_json),
+      rows: JSON.parse(r.rows_json ?? "[]"),
     })),
   );
 });
@@ -303,7 +333,7 @@ app.get("/sources", (c) => {
                ORDER BY r.started_at DESC LIMIT 1) AS last_verdict
        FROM source s ORDER BY s.id`,
     )
-    .all() as any[];
+    .all() as unknown as SourceRow[];
   return c.json(
     rows.map((r) => ({
       ...r,
@@ -340,7 +370,7 @@ app.get("/incidents", (c) => {
        WHERE s.status != 'retired'
        ORDER BY i.detected_at DESC LIMIT 100`,
     )
-    .all() as any[];
+    .all() as unknown as IncidentRow[];
   return c.json(
     rows.map((r) => ({
       ...r,
@@ -393,7 +423,7 @@ app.get("/export.json", (c) => {
              AND r2.verdict = 'healthy')
        ORDER BY r.source_id, r.country`,
     )
-    .all(...(sourceId ? [sourceId] : [])) as any[];
+    .all(...(sourceId ? [sourceId] : [])) as unknown as ExportRow[];
   return c.json(
     rows.map((r) => ({
       source_id: r.source_id,
@@ -418,7 +448,7 @@ app.get("/export.csv", (c) => {
            WHERE r2.source_id = r.source_id AND r2.country = r.country
              AND r2.verdict = 'healthy')`,
     )
-    .all(...(sourceId ? [sourceId] : [])) as any[];
+    .all(...(sourceId ? [sourceId] : [])) as unknown as ExportRow[];
 
   const lines = ["domain,country,as_of,field,row_index,value"];
   for (const d of data) {
@@ -447,7 +477,7 @@ app.get("/geo", (c) => {
          WHERE g2.source_id = g.source_id AND g2.country = g.country)
        ORDER BY g.source_id, g.country`,
     )
-    .all() as any[];
+    .all() as unknown as GeoRow[];
   return c.json(
     rows.map((r) => ({
       ...r,

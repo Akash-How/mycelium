@@ -11,10 +11,11 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "orchestrate": "tsx packages/orchestrator/src/main.ts",
-    "api": "tsx apps/api/src/main.ts"
+    "api": "tsx apps/api/src/main.ts",
+    "check": "tsc --noEmit && vitest run"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.5"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

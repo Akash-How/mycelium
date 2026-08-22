@@ -32,7 +32,7 @@ app.get("/api", (c) =>
       "/runs?source=N&limit=M": "run log: verdicts and row counts",
       "/incidents": "every break: symptom, machine-written heal prompt, gates, decision",
       "/new?hours=N": "programs first seen since baseline — the first-submission signal",
-      "/newest?limit=N": "programs newest-first with their reward — the product's spine",
+      "/newest?limit=N&per=M": "programs newest-first with their reward; per=M takes the M most recent from each platform",
       "/top?limit=N": "highest-reward programs across every platform",
       "/signals": "aggregate vectors: top bounty, median, count above 10k, new this week",
       "/watchlist": "what each source tracks, and when its baseline was seeded",
@@ -134,9 +134,16 @@ app.get("/newest", (c) => {
     if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
     return 0;
   };
+  // Sanity-check published launch dates. Bug bounty platforms did not exist
+  // before ~2012, so anything older is an extraction artefact, not history —
+  // one collector returned 2001-05-19 for a program launched years later.
+  // Reject the impossible rather than let it outrank real dates.
+  const EPOCH = "2012-01-01";
+  const plausible = (d: unknown) =>
+    typeof d === "string" && d >= EPOCH && d <= new Date(Date.now() + 864e5).toISOString();
   const out = rows.map((r) => {
     const e = JSON.parse(r.payload_json ?? "{}");
-    const launched = typeof e.started_at === "string" ? e.started_at : null;
+    const launched = plausible(e.started_at) ? (e.started_at as string) : null;
     return {
       program: e.program_name ?? e.name ?? e.title ?? e.project_name ?? r.entity_key,
       bounty: num(e.max_bounty ?? e.bounty_reward_max ?? e.max_reward),
@@ -156,12 +163,27 @@ app.get("/newest", (c) => {
   // first started watching a platform is not "new", it is just when we
   // arrived. Within each group, most recent first — preferring the
   // platform's own launch date over our first sighting.
-  out.sort((a, b) => {
+  const byRecency = (a: any, b: any) => {
     if (a.is_new !== b.is_new) return a.is_new ? -1 : 1;
     if (a.launched_at && b.launched_at) return b.launched_at.localeCompare(a.launched_at);
     if (a.launched_at !== b.launched_at) return a.launched_at ? -1 : 1;
     return String(b.date).localeCompare(String(a.date));
-  });
+  };
+  out.sort(byRecency);
+
+  // Only one platform publishes launch dates, so a global sort hands it the
+  // whole feed. `per` takes the N most recent from each platform instead, so
+  // every source a hunter watches is represented.
+  const per = Number(c.req.query("per") ?? 0);
+  if (per > 0) {
+    const groups = new Map<string, any[]>();
+    for (const e of out) {
+      const g = groups.get(e.platform) ?? [];
+      if (g.length < per) { g.push(e); groups.set(e.platform, g); }
+    }
+    const balanced = [...groups.values()].flat().sort(byRecency);
+    return c.json(balanced.slice(0, limit));
+  }
   return c.json(out.slice(0, limit));
 });
 

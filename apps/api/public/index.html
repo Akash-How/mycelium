@@ -417,7 +417,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <div class="dash-grid">
     <div class="dash-col">
       <div class="lb-head">
-        <span class="label">Newest programs</span>
+        <span class="label">Newest per platform</span>
         <span class="label" id="newMeta"></span>
       </div>
       <div id="newRows"></div>
@@ -711,7 +711,7 @@ async function load(){
     const [sig,top,newest]=await Promise.all([
       fetch("/signals").then(r=>r.json()),
       fetch("/top?limit=10").then(r=>r.json()),
-      fetch("/newest?limit=14").then(r=>r.json())]);
+      fetch("/newest?limit=14&per=2").then(r=>r.json())]);
     const money=(n)=>"$"+Number(n).toLocaleString();
     $("sigTiles").innerHTML=[
       ["Programs tracked",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,""],
@@ -727,7 +727,7 @@ async function load(){
       const sameYear=dt.getFullYear()===new Date().getFullYear();
       return dt.toLocaleDateString(undefined,sameYear?{month:"short",day:"numeric"}:{month:"short",day:"numeric",year:"2-digit"}); };
     const freshCut=Date.now()-7*864e5;
-    $("newMeta").textContent=`${newest.length} SHOWN · /NEWEST`;
+    $("newMeta").textContent=`LATEST 2 PER PLATFORM · /NEWEST`;
     $("newRows").innerHTML=newest.length?newest.map((n)=>{
       const when=new Date(String(n.date).replace(" ","T")+(String(n.date).endsWith("Z")?"":"Z"));
       const fresh=n.is_new&&when.getTime()>freshCut;

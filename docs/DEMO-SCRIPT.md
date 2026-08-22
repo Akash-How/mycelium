@@ -1,95 +1,98 @@
 # Demo video — shot-by-shot script (~4 min)
 
 Record at 1920×1080, dashboard at http://localhost:4000, terminal ready.
-Before recording: hard-refresh the page once, run the dry-run below.
 
-## Dry run (do this before hitting record)
+## Pre-flight (before hitting record)
 
 ```bash
 npm run api          # dashboard on :4000
-npm run orchestrate  # heartbeat (separate terminal)
+npm run orchestrate  # heartbeat, separate terminal
 curl http://localhost:4000/reliability
 ```
 
-All green? Record.
+Hard-refresh the page once (Ctrl+Shift+R). All green? Record.
 
 ---
 
 ## 0:00 — The hook (hero)
 
-**Screen:** the dashboard hero. Scroll slowly so PAGES / INTO / PROOF
-staircases out over the network.
+**Screen:** the hero. Scroll slowly so PAGES / INTO / PROOF staircases
+out over the particle network.
 
-**Say:** "Every scraper ever written has the same fate: it works in the
-demo, then the site changes and it breaks — quietly. This is Mycelium.
-A web data network that watches its own output, writes its own repair
-orders, and refuses to serve data it can't verify."
+**Say:** "In bug bounty, the first submission wins. So hunters refresh
+platform directories by hand, hoping to catch a new program early. This
+is Mycelium — it watches every platform for you, repairs its own scrapers
+when those sites change, and tells you the moment something new lands."
 
-## 0:35 — The fleet (scroll to Network)
+## 0:30 — Arrivals (scroll to Arrivals)
 
-**Screen:** fleet rows. Click **deepinfra** open — the contract column,
-run log, latest extraction.
+**Screen:** the Arrivals panel; the tracked count in the header.
 
-**Say:** "Six sources, AI infrastructure pricing. Every scraper here is
-a Bright Data Scraper Studio collector — and every one carries a
-contract: the fields it promises, in plain language. That description
-isn't documentation. It's ammunition. You'll see why."
+**Say:** "266 programs across three platforms, under continuous watch.
+Every verified sweep gets diffed against everything each platform has
+ever shown. When a program appears that wasn't there before, it lands
+here with a timestamp — and in the console the second it happens."
 
-## 1:10 — The star beat (scroll to The Loop)
+## 1:00 — The fleet (scroll to Network, click a row)
 
-**Screen:** incident timeline. Open the **together.ai** incident.
-Point at the three columns in order.
+**Screen:** click **bugcrowd.com** open — contract, run log, extraction.
 
-**Say:** "This collector was born broken — zero rows. Column one: our
-sentinel detected it, no human. Column two: the diagnostician compiled
-the contract into this repair prompt and sent it to Bright Data's
-healing AI — one machine writing a bug report to another. Column
-three: the repaired scraper had to pass three gates before we believed
-it. Here's the part that matters —" *(open modal's incident)* "— this
-one passed preview twice and still returned garbage in production. So
-the system benched it. A wrong price served confidently is worse than
-no price. Auto-approve is banned in this codebase."
+**Say:** "Three Scraper Studio collectors. Each carries a contract: the
+fields it promises, in plain language. That description isn't
+documentation — it's the ammunition for repairs. Watch."
 
-## 2:20 — The receipts (stats)
+## 1:30 — The star beat (scroll to The Loop)
 
-**Screen:** scroll up to the giant stats; hover to reveal annotations.
+**Screen:** open the **yeswehack** incident; walk the three columns.
 
-**Say:** "This isn't one staged demo break. Five real incidents today,
-four healed unattended, mean recovery 27 minutes, two collectors
-benched on evidence. The reliability numbers are the product."
+**Say:** "This collector looked healthy — it returned 63 rows. But the
+sentinel scored it against its contract and caught what a row count
+hides: 36% of program titles were empty and bounty values were never
+populated. Column two — the diagnostician compiled that failure into
+this repair prompt and sent it to Bright Data's healing AI. One machine
+writing a bug report to another. Column three — three gates before we
+believe it. After the heal: titles 98%, bounty values 95%."
 
-## 2:45 — Markets + the finding
+Then open **intigriti**: "This one was born completely empty. Same loop,
+no human."
 
-**Screen:** divergence matrix, hover a few cells.
+## 2:30 — Refusing to trust (filter to Quarantined)
 
-**Say:** "We probed every source from eight countries through Bright
-Data's unlocker. The finding: AI compute speaks one currency to the
-whole world. A uniform row is a finding too."
+**Screen:** click the **Quarantined** filter.
 
-## 3:05 — What it powers (terminal)
+**Say:** "And here's what matters more. These sources passed their repair
+previews — and still returned garbage in production. So the system
+benched them instead of serving it. A wrong result served confidently is
+worse than no result. Auto-approve is banned in this codebase."
+
+## 3:00 — Cloudflare + what it powers (terminal)
 
 **Screen:** terminal.
 
 ```bash
-curl -s http://localhost:4000/export.json?source=1 | head -40
+curl -s "http://localhost:4000/new?hours=720" | head -20
+curl -s "http://localhost:4000/export.json?source=11" | head -30
 ```
 
-**Say:** "356 verified rows, live, self-maintaining. Every collector
-doubles as a Bright Data API endpoint — and this export only serves
-runs that passed verification. Data you can build on."
+**Say:** "These are the hardest pages we've scraped — Cloudflare in front,
+client-rendered behind. Bright Data's unlocker went straight through:
+HTTP 200 with cf-ray headers on both HackerOne and Bugcrowd. Everything
+the dashboard shows is eight public endpoints, CORS-open, serving only
+gate-verified rows."
 
 ## 3:30 — Close (scroll to foot)
 
 **Screen:** the MYCELIUM foot-mark rising.
 
-**Say:** "We didn't write a scraper. We wrote the thing that keeps
-scrapers honest — and it doesn't stop when the hackathon does.
-github.com/Akash-How/mycelium."
+**Say:** "One more thing: this entire vertical was swapped in today. The
+engine didn't change — not one line of the sentinel, the gates, or the
+heal loop. Only the target list. We didn't write a scraper. We wrote the
+thing that keeps scrapers honest. github.com/Akash-How/mycelium."
 
 ---
 
-## Fallback footage
+## Notes
 
-If the live page misbehaves on record day, screen-record each section
-separately and cut. The heal loop is already history — the incident
-timeline IS the footage; nothing needs to break live.
+- The heal loop is already history — the incident timeline **is** the
+  footage. Nothing needs to break live on camera.
+- If the live page misbehaves, record each section separately and cut.

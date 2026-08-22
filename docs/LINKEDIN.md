@@ -5,31 +5,43 @@ incident-timeline screenshot. LinkedIn only (per the track rules).
 
 ---
 
-I spent this week at Into the Scrape-Verse building Mycelium — a web
-data network that repairs itself.
+In bug bounty, the first submission wins. So I spent Into the Scrape-Verse
+building something that watches every platform for me.
 
-Today it earned the name. 5 of my 8 AI-generated scrapers were born
-broken: zero rows on JS-heavy pricing pages. No human fixed them.
+Mycelium tracks 266 programs across Bugcrowd, YesWeHack and Intigriti —
+and tells me the moment a new one appears.
 
-The loop that did:
-→ a sentinel scores every run against a machine-readable contract
+The hard part wasn't scraping. It was staying correct.
+
+5 of my collectors were born broken. One returned 63 rows that looked
+fine — until the sentinel scored them against their contract and found
+36% of program titles empty and bounty values never populated. No human
+noticed that. The system did:
+
+→ sentinel scores every run against a machine-readable contract
 → a diagnostician compiles the failure into a repair prompt
 → Bright Data's healing AI rewrites the scraper
-→ three verification gates decide whether to believe it
+→ three gates decide whether to believe it
 
-4 heals approved, unattended. Mean recovery: 27 minutes.
+After the heal: titles 98%, bounty values 95%.
 
-The lesson that stuck: never trust a repair you haven't verified.
-One collector passed its repair preview twice and still returned
-empty fields in production. My system benched it instead of serving
-garbage. And I discovered the hard way that `scraper approve`
-without `--auto-save` reports success while silently discarding the
-fix — caught only because verification runs against production, not
-previews.
+Two collectors never earned that trust — they passed their repair
+previews and still returned empty fields in production. The system
+benched them rather than serve it. A wrong result served confidently is
+worse than no result.
 
-A wrong price served confidently is worse than no price.
+Two things I learned the hard way:
+• `scraper approve` without `--auto-save` reports success while silently
+  discarding the healed template. Only caught it because verification
+  runs against production, not previews.
+• A collector was emitting every program 8 times from duplicate DOM
+  matches — 192 rows, 24 programs. Row counts lie.
+
+Bonus: I pivoted the whole vertical on the last day, from AI pricing to
+bug bounty. The engine didn't change — not one line of the sentinel, the
+gates or the heal loop. Only the target list.
 
 Repo: github.com/Akash-How/mycelium
-Built on @Bright Data Scraper Studio for @WeMakeDevs' hackathon.
+Built on Bright Data Scraper Studio for @WeMakeDevs' hackathon.
 
-#IntoTheScrapeVerse #WebScraping #SelfHealing #BrightData
+#IntoTheScrapeVerse #BugBounty #WebScraping #BrightData

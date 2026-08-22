@@ -609,8 +609,14 @@ async function load(){
           return `<td class="cell" title="${esc(p.top_signals.slice(0,8).join("  "))}">${p.signal_count}<small>${esc(p.currency_set.join(" ")||"–")}</small></td>`; }).join("")+"</tr>").join("")
     :`<tr><td class="empty">NO GEO PROBES YET — EACH SOURCE IS PROBED FROM EVERY MARKET DAILY.</td></tr>`;
 
-  const globalExp=exp.filter(e=>e.country==="global");
-  const shown=globalExp.length?globalExp:exp;
+  /* one card per source: latest verified run, preferring global */
+  const bySrc=new Map();
+  for(const e of exp){
+    const cur=bySrc.get(e.source_id);
+    if(!cur||(e.country==="global"&&cur.country!=="global")||
+       (e.country===cur.country&&e.as_of>cur.as_of))bySrc.set(e.source_id,e);
+  }
+  const shown=[...bySrc.values()];
   $("dsGrid").innerHTML=shown.length?shown.map((e)=>{
     const first=e.rows[0]??{};
     const nameF=Object.keys(first).find(k=>typeof first[k]==="string");

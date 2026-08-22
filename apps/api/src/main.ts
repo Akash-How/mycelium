@@ -141,6 +141,7 @@ app.get("/incidents", (c) => {
     .prepare(
       `SELECT i.*, s.url, s.domain FROM incident i
        JOIN source s ON s.id = i.source_id
+       WHERE s.status != 'retired'
        ORDER BY i.detected_at DESC LIMIT 100`,
     )
     .all() as any[];
@@ -189,7 +190,7 @@ app.get("/export.json", (c) => {
     .prepare(
       `SELECT r.source_id, s.domain, r.country, r.started_at, r.rows_json
        FROM run r JOIN source s ON s.id = r.source_id
-       WHERE r.verdict = 'healthy' ${where}
+       WHERE r.verdict = 'healthy' AND s.status != 'retired' ${where}
          AND r.started_at = (
            SELECT MAX(r2.started_at) FROM run r2
            WHERE r2.source_id = r.source_id AND r2.country = r.country
@@ -215,7 +216,7 @@ app.get("/export.csv", (c) => {
     .prepare(
       `SELECT s.domain, r.country, r.started_at, r.rows_json
        FROM run r JOIN source s ON s.id = r.source_id
-       WHERE r.verdict = 'healthy' ${where}
+       WHERE r.verdict = 'healthy' AND s.status != 'retired' ${where}
          AND r.started_at = (
            SELECT MAX(r2.started_at) FROM run r2
            WHERE r2.source_id = r.source_id AND r2.country = r.country
@@ -245,7 +246,7 @@ app.get("/geo", (c) => {
       `SELECT g.source_id, s.domain, g.country, g.probed_at, g.signal_count,
               g.top_signals, g.currency_set
        FROM geo_probe g JOIN source s ON s.id = g.source_id
-       WHERE g.probed_at = (
+       WHERE s.status != 'retired' AND g.probed_at = (
          SELECT MAX(g2.probed_at) FROM geo_probe g2
          WHERE g2.source_id = g.source_id AND g2.country = g.country)
        ORDER BY g.source_id, g.country`,

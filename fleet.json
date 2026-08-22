@@ -199,7 +199,7 @@
       "url": "https://www.openbugbounty.org/bugbounty-list/",
       "proposedBy": "seed",
       "probeScore": 88,
-      "collectorId": null,
+      "collectorId": "c_mt4tzvdn2q2xe8mwsd",
       "contract": {
         "minRows": 10,
         "fields": [
@@ -223,6 +223,39 @@
             "required": false,
             "description": "Date the program was listed",
             "sample": "2026-08-01"
+          }
+        ]
+      }
+    },
+    {
+      "key": "google",
+      "url": "https://bughunters.google.com/about/rules",
+      "proposedBy": "seed",
+      "probeScore": 0,
+      "collectorId": "c_mt4tjuiigedbryfoe",
+      "contract": {
+        "minRows": 2,
+        "fields": [
+          {
+            "name": "program_name",
+            "type": "string",
+            "required": true,
+            "description": "The Google vulnerability reward program name",
+            "sample": "Chrome VRP"
+          },
+          {
+            "name": "max_reward",
+            "type": "number",
+            "required": false,
+            "description": "Maximum reward in USD if shown",
+            "sample": "150000"
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "required": false,
+            "description": "Short summary of program scope",
+            "sample": "Covers Chrome browser and ChromeOS"
           }
         ]
       }

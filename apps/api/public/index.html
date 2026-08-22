@@ -766,87 +766,108 @@ async function load(){
   }catch(e){}
 
 }
-/* ============ ascii finale: mycelium grown, then dithered to text ====== */
+/* ====== ascii finale: a 3D mycelium, rotated live, dithered to text ====== */
 (function(){
   const cv=document.getElementById("asciiCv");
   if(!cv)return;
   const ctx=cv.getContext("2d");
-  const off=document.createElement("canvas");
-  const octx=off.getContext("2d");
-  const CH=9, RAMP=" .:-=+*#%@";   // density ramp, sparse -> dense
-  let cols=0,rows=0,field=null,W=0,H=0;
+  const CH=9, LH=1.55;
+  const RAMP=" .·:-=+*o#%@";          // sparse -> dense
+  let cols=0,rows=0,W=0,H=0,DPR=1;
+  const PTS=[];                        // {x,y,z,g} g = generation (0 = trunk)
 
-  /* grow a branching mycelium into the offscreen buffer */
-  function grow(){
-    const r=cv.parentElement.getBoundingClientRect();
-    W=Math.max(320,r.width); H=Math.max(240,r.height);
-    off.width=Math.ceil(W/2); off.height=Math.ceil(H/2);   // half-res is plenty
-    octx.fillStyle="#000"; octx.fillRect(0,0,off.width,off.height);
-    octx.lineCap="round";
-    const cx=off.width*.5, cy=off.height*.52;
-    function branch(x,y,ang,len,depth,wid){
-      if(depth<=0||len<2)return;
-      const nx=x+Math.cos(ang)*len, ny=y+Math.sin(ang)*len;
-      octx.strokeStyle=`rgba(255,255,255,${0.16+depth*0.05})`;
-      octx.lineWidth=wid;
-      octx.beginPath(); octx.moveTo(x,y);
-      const mx=(x+nx)/2+Math.cos(ang+1.57)*len*.22;
-      const my=(y+ny)/2+Math.sin(ang+1.57)*len*.22;
-      octx.quadraticCurveTo(mx,my,nx,ny); octx.stroke();
-      const kids=depth>6?3:2;
-      for(let i=0;i<kids;i++){
-        branch(nx,ny,ang+(Math.random()-.5)*1.25,len*(0.62+Math.random()*0.24),
-               depth-1,Math.max(.4,wid*.72));
+  /* grow the organism once, in three dimensions */
+  (function build(){
+    function branch(x,y,z,dx,dy,dz,len,depth,gen){
+      if(depth<=0)return;
+      const steps=Math.max(3,Math.round(len*7));
+      for(let i=0;i<=steps;i++){
+        const t=i/steps;
+        PTS.push({x:x+dx*len*t, y:y+dy*len*t, z:z+dz*len*t, g:gen});
+      }
+      const nx=x+dx*len, ny=y+dy*len, nz=z+dz*len;
+      const kids=depth>5?3:2;
+      for(let k=0;k<kids;k++){
+        const j=()=> (Math.random()-.5)*0.95;
+        let ax=dx+j(), ay=dy+j(), az=dz+j();
+        const m=Math.hypot(ax,ay,az)||1;
+        branch(nx,ny,nz, ax/m,ay/m,az/m, len*(0.62+Math.random()*0.2), depth-1, gen+1);
       }
     }
-    const arms=9;
+    /* radial arms from the core, in 3D */
+    const arms=10;
     for(let i=0;i<arms;i++){
-      const a=(i/arms)*Math.PI*2+Math.random()*.3;
-      branch(cx,cy,a,off.width*0.085,8,2.6);
+      const th=(i/arms)*Math.PI*2, ph=Math.acos(2*((i*0.37)%1)-1);
+      branch(0,0,0, Math.sin(ph)*Math.cos(th), Math.cos(ph)*0.6, Math.sin(ph)*Math.sin(th),
+             0.34, 7, 0);
     }
-    /* spore specks */
-    octx.fillStyle="rgba(255,255,255,.5)";
-    for(let i=0;i<900;i++){
-      const a=Math.random()*Math.PI*2, rr=Math.pow(Math.random(),.6)*off.width*.46;
-      octx.fillRect(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr*.66, 1, 1);
+    /* spore haze in a shell around it */
+    for(let i=0;i<1400;i++){
+      const u=Math.random()*Math.PI*2, v=Math.acos(2*Math.random()-1);
+      const r=0.55+Math.pow(Math.random(),.5)*0.95;
+      PTS.push({x:Math.sin(v)*Math.cos(u)*r, y:Math.cos(v)*r*0.72, z:Math.sin(v)*Math.sin(u)*r, g:9});
     }
-    /* soft core bloom */
-    const g=octx.createRadialGradient(cx,cy,0,cx,cy,off.width*.16);
-    g.addColorStop(0,"rgba(255,255,255,.55)"); g.addColorStop(1,"rgba(255,255,255,0)");
-    octx.fillStyle=g; octx.fillRect(0,0,off.width,off.height);
+  })();
 
-    /* sample to a character-grid density field */
-    cols=Math.floor(W/CH); rows=Math.floor(H/(CH*1.55));
-    const img=octx.getImageData(0,0,off.width,off.height).data;
-    field=new Float32Array(cols*rows);
-    for(let ry=0;ry<rows;ry++)for(let rx=0;rx<cols;rx++){
-      const sx=Math.floor(rx/cols*off.width), sy=Math.floor(ry/rows*off.height);
-      const i=(sy*off.width+sx)*4;
-      field[ry*cols+rx]=img[i]/255;
-    }
-    cv.width=W*Math.min(devicePixelRatio,2); cv.height=H*Math.min(devicePixelRatio,2);
-    ctx.setTransform(Math.min(devicePixelRatio,2),0,0,Math.min(devicePixelRatio,2),0,0);
+  function size(){
+    const r=cv.parentElement.getBoundingClientRect();
+    W=Math.max(320,r.width); H=Math.max(240,r.height);
+    DPR=Math.min(devicePixelRatio,2);
+    cv.width=W*DPR; cv.height=H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    cols=Math.floor(W/CH); rows=Math.floor(H/(CH*LH));
   }
 
-  function draw(t){
-    if(!field)return;
+  const dens=()=>new Float32Array(cols*rows);
+  function frame(t){
+    const tt=t*0.001;
+    const ay=tt*0.16, ax=Math.sin(tt*0.21)*0.28;   // live rotation, both axes
+    const cA=Math.cos(ay),sA=Math.sin(ay),cB=Math.cos(ax),sB=Math.sin(ax);
+    const cx=cols*0.5, cy=rows*0.5;
+    const spread=Math.min(cols,rows*1.9)*0.44;
+    const D=new Float32Array(cols*rows);          // density
+    const Z=new Float32Array(cols*rows);          // nearest depth per cell
+
+    for(let i=0;i<PTS.length;i++){
+      const p=PTS[i];
+      /* rotate Y then X */
+      let rx=p.x*cA - p.z*sA;
+      let rz=p.x*sA + p.z*cA;
+      let ry=p.y*cB - rz*sB;
+      rz     =p.y*sB + rz*cB;
+      /* perspective: nearer points spread wider and read denser */
+      const persp=2.6/(2.6+rz);
+      const gx=Math.round(cx + rx*spread*persp);
+      const gy=Math.round(cy + ry*spread*persp*0.62);
+      if(gx<0||gy<0||gx>=cols||gy>=rows)continue;
+      const idx=gy*cols+gx;
+      /* trunk reads solid, outer generations and haze fade out */
+      const w=(p.g<9 ? 1.0-p.g*0.085 : 0.34)*persp*persp;
+      D[idx]+=w;
+      if(persp>Z[idx])Z[idx]=persp;
+    }
+
     ctx.clearRect(0,0,W,H);
     ctx.font=`${CH+1}px ${getComputedStyle(document.body).getPropertyValue("--mono")}`;
     ctx.textBaseline="top";
-    const tt=t*0.001;
-    for(let ry=0;ry<rows;ry++){
-      for(let rx=0;rx<cols;rx++){
-        let d=field[ry*cols+rx];
+    for(let gy=0;gy<rows;gy++){
+      for(let gx=0;gx<cols;gx++){
+        const idx=gy*cols+gx;
+        let d=D[idx];
         if(d<=0.02)continue;
-        /* slow travelling shimmer so the mesh breathes */
-        d*= .72+.42*Math.sin(tt*.55+rx*.09+ry*.14);
+        /* a slow pulse travelling outward keeps it breathing */
+        const rr=Math.hypot(gx-cx,(gy-cy)*1.6);
+        d*=0.82+0.4*Math.sin(tt*1.5-rr*0.12);
         if(d<=0.05)continue;
-        const idx=Math.min(RAMP.length-1,Math.max(0,Math.round(d*(RAMP.length-1))));
-        const chr=RAMP[idx];
-        if(chr===" ")continue;
-        ctx.fillStyle=d>0.62?`rgba(226,232,236,${Math.min(.85,d)})`
-                             :`rgba(150,158,165,${Math.min(.6,d*.8)})`;
-        ctx.fillText(chr,rx*CH,ry*CH*1.55);
+        const lvl=Math.min(1,d*0.85);
+        const chr=RAMP[Math.min(RAMP.length-1,Math.max(1,Math.round(lvl*(RAMP.length-1))))];
+        const near=Z[idx];
+        /* depth cue: near strokes bright and cool-white, far ones grey */
+        const a=Math.min(.92,0.18+lvl*0.9*near);
+        ctx.fillStyle=near>0.95&&lvl>0.55
+          ? `rgba(236,240,243,${a})`
+          : `rgba(146,154,162,${a*0.8})`;
+        ctx.fillText(chr,gx*CH,gy*CH*LH);
       }
     }
   }
@@ -855,12 +876,12 @@ async function load(){
   new IntersectionObserver((es)=>{vis=es[0].isIntersecting;}).observe(cv.parentElement);
   function loop(t){
     requestAnimationFrame(loop);
-    if(!vis||t-last<90)return;   /* ~11fps: ASCII wants to feel printed, not smooth */
-    last=t; draw(t);
+    if(!vis||t-last<80)return;     /* ~12fps: ASCII should read printed, not smooth */
+    last=t; frame(t);
   }
-  grow();
-  addEventListener("resize",()=>{grow();draw(performance.now());});
-  if(reduced){draw(0);} else requestAnimationFrame(loop);
+  size();
+  addEventListener("resize",()=>{size();frame(performance.now());});
+  if(reduced){frame(2000);} else requestAnimationFrame(loop);
 })();
 
 /* ============ scroll choreography ============ */

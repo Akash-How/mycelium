@@ -221,6 +221,24 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .mkt-note{font-family:var(--mono);font-size:12px;color:var(--dim);line-height:2;margin-top:26px;max-width:640px}
 .mkt-note b{color:var(--txt);font-weight:500}
 
+.sig-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:8vh}
+.sig{background:var(--bg);padding:22px 20px}
+.sig .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.sig .v{font-family:var(--disp);font-size:clamp(30px,3.4vw,52px);line-height:1.05;margin-top:10px;font-variant-numeric:tabular-nums}
+.sig.hot .v{color:var(--pink)}
+.sig .s{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:6px}
+.lb-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2vh}
+.lb{display:grid;grid-template-columns:44px 1fr auto 130px;gap:20px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line)}
+.lb .rk{font-family:var(--mono);font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+.lb .pg{font-size:clamp(14px,1.3vw,17px);color:var(--dim);transition:color .3s var(--ease)}
+.lb .pg small{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;margin-left:10px}
+.lb .bt{font-family:var(--disp);font-size:clamp(17px,1.7vw,24px);font-variant-numeric:tabular-nums}
+.lb .pl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);text-align:right}
+.lb:hover .pg{color:var(--txt)}
+.lb .bar{grid-column:1/5;height:2px;background:var(--line);margin-top:-6px}
+.lb .bar i{display:block;height:2px;background:var(--pink);opacity:.5}
+@media (max-width:1000px){.lb{grid-template-columns:32px 1fr auto}.lb .pl{display:none}.lb .bar{grid-column:1/4}}
+
 /* ============ dataset ============ */
 .data{padding-top:14vh;padding-bottom:16vh}
 .data .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5vh}
@@ -300,7 +318,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <a href="#top" class="on"><span class="rail-name">Network</span><span class="rail-mark"></span></a>
   <a href="#arrivals"><span class="rail-name">Arrivals</span><span class="rail-mark"></span></a>
   <a href="#loop"><span class="rail-name">The loop</span><span class="rail-mark"></span></a>
-  <a href="#markets"><span class="rail-name">Markets</span><span class="rail-mark"></span></a>
+  <a href="#markets"><span class="rail-name">Signals</span><span class="rail-mark"></span></a>
   <a href="#dataset"><span class="rail-name">Dataset</span><span class="rail-mark"></span></a>
   <a href="#end"><span class="rail-name">End</span><span class="rail-mark"></span></a>
 </nav>
@@ -385,13 +403,18 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   <div id="incList"></div>
 </section>
 
-<section class="sec mkt" id="markets" aria-label="markets">
+<section class="sec mkt" id="markets" aria-label="signals">
   <div class="head">
-    <div><span class="label">Markets — probed daily from 8 countries</span>
-    <p class="mkt-title">Same page, different market. <b>A uniform row is a finding too.</b></p></div>
+    <div><span class="label">Signals — what a hunter actually sorts by</span>
+    <p class="mkt-title">Bounties pay the same everywhere. <b>Reward and recency are the vectors.</b></p></div>
   </div>
-  <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
-  <p class="mkt-note">Cells count price tokens found via <b>bdata scrape --country</b> through Bright Data's unlocker. Finding so far: <b>AI compute speaks one currency to the whole world.</b></p>
+  <div class="sig-tiles" id="sigTiles"></div>
+  <div class="lb-head">
+    <span class="label">Highest rewards on the board</span>
+    <span class="label" id="lbMeta"></span>
+  </div>
+  <div id="lbRows"></div>
+  <p class="mkt-note">Ranked from the latest <b>gate-verified</b> sweep of every platform — one entry per program, best published reward. Live at <b>/top</b>, aggregates at <b>/signals</b>.</p>
 </section>
 
 <section class="sec data" id="dataset" aria-label="dataset">
@@ -420,7 +443,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
       <a href="/history?source=1">history</a>
       <a href="/reliability">reliability</a>
       <a href="/incidents">incidents</a>
-      <a href="/geo">geo</a>
+      <a href="/top">top</a>
     </nav>
     <span class="foot-status"><i></i>FLEET LIVE · SWEEPING ON SCHEDULE</span>
   </div>
@@ -545,11 +568,11 @@ function renderIncidents(){
 }
 
 async function load(){
-  let rel,sources,incidents,exp,geo,runs;
-  try{ [rel,sources,incidents,exp,geo,runs]=await Promise.all([
+  let rel,sources,incidents,exp,runs;
+  try{ [rel,sources,incidents,exp,runs]=await Promise.all([
     fetch("/reliability").then(r=>r.json()), fetch("/sources").then(r=>r.json()),
     fetch("/incidents").then(r=>r.json()), fetch("/export.json").then(r=>r.json()),
-    fetch("/geo").then(r=>r.json()), fetch("/runs?limit=200").then(r=>r.json()) ]);
+    fetch("/runs?limit=200").then(r=>r.json()) ]);
   }catch{ $("hm-time").textContent="RETRYING"; return; }
   $("hm-time").textContent=new Date().toLocaleTimeString();
 
@@ -639,16 +662,30 @@ async function load(){
       :`<div class="empty">BASELINE SEEDED — WATCHING ${tracked} PROGRAMS. NEW ARRIVALS APPEAR HERE THE MOMENT THEY LAND.</div>`;
   }catch{}
 
-  const geoBy=new Map();
-  for(const gp of geo){ const d=gp.domain.replace("www.","");
-    if(!geoBy.has(d))geoBy.set(d,new Map()); geoBy.get(d).set(gp.country,gp); }
-  const countries=[...new Set(geo.map(g=>g.country))].sort();
-  $("matrix").innerHTML=geo.length
-    ?`<tr><th class="rowh">SOURCE</th>${countries.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>`+
-      [...geoBy.entries()].map(([d,m])=>`<tr><td class="rowh">${esc(d)}</td>`+
-        countries.map(c=>{ const p=m.get(c); if(!p)return`<td class="cell">—</td>`;
-          return `<td class="cell" title="${esc(p.top_signals.slice(0,8).join("  "))}">${p.signal_count}<small>${esc(p.currency_set.join(" ")||"–")}</small></td>`; }).join("")+"</tr>").join("")
-    :`<tr><td class="empty">NO GEO PROBES YET — EACH SOURCE IS PROBED FROM EVERY MARKET DAILY.</td></tr>`;
+  /* signals + leaderboard: reward and recency, the vectors that matter */
+  try{
+    const [sig,top]=await Promise.all([
+      fetch("/signals").then(r=>r.json()),
+      fetch("/top?limit=12").then(r=>r.json())]);
+    const money=(n)=>"$"+Number(n).toLocaleString();
+    $("sigTiles").innerHTML=[
+      ["Programs watched",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,""],
+      ["Top reward",money(sig.top_bounty),"highest published bounty","hot"],
+      ["Paying programs",sig.paying_programs,`${sig.above_10k} pay $10k+`,""],
+      ["Median reward",money(sig.median_bounty),"of those that publish one",""],
+      ["New this week",sig.new_this_week,"first seen by the watcher","hot"],
+    ].map(([k,v,s2,cls])=>`<div class="sig ${cls}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s2)}</div></div>`).join("");
+
+    const max=top.length?top[0].bounty:1;
+    $("lbMeta").textContent=`${top.length} SHOWN · LIVE FROM /TOP`;
+    $("lbRows").innerHTML=top.length?top.map((t,i)=>`<div class="lb">
+      <span class="rk">${String(i+1).padStart(2,"0")}</span>
+      <span class="pg">${esc(String(t.program).slice(0,58))}${t.category?`<small>${esc(String(t.category).split(",")[0].slice(0,22))}</small>`:""}</span>
+      <span class="bt">${esc(money(t.bounty))}</span>
+      <span class="pl">${esc(t.platform)}</span>
+      <span class="bar"><i style="width:${Math.max(3,Math.round(t.bounty/max*100))}%"></i></span>
+    </div>`).join(""):`<div class="empty">NO PUBLISHED REWARDS YET.</div>`;
+  }catch{}
 
   /* one card per source: latest verified run, preferring global */
   const bySrc=new Map();

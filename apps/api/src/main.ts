@@ -31,9 +31,10 @@ app.get("/api", (c) =>
       "/sources": "the fleet: status, contract, certification",
       "/runs?source=N&limit=M": "run log: verdicts and row counts",
       "/incidents": "every break: symptom, machine-written heal prompt, gates, decision",
-      "/new?hours=N": "entities that appeared since the baseline — the first-submission signal",
+      "/new?hours=N": "programs first seen since baseline — the first-submission signal",
+      "/top?limit=N": "highest-reward programs across every platform",
+      "/signals": "aggregate vectors: top bounty, median, count above 10k, new this week",
       "/watchlist": "what each source tracks, and when its baseline was seeded",
-      "/geo": "signal counts per market from 8-country page probes",
       "/reliability": "fleet totals, heal rate, mean recovery",
     },
   }),
@@ -75,6 +76,93 @@ app.get("/watchlist", (c) => {
     )
     .all();
   return c.json(rows);
+});
+
+// leaderboard: highest-reward programs across every platform. Bug bounties
+// pay the same everywhere, so the interesting vectors are reward size and
+// recency, not geography. Pulls the latest verified rows and ranks by bounty.
+app.get("/top", (c) => {
+  const rows = db
+    .prepare(
+      `SELECT r.rows_json, s.domain FROM run r JOIN source s ON s.id = r.source_id
+       WHERE r.verdict='healthy' AND s.status!='retired'
+         AND r.started_at=(SELECT MAX(r2.started_at) FROM run r2
+           WHERE r2.source_id=r.source_id AND r2.verdict='healthy')`,
+    )
+    .all() as any[];
+  const num = (v: unknown) => {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
+    return 0;
+  };
+  const out: any[] = [];
+  for (const r of rows) {
+    const domain = r.domain.replace(/^(www|api|app)\./, "");
+    for (const row of JSON.parse(r.rows_json ?? "[]") as Record<string, unknown>[]) {
+      const name = row.program_name ?? row.name ?? row.title ?? row.project_name;
+      const bounty = num(row.max_bounty ?? row.bounty_reward_max ?? row.max_reward);
+      if (name && bounty > 0) out.push({ program: name, bounty, platform: domain, category: row.category ?? row.activity_area ?? row.industryName ?? null });
+    }
+  }
+  // one entry per program per platform — the same program can appear in
+  // several rows of a run (regional variants, repeated cards)
+  const best = new Map<string, any>();
+  for (const e of out) {
+    const k = `${e.platform}::${String(e.program).toLowerCase().trim()}`;
+    const prev = best.get(k);
+    if (!prev || e.bounty > prev.bounty) best.set(k, e);
+  }
+  const ranked = [...best.values()].sort((a, b) => b.bounty - a.bounty);
+  return c.json(ranked.slice(0, Number(c.req.query("limit") ?? 25)));
+});
+
+// aggregate signals for the dashboard: the vectors that matter in bug
+// bounty are reward size and recency, not geography.
+app.get("/signals", (c) => {
+  const rows = db
+    .prepare(
+      `SELECT r.rows_json, s.domain FROM run r JOIN source s ON s.id = r.source_id
+       WHERE r.verdict='healthy' AND s.status!='retired'
+         AND r.started_at=(SELECT MAX(r2.started_at) FROM run r2
+           WHERE r2.source_id=r.source_id AND r2.verdict='healthy')`,
+    )
+    .all() as any[];
+  const num = (v: unknown) => {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
+    return 0;
+  };
+  const seen = new Set<string>();
+  const bounties: number[] = [];
+  const byPlatform: Record<string, number> = {};
+  let paying = 0, total = 0;
+  for (const r of rows) {
+    const domain = r.domain.replace(/^(www|api|app)\./, "");
+    for (const row of JSON.parse(r.rows_json ?? "[]") as Record<string, unknown>[]) {
+      const name = row.program_name ?? row.name ?? row.title ?? row.project_name;
+      if (!name) continue;
+      const k = `${domain}::${String(name).toLowerCase().trim()}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      total++;
+      byPlatform[domain] = (byPlatform[domain] ?? 0) + 1;
+      const b = num(row.max_bounty ?? row.bounty_reward_max ?? row.max_reward);
+      if (b > 0) { bounties.push(b); paying++; }
+    }
+  }
+  bounties.sort((a, b) => a - b);
+  const newCount = (db.prepare(
+    "SELECT COUNT(*) n FROM discovery WHERE seeded=0 AND first_seen_at >= datetime('now','-7 days')"
+  ).get() as any).n;
+  return c.json({
+    total_programs: total,
+    platforms: byPlatform,
+    paying_programs: paying,
+    top_bounty: bounties.length ? bounties[bounties.length - 1] : 0,
+    median_bounty: bounties.length ? bounties[Math.floor(bounties.length / 2)] : 0,
+    above_10k: bounties.filter((b) => b >= 10000).length,
+    new_this_week: newCount,
+  });
 });
 
 // the accumulated time series — the dataset's real value grows here

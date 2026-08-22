@@ -185,6 +185,7 @@ app.get("/signals", (c) => {
   const bounties: number[] = [];
   const byPlatform: Record<string, number> = {};
   let paying = 0, total = 0;
+  const accessMix: Record<string, number> = {};
   for (const r of rows) {
     const domain = r.domain.replace(/^(www|api|app)\./, "");
     for (const row of JSON.parse(r.rows_json ?? "[]") as Record<string, unknown>[]) {
@@ -197,12 +198,33 @@ app.get("/signals", (c) => {
       byPlatform[domain] = (byPlatform[domain] ?? 0) + 1;
       const b = num(row.max_bounty ?? row.bounty_reward_max ?? row.max_reward);
       if (b > 0) { bounties.push(b); paying++; }
+      const acc = String(row.participation ?? row.type ?? row.program_type ?? "").toLowerCase();
+      if (acc) {
+        const key = acc.includes("invite") ? "invite-only"
+          : acc.includes("vdp") || acc.includes("disclosure") ? "VDP (no bounty)"
+          : "public bounty";
+        accessMix[key] = (accessMix[key] ?? 0) + 1;
+      }
     }
   }
   bounties.sort((a, b) => a - b);
   const newCount = (db.prepare(
     "SELECT COUNT(*) n FROM discovery WHERE seeded=0 AND first_seen_at >= datetime('now','-7 days')"
   ).get() as any).n;
+  // reward tiers — where the money actually sits
+  const tiers = [
+    { label: "$10k+", min: 10000, max: Infinity },
+    { label: "$1k–10k", min: 1000, max: 10000 },
+    { label: "$100–1k", min: 100, max: 1000 },
+    { label: "under $100", min: 0, max: 100 },
+  ].map((t) => ({ label: t.label, count: bounties.filter((b) => b >= t.min && b < t.max).length }));
+  const arrivals = db
+    .prepare(
+      `SELECT substr(first_seen_at,1,10) AS day, COUNT(*) AS n
+       FROM discovery WHERE seeded=0 AND first_seen_at >= datetime('now','-14 days')
+       GROUP BY day ORDER BY day DESC`,
+    )
+    .all();
   return c.json({
     total_programs: total,
     platforms: byPlatform,
@@ -211,6 +233,10 @@ app.get("/signals", (c) => {
     median_bounty: bounties.length ? bounties[Math.floor(bounties.length / 2)] : 0,
     above_10k: bounties.filter((b) => b >= 10000).length,
     new_this_week: newCount,
+    access: accessMix,
+    tiers,
+    arrivals_by_day: arrivals,
+    total_rewards_pool: bounties.reduce((a, b) => a + b, 0),
   });
 });
 

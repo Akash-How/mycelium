@@ -222,8 +222,32 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .mkt-note b{color:var(--txt);font-weight:500}
 
 .dash{padding-top:10vh}
+.brk{display:grid;grid-template-columns:repeat(3,1fr);gap:3vw;margin:7vh 0 4vh;padding-top:5vh;border-top:1px solid var(--line)}
+@media (max-width:1000px){.brk{grid-template-columns:1fr;gap:6vh}}
+.brk-col .label{display:block;margin-bottom:2.4vh}
+.br{display:grid;grid-template-columns:96px 1fr 38px;gap:12px;align-items:center;padding:9px 0}
+.br .bl{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br .bv{font-family:var(--mono);font-size:11px;color:var(--txt);text-align:right;font-variant-numeric:tabular-nums}
+.br .bg{height:6px;background:var(--line)}
+.br .bg i{display:block;height:6px;background:var(--dim)}
+.br.hi .bg i{background:var(--pink)}
+.pool{margin-top:3vh;padding-top:2vh;border-top:1px solid var(--line)}
+.pool .pk{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.pool .pv{font-family:var(--disp);font-size:clamp(24px,2.6vw,38px);margin-top:8px}
 .dash-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:4vw;margin-bottom:5vh}
-@media (max-width:1000px){.dash-grid{grid-template-columns:1fr;gap:7vh}}
+@media (max-width:1000px){.brk{display:grid;grid-template-columns:repeat(3,1fr);gap:3vw;margin:7vh 0 4vh;padding-top:5vh;border-top:1px solid var(--line)}
+@media (max-width:1000px){.brk{grid-template-columns:1fr;gap:6vh}}
+.brk-col .label{display:block;margin-bottom:2.4vh}
+.br{display:grid;grid-template-columns:96px 1fr 38px;gap:12px;align-items:center;padding:9px 0}
+.br .bl{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br .bv{font-family:var(--mono);font-size:11px;color:var(--txt);text-align:right;font-variant-numeric:tabular-nums}
+.br .bg{height:6px;background:var(--line)}
+.br .bg i{display:block;height:6px;background:var(--dim)}
+.br.hi .bg i{background:var(--pink)}
+.pool{margin-top:3vh;padding-top:2vh;border-top:1px solid var(--line)}
+.pool .pk{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.pool .pv{font-family:var(--disp);font-size:clamp(24px,2.6vw,38px);margin-top:8px}
+.dash-grid{grid-template-columns:1fr;gap:7vh}}
 .dash-col{min-width:0}
 .nw{display:grid;grid-template-columns:74px 1fr auto;gap:16px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line)}
 .nw .dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
@@ -393,6 +417,21 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
         <span class="label" id="lbMeta"></span>
       </div>
       <div id="lbRows"></div>
+    </div>
+  </div>
+  <div class="brk">
+    <div class="brk-col">
+      <span class="label">Where the money sits</span>
+      <div id="tierRows"></div>
+    </div>
+    <div class="brk-col">
+      <div class="label">Coverage by platform</div>
+      <div id="platRows"></div>
+    </div>
+    <div class="brk-col">
+      <span class="label">How programs open up</span>
+      <div id="accRows"></div>
+      <div class="pool" id="poolBox"></div>
     </div>
   </div>
   <p class="mkt-note">Ranked from the latest <b>gate-verified</b> sweep of every platform. Launch dates come from the platform where published, otherwise from when the watcher first saw the program. Live at <b>/newest</b>, <b>/top</b> and <b>/signals</b>.</p>
@@ -668,7 +707,9 @@ async function load(){
 
     const fmtDate=(d)=>{ if(!d)return"—"; const t=String(d).replace(" ","T");
       const dt=new Date(t.endsWith("Z")||t.includes("+")?t:t+"Z");
-      return isNaN(dt)?String(d).slice(0,10):dt.toLocaleDateString(undefined,{month:"short",day:"numeric"}); };
+      if(isNaN(dt))return String(d).slice(0,10);
+      const sameYear=dt.getFullYear()===new Date().getFullYear();
+      return dt.toLocaleDateString(undefined,sameYear?{month:"short",day:"numeric"}:{month:"short",day:"numeric",year:"2-digit"}); };
     const freshCut=Date.now()-7*864e5;
     $("newMeta").textContent=`${newest.length} SHOWN · /NEWEST`;
     $("newRows").innerHTML=newest.length?newest.map((n)=>{
@@ -680,6 +721,21 @@ async function load(){
         <span class="pg"><b>${esc(String(n.program).slice(0,46))}</b><small>· ${esc(n.platform)}</small></span>
         <span class="amt ${n.bounty?"":"none"}">${amt}</span>
       </div>`;}).join(""):`<div class="empty">NO PROGRAMS YET.</div>`;
+
+    /* breakdown panels */
+    const bar=(label,val,maxv,hi)=>`<div class="br ${hi?"hi":""}">
+      <span class="bl">${esc(label)}</span>
+      <span class="bg"><i style="width:${maxv?Math.max(2,Math.round(val/maxv*100)):0}%"></i></span>
+      <span class="bv">${esc(val)}</span></div>`;
+    const tiers=sig.tiers||[]; const tMax=Math.max(1,...tiers.map(t=>t.count));
+    $("tierRows").innerHTML=tiers.map(t=>bar(t.label,t.count,tMax,t.label==="$10k+")).join("");
+    const plats=Object.entries(sig.platforms||{}).sort((a,b)=>b[1]-a[1]);
+    const pMax=Math.max(1,...plats.map(p=>p[1]));
+    $("platRows").innerHTML=plats.map(([k,v])=>bar(k.replace(".com","").replace(".ai","").replace("bughunters.google","google"),v,pMax)).join("");
+    const acc=Object.entries(sig.access||{}).sort((a,b)=>b[1]-a[1]);
+    const aMax=Math.max(1,...acc.map(a=>a[1]));
+    $("accRows").innerHTML=acc.length?acc.map(([k,v])=>bar(k,v,aMax,k==="public bounty")).join(""):`<div class="empty">NOT PUBLISHED</div>`;
+    $("poolBox").innerHTML=`<div class="pk">Combined published rewards</div><div class="pv">${esc(money(sig.total_rewards_pool||0))}</div>`;
 
     const max=top.length?top[0].bounty:1;
     $("lbMeta").textContent=`TOP ${top.length} · /TOP`;

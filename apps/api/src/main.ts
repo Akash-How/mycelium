@@ -32,6 +32,7 @@ app.get("/api", (c) =>
       "/runs?source=N&limit=M": "run log: verdicts and row counts",
       "/incidents": "every break: symptom, machine-written heal prompt, gates, decision",
       "/new?hours=N": "programs first seen since baseline — the first-submission signal",
+      "/newest?limit=N": "programs newest-first with their reward — the product's spine",
       "/top?limit=N": "highest-reward programs across every platform",
       "/signals": "aggregate vectors: top bounty, median, count above 10k, new this week",
       "/watchlist": "what each source tracks, and when its baseline was seeded",
@@ -114,6 +115,54 @@ app.get("/top", (c) => {
   }
   const ranked = [...best.values()].sort((a, b) => b.bounty - a.bounty);
   return c.json(ranked.slice(0, Number(c.req.query("limit") ?? 25)));
+});
+
+// the product's spine: programs newest-first with their reward.
+// Recency comes from the platform's own launch date when it publishes one
+// (Bugcrowd's started_at), otherwise from when our watcher first saw it.
+app.get("/newest", (c) => {
+  const limit = Math.min(Number(c.req.query("limit") ?? 40), 300);
+  const rows = db
+    .prepare(
+      `SELECT d.first_seen_at, d.entity_key, d.payload_json, d.seeded, s.domain
+       FROM discovery d JOIN source s ON s.id = d.source_id
+       WHERE s.status != 'retired'`,
+    )
+    .all() as any[];
+  const num = (v: unknown) => {
+    if (typeof v === "number") return v;
+    if (typeof v === "string") { const n = Number(v.replace(/[^0-9.]/g, "")); return Number.isFinite(n) ? n : 0; }
+    return 0;
+  };
+  const out = rows.map((r) => {
+    const e = JSON.parse(r.payload_json ?? "{}");
+    const launched = typeof e.started_at === "string" ? e.started_at : null;
+    return {
+      program: e.program_name ?? e.name ?? e.title ?? e.project_name ?? r.entity_key,
+      bounty: num(e.max_bounty ?? e.bounty_reward_max ?? e.max_reward),
+      reward_text: e.reward_range ?? e.bounty_range ?? null,
+      // when a platform publishes no reward, say what it does publish
+      // rather than showing an empty cell
+      access: e.participation ?? e.type ?? e.program_type ?? null,
+      platform: r.domain.replace(/^(www|api|app)\./, ""),
+      category: e.category ?? e.activity_area ?? e.industryName ?? e.program_type ?? null,
+      launched_at: launched,
+      first_seen_at: r.first_seen_at,
+      date: launched ?? r.first_seen_at,
+      is_new: r.seeded === 0,
+    };
+  });
+  // Genuine arrivals outrank baseline entries: a program recorded when we
+  // first started watching a platform is not "new", it is just when we
+  // arrived. Within each group, most recent first — preferring the
+  // platform's own launch date over our first sighting.
+  out.sort((a, b) => {
+    if (a.is_new !== b.is_new) return a.is_new ? -1 : 1;
+    if (a.launched_at && b.launched_at) return b.launched_at.localeCompare(a.launched_at);
+    if (a.launched_at !== b.launched_at) return a.launched_at ? -1 : 1;
+    return String(b.date).localeCompare(String(a.date));
+  });
+  return c.json(out.slice(0, limit));
 });
 
 // aggregate signals for the dashboard: the vectors that matter in bug

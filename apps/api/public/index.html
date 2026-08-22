@@ -11,14 +11,14 @@
 :root{
   --bg:#060708; --txt:#f2f3f4; --dim:#aeb5bc; --faint:#8a919a; --read:#cdd2d7;
   --line:#1a1d20; --panel:#0d0f13;
-  --cyan:#ff3b30; --pink:#ff3b30; --ok:#f2f3f4; --warn:#9aa0a7;
+  --cyan:#ff1e2d; --pink:#ff1e2d; --ok:#f2f3f4; --warn:#9aa0a7;
   --mono:'JetBrains Mono',ui-monospace,monospace;
   --sans:'Space Grotesk',system-ui,sans-serif;
   --disp:'Anton',Impact,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--ease:cubic-bezier(.16,1,.3,1)}
-.hw,.stat,.organism canvas,.foot-mark{will-change:transform}
+.hw,.stat,.organism canvas,.ascii-mark{will-change:transform}
 html.lenis,html.lenis body{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto!important}
 html{background:var(--bg);scroll-behavior:smooth}
@@ -56,7 +56,7 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .section-rail .rail-mark{display:block;width:12px;height:1px;background:var(--faint);transition:width .35s cubic-bezier(.16,1,.3,1),background .3s,box-shadow .3s}
 .section-rail a:hover .rail-name,.section-rail a.on .rail-name{opacity:1;transform:none;color:var(--txt)}
 .section-rail a:hover .rail-mark{width:24px;background:var(--dim)}
-.section-rail a.on .rail-mark{width:38px;background:var(--pink);box-shadow:0 0 12px rgba(255,59,48,.35)}
+.section-rail a.on .rail-mark{width:38px;background:var(--pink);box-shadow:0 0 12px rgba(255,30,45,.32)}
 
 /* ============ hero ============ */
 .hero{min-height:97vh;display:flex;flex-direction:column;padding-top:4vh;padding-bottom:5vh}
@@ -78,7 +78,7 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .hm-row{display:flex;justify-content:space-between;gap:20px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase}
 .hm-row .val{color:var(--dim)}
 .hm-live{display:inline-flex;align-items:center;gap:8px}
-.hm-live i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,59,48,.12)}
+.hm-live i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,30,45,.12)}
 .hm-live{color:var(--pink)}
 .hero .strap .big{grid-column:7/12;font-size:clamp(17px,1.9vw,25px);font-weight:300;line-height:1.55;max-width:620px}
 .hero .strap .big s{color:var(--faint);text-decoration-thickness:2px}
@@ -299,7 +299,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .ascii-mark{position:relative;z-index:2;font-family:var(--disp);
   font-size:clamp(58px,13vw,210px);line-height:.9;letter-spacing:-.01em;
   color:var(--pink);mix-blend-mode:screen;user-select:none;pointer-events:none;
-  text-shadow:0 0 60px rgba(255,59,48,.35)}
+  text-shadow:0 0 60px rgba(255,30,45,.32)}
 .ascii-sub{position:absolute;z-index:2;bottom:9vh;left:50%;transform:translateX(-50%);
   font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;
   color:var(--faint);white-space:nowrap;pointer-events:none}
@@ -308,7 +308,6 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .foot{padding-top:12vh;padding-bottom:3vh;border-top:1px solid var(--line)}
 .foot-main{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding-bottom:9vh}
 .foot-brand{grid-column:1/8}
-.foot-mark{display:block;font-family:var(--disp);font-size:clamp(64px,9vw,150px);line-height:.82;letter-spacing:-.025em}
 .foot-brand p{max-width:560px;margin-top:4vh;font-size:clamp(18px,1.6vw,24px);font-weight:300;line-height:1.5;color:var(--dim)}
 .foot-brand p b{color:var(--txt);font-weight:500}
 .foot-cta{grid-column:9/13;align-self:end}
@@ -319,7 +318,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .foot-nav nav{display:flex;gap:clamp(18px,3vw,48px);flex-wrap:wrap}
 .foot-nav a{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
 .foot-status{display:flex;align-items:center;gap:10px;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
-.foot-status i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,59,48,.1)}
+.foot-status i{width:6px;height:6px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 4px rgba(255,30,45,.1)}
 .foot-bottom{display:flex;justify-content:space-between;gap:30px;padding-top:26px;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
 
 .empty{font-family:var(--mono);font-size:12px;color:var(--dim);padding:26px 0;letter-spacing:.08em}
@@ -492,7 +491,6 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 <footer class="sec foot" id="end">
   <div class="foot-main">
     <div class="foot-brand">
-      <span class="foot-mark">MYCELIUM</span>
       <p>We didn't write a scraper. We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
     </div>
     <div class="foot-cta">
@@ -920,11 +918,11 @@ function initFX(){
   gsap.from(".mkt-title",{opacity:0,y:26,duration:.9,ease:"power3.out",
     scrollTrigger:{trigger:".mkt",start:"top 78%",once:true}});
 
-  /* foot-mark: rises through the footer like the hero in reverse */
-  gsap.from(".foot-mark",{yPercent:40,opacity:0,duration:1.1,ease:"power3.out",
-    scrollTrigger:{trigger:".foot",start:"top 80%",once:true}});
-  gsap.to(".foot-mark",{yPercent:-12,ease:"none",
-    scrollTrigger:{trigger:".foot",start:"top bottom",end:"bottom bottom",scrub:.6}});
+  /* the ASCII wordmark surfaces as the finale enters */
+  gsap.from(".ascii-mark",{scale:.94,opacity:0,duration:1.3,ease:"power3.out",
+    scrollTrigger:{trigger:".ascii-stage",start:"top 70%",once:true}});
+  gsap.from(".ascii-sub",{opacity:0,duration:1,delay:.4,
+    scrollTrigger:{trigger:".ascii-stage",start:"top 70%",once:true}});
 }
 load().then(initFX); setInterval(load,12000);
 
@@ -962,7 +960,7 @@ const canvas=document.getElementById("net");
 const tip=document.getElementById("tip");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const COL={active:0xf2f3f4,healthy:0xf2f3f4,degraded:0x9aa0a7,broken:0xff3b30,quarantined:0xff3b30,creating:0x3a4046,unproven:0x3a4046};
+const COL={active:0xf2f3f4,healthy:0xf2f3f4,degraded:0x9aa0a7,broken:0xff1e2d,quarantined:0xff1e2d,creating:0x3a4046,unproven:0x3a4046};
 
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -1151,7 +1149,7 @@ const ringG=new THREE.Group();
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1.7,0.006,8,160),
   new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3}));
 const ringDot=new THREE.Mesh(new THREE.SphereGeometry(0.045,12,12),
-  new THREE.MeshBasicMaterial({color:0xff3b30}));
+  new THREE.MeshBasicMaterial({color:0xff1e2d}));
 ringDot.position.set(1.7,0,0);
 ringG.add(ring,ringDot);ringG.rotation.x=Math.PI*0.42;ringG.rotation.y=0.25;
 hub.add(hubCore,ringG);world.add(hub);
@@ -1161,7 +1159,7 @@ let terrain,terrainPos,TCOLS=150,TROWS=34;
 { const n=TCOLS*TROWS;
   terrainPos=new Float32Array(n*3);
   const cols=new Float32Array(n*3);
-  const cMint=new THREE.Color(0xff3b30),cDim=new THREE.Color(0x44464a),cWhite=new THREE.Color(0xcfd4d0);
+  const cMint=new THREE.Color(0xff1e2d),cDim=new THREE.Color(0x44464a),cWhite=new THREE.Color(0xcfd4d0);
   let k=0;
   for(let r=0;r<TROWS;r++)for(let c=0;c<TCOLS;c++){
     terrainPos[k*3]=(c/(TCOLS-1)-.5)*30;

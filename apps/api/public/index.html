@@ -408,7 +408,7 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
     <div class="ln">$ bdata login — authenticated</div>
     <div class="ln">$ fleet: 6 collectors · contracts loaded</div>
     <div class="ln">$ sentinel armed · three gates · auto-approve BANNED</div>
-    <div class="ln">$ heartbeat running — the network maintains itself</div>
+    <div class="ln">$ heartbeat up — next sweep on schedule</div>
   </div>
   <div class="bot">
     <div class="pct" id="prePct">0%</div>
@@ -486,7 +486,7 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 
 <section class="sec dash" id="dashboard" aria-label="dashboard">
   <div class="head">
-    <div><span class="label">Live board — newest first</span>
+    <div><span class="label">Live board</span>
     <p class="mkt-title">Every program, <b>newest first, with what it pays.</b></p></div>
   </div>
   <div class="sig-tiles" id="sigTiles"></div>
@@ -517,17 +517,17 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
       <div id="platRows"></div>
     </div>
     <div class="brk-col">
-      <span class="label">How programs open up</span>
+      <span class="label">Who gets to hunt</span>
       <div id="accRows"></div>
       <div class="pool" id="poolBox"></div>
     </div>
   </div>
-  <p class="mkt-note">Every figure here comes from a <b>gate-verified</b> sweep. Nothing unverified is served.</p>
+  <p class="mkt-note">Every figure on this board passed <b>three gates</b> before it was served.</p>
 </section>
 
 <section class="sec" id="fleet" aria-label="fleet">
   <div class="fleethead">
-    <span class="label">The fleet — self-built</span>
+    <span class="label">The fleet</span>
     <span class="label" id="fleetCount"></span>
   </div>
   <div class="fleet-rows" id="fleetRows"></div>
@@ -548,7 +548,7 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 
 <section class="sec stats" id="stats" aria-label="reliability">
   <div class="stat cool"><span class="label">Verified-healthy runs</span><div class="v" id="s-up">—</div>
-    <p class="q">every scheduled sweep, scored against its contract and a rolling baseline of itself.</p></div>
+    <p class="q">every sweep, scored against its contract and its own rolling baseline.</p></div>
   <div class="stat"><span class="label">Rows serving</span><div class="v" id="s-rows">—</div>
     <p class="q">the latest verified extraction, one API call away. /export.json</p></div>
   <div class="stat cool"><span class="label">Heals · unattended</span><div class="v" id="s-heals">—</div>
@@ -570,10 +570,10 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 <footer class="sec foot" id="end">
   <div class="foot-main">
     <div class="foot-brand">
-      <p>We didn't write a scraper. We wrote <b>the thing that keeps scrapers honest</b> — and it doesn't stop when the hackathon does.</p>
+      <p>We didn't write a scraper. We wrote <b>the thing that keeps scrapers honest</b>.</p>
     </div>
     <div class="foot-cta">
-      <span class="label">Consume the network</span>
+      <span class="label">Pull the dataset</span>
       <a class="foot-action" href="/export.json">export.json <span>→</span></a>
     </div>
   </div>
@@ -781,7 +781,7 @@ async function load(){
         </div>
       </div>
     </details>`; }).join("")
-    + (retiredCount?`<div class="empty">+ ${retiredCount} retired from the scaffolding vertical — their collectors, runs and incident history remain in the audit trail.</div>`:"");
+    + (retiredCount?`<div class="empty">+ ${retiredCount} retired collectors from the first vertical — their runs and incidents stay in the audit trail.</div>`:"");
 
   LAST_INCIDENTS=incidents; renderIncidents();
 
@@ -794,8 +794,8 @@ async function load(){
     const money=(n)=>"$"+Number(n).toLocaleString();
     $("sigTiles").innerHTML=[
       ["Programs tracked",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,""],
-      ["New this week",sig.new_this_week,"newly appeared programs","hot"],
-      ["Top reward",money(sig.top_bounty),"highest published bounty",""],
+      ["New this week",sig.new_this_week,"caught by the sweep diff","hot"],
+      ["Top reward",money(sig.top_bounty),"as published by the platform",""],
       ["Paying programs",sig.paying_programs,`${sig.above_10k} pay $10k+`,""],
       ["Median reward",money(sig.median_bounty),"of those that publish one",""],
     ].map(([k,v,s2,cls])=>`<div class="sig ${cls}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s2)}</div></div>`).join("");

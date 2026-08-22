@@ -568,7 +568,7 @@ async function load(){
   for(const r of runs)(runsBySource[r.source_id]??=[]).push(r);
 
   NODES=sources.filter(s=>s.status!=="retired").map((s,i)=>({
-    domain:s.domain.replace("www.",""),label:s.domain.replace("www.","").split(".")[0],
+    domain:s.domain.replace(/^(www|api|app)\./,""),label:s.domain.replace(/^(www|api|app)\./,"").split(".")[0],
     cid:s.collector_id,status:s.status,lastVerdict:s.last_verdict,
     rows:exp.find(e=>e.source_id===s.id)?.rows.length,seed:i*.37+.1 }));
   syncOrganism();

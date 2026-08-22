@@ -122,37 +122,44 @@
       "collectorId": "c_mt4r55051pvpl2mlbn"
     },
     {
-      "key": "immunefi",
-      "url": "https://immunefi.com/bug-bounty/",
+      "key": "hackenproof",
+      "url": "https://hackenproof.com/programs",
       "proposedBy": "seed",
-      "probeScore": 55,
+      "probeScore": 100,
+      "collectorId": null,
       "contract": {
-        "minRows": 5,
+        "minRows": 10,
         "fields": [
           {
-            "name": "project_name",
+            "name": "program_name",
             "type": "string",
             "required": true,
-            "description": "The web3 project running the bounty",
-            "sample": "Ethereum Foundation"
+            "description": "The company or project running the bug bounty",
+            "sample": "Crypto Bug Bounty"
           },
           {
             "name": "max_bounty",
             "type": "number",
             "required": false,
-            "description": "Maximum bounty in USD",
-            "sample": "250000"
+            "description": "Maximum reward in USD, digits only",
+            "sample": "100000"
+          },
+          {
+            "name": "reward_range",
+            "type": "string",
+            "required": false,
+            "description": "The reward range as shown on the card",
+            "sample": "$100 - $100,000"
           },
           {
             "name": "category",
             "type": "string",
             "required": false,
-            "description": "Project category such as DeFi or infrastructure",
-            "sample": "DeFi"
+            "description": "Program category such as Crypto or Web",
+            "sample": "Crypto"
           }
         ]
-      },
-      "collectorId": "c_mt4rw80x24atgv8qan"
+      }
     }
   ],
   "discarded": [
@@ -190,6 +197,21 @@
       "url": "https://hackerone.com/opportunities/all",
       "reason": "public directory is a client-rendered SPA; data arrives via GraphQL POST which `scrape` (GET-only) cannot reach. Unlocker DID defeat Cloudflare (200 + cf-ray) \u2014 deferred to a JS-rendering collector, not a blocking failure",
       "probeScore": 0
+    },
+    {
+      "url": "https://huntr.com/bounties",
+      "reason": "SPA shell \u2014 0 signals from markdown, data loads client-side",
+      "probeScore": 0
+    },
+    {
+      "url": "https://www.bugbountyhunter.com/programs/",
+      "reason": "thin listing \u2014 7 signals, mostly a marketing page",
+      "probeScore": 7
+    },
+    {
+      "url": "https://immunefi.com/bug-bounty/",
+      "reason": "collector generated but Bright Data proxy returns 403 tunneling-socket error on every run (proxy_config) \u2014 a transient infra issue on this target, not a data or code problem. Deferred under the two-attempt rule.",
+      "probeScore": 55
     }
   ],
   "retiredVertical": {

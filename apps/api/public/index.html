@@ -115,7 +115,7 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .fsrc>summary::-webkit-details-marker{display:none}
 .fsrc>summary:hover .dom{color:var(--ok)}
 .fsrc[open]>summary .dom{color:var(--ok)}
-.fleet-rows .frow{display:grid;grid-template-columns:200px 1fr auto auto;gap:24px;align-items:center;padding:17px 0}
+.fleet-rows .frow{display:grid;grid-template-columns:200px 1fr 117px 110px;gap:24px;align-items:center;padding:17px 0}
 .frow .dom{transition:color .35s var(--ease)}
 .fsrc-body{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding:8px 0 40px}
 .fsrc-col{border-left:1px solid var(--line);padding-left:22px;min-width:0}
@@ -140,9 +140,9 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 @media (max-width:1000px){.fsrc-body{display:block}.fsrc-col{border-left:0;padding-left:0;margin-bottom:5vh}}
 .frow .dom{font-size:clamp(15px,1.4vw,19px);font-weight:400}
 .frow .cid{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
-.frow .ticks{display:flex;gap:3px;align-items:flex-end;height:18px;justify-self:end}
+.frow .ticks{display:flex;gap:3px;align-items:flex-end;justify-content:flex-end;height:18px;width:117px}
 .frow .tick{width:9px;border-radius:1px;min-height:5px}
-.frow .st{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;justify-self:end;min-width:110px;text-align:right}
+.frow .st{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;text-align:right}
 .st.active,.st.healthy,.st.approved{color:var(--ok)}
 .st.degraded,.st.pending{color:var(--warn)}
 .st.broken,.st.error,.st.rejected{color:var(--pink)}
@@ -741,7 +741,7 @@ async function load(){
   const openSrc=new Set([...document.querySelectorAll(".fsrc[open]")].map((d)=>d.dataset.id));
   const retiredCount=sources.filter((s)=>s.status==="retired").length;
   $("fleetRows").innerHTML=sources.filter((s)=>s.status!=="retired").map((s)=>{
-    const hist=(runsBySource[s.id]??[]).slice(0,16);
+    const hist=(runsBySource[s.id]??[]).slice(0,10);
     const ticks=[...hist].reverse().map((r)=>{ const c=SC[r.verdict]??"var(--line)";
       const h=r.verdict==="healthy"?18:r.verdict==="degraded"?11:6;
       return `<span class="tick" style="background:${c};height:${h}px" title="${esc(r.started_at)} · ${esc(r.verdict??"unscored")} · ${r.row_count??0} rows"></span>`; }).join("");

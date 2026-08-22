@@ -292,6 +292,18 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .ds td.n{text-align:right;color:var(--txt);font-variant-numeric:tabular-nums}
 .ds .more{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);padding-top:12px}
 
+/* ============ ascii finale ============ */
+.ascii-stage{position:relative;height:92vh;overflow:hidden;background:var(--bg);margin-top:8vh;
+  display:flex;align-items:center;justify-content:center}
+.ascii-stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.ascii-mark{position:relative;z-index:2;font-family:var(--disp);
+  font-size:clamp(58px,13vw,210px);line-height:.9;letter-spacing:-.01em;
+  color:var(--pink);mix-blend-mode:screen;user-select:none;pointer-events:none;
+  text-shadow:0 0 60px rgba(255,59,48,.35)}
+.ascii-sub{position:absolute;z-index:2;bottom:9vh;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--faint);white-space:nowrap;pointer-events:none}
+
 /* ============ footer ============ */
 .foot{padding-top:12vh;padding-bottom:3vh;border-top:1px solid var(--line)}
 .foot-main{display:grid;grid-template-columns:repeat(12,1fr);gap:2vw;padding-bottom:9vh}
@@ -469,6 +481,12 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
     <p class="q">break detected → verified fix. no human in the loop.</p></div>
   <div class="stat hot"><span class="label">Quarantined</span><div class="v" id="s-quar">—</div>
     <p class="q">a system that serves data must know when to bench itself.</p></div>
+</section>
+
+<section class="ascii-stage" id="finale" aria-label="Mycelium">
+  <canvas id="asciiCv"></canvas>
+  <h2 class="ascii-mark">MYCELIUM</h2>
+  <span class="ascii-sub">a network that keeps itself alive</span>
 </section>
 
 <footer class="sec foot" id="end">
@@ -748,6 +766,103 @@ async function load(){
   }catch(e){}
 
 }
+/* ============ ascii finale: mycelium grown, then dithered to text ====== */
+(function(){
+  const cv=document.getElementById("asciiCv");
+  if(!cv)return;
+  const ctx=cv.getContext("2d");
+  const off=document.createElement("canvas");
+  const octx=off.getContext("2d");
+  const CH=9, RAMP=" .:-=+*#%@";   // density ramp, sparse -> dense
+  let cols=0,rows=0,field=null,W=0,H=0;
+
+  /* grow a branching mycelium into the offscreen buffer */
+  function grow(){
+    const r=cv.parentElement.getBoundingClientRect();
+    W=Math.max(320,r.width); H=Math.max(240,r.height);
+    off.width=Math.ceil(W/2); off.height=Math.ceil(H/2);   // half-res is plenty
+    octx.fillStyle="#000"; octx.fillRect(0,0,off.width,off.height);
+    octx.lineCap="round";
+    const cx=off.width*.5, cy=off.height*.52;
+    function branch(x,y,ang,len,depth,wid){
+      if(depth<=0||len<2)return;
+      const nx=x+Math.cos(ang)*len, ny=y+Math.sin(ang)*len;
+      octx.strokeStyle=`rgba(255,255,255,${0.16+depth*0.05})`;
+      octx.lineWidth=wid;
+      octx.beginPath(); octx.moveTo(x,y);
+      const mx=(x+nx)/2+Math.cos(ang+1.57)*len*.22;
+      const my=(y+ny)/2+Math.sin(ang+1.57)*len*.22;
+      octx.quadraticCurveTo(mx,my,nx,ny); octx.stroke();
+      const kids=depth>6?3:2;
+      for(let i=0;i<kids;i++){
+        branch(nx,ny,ang+(Math.random()-.5)*1.25,len*(0.62+Math.random()*0.24),
+               depth-1,Math.max(.4,wid*.72));
+      }
+    }
+    const arms=9;
+    for(let i=0;i<arms;i++){
+      const a=(i/arms)*Math.PI*2+Math.random()*.3;
+      branch(cx,cy,a,off.width*0.085,8,2.6);
+    }
+    /* spore specks */
+    octx.fillStyle="rgba(255,255,255,.5)";
+    for(let i=0;i<900;i++){
+      const a=Math.random()*Math.PI*2, rr=Math.pow(Math.random(),.6)*off.width*.46;
+      octx.fillRect(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr*.66, 1, 1);
+    }
+    /* soft core bloom */
+    const g=octx.createRadialGradient(cx,cy,0,cx,cy,off.width*.16);
+    g.addColorStop(0,"rgba(255,255,255,.55)"); g.addColorStop(1,"rgba(255,255,255,0)");
+    octx.fillStyle=g; octx.fillRect(0,0,off.width,off.height);
+
+    /* sample to a character-grid density field */
+    cols=Math.floor(W/CH); rows=Math.floor(H/(CH*1.55));
+    const img=octx.getImageData(0,0,off.width,off.height).data;
+    field=new Float32Array(cols*rows);
+    for(let ry=0;ry<rows;ry++)for(let rx=0;rx<cols;rx++){
+      const sx=Math.floor(rx/cols*off.width), sy=Math.floor(ry/rows*off.height);
+      const i=(sy*off.width+sx)*4;
+      field[ry*cols+rx]=img[i]/255;
+    }
+    cv.width=W*Math.min(devicePixelRatio,2); cv.height=H*Math.min(devicePixelRatio,2);
+    ctx.setTransform(Math.min(devicePixelRatio,2),0,0,Math.min(devicePixelRatio,2),0,0);
+  }
+
+  function draw(t){
+    if(!field)return;
+    ctx.clearRect(0,0,W,H);
+    ctx.font=`${CH+1}px ${getComputedStyle(document.body).getPropertyValue("--mono")}`;
+    ctx.textBaseline="top";
+    const tt=t*0.001;
+    for(let ry=0;ry<rows;ry++){
+      for(let rx=0;rx<cols;rx++){
+        let d=field[ry*cols+rx];
+        if(d<=0.02)continue;
+        /* slow travelling shimmer so the mesh breathes */
+        d*= .72+.42*Math.sin(tt*.55+rx*.09+ry*.14);
+        if(d<=0.05)continue;
+        const idx=Math.min(RAMP.length-1,Math.max(0,Math.round(d*(RAMP.length-1))));
+        const chr=RAMP[idx];
+        if(chr===" ")continue;
+        ctx.fillStyle=d>0.62?`rgba(226,232,236,${Math.min(.85,d)})`
+                             :`rgba(150,158,165,${Math.min(.6,d*.8)})`;
+        ctx.fillText(chr,rx*CH,ry*CH*1.55);
+      }
+    }
+  }
+
+  let vis=false,last=0;
+  new IntersectionObserver((es)=>{vis=es[0].isIntersecting;}).observe(cv.parentElement);
+  function loop(t){
+    requestAnimationFrame(loop);
+    if(!vis||t-last<90)return;   /* ~11fps: ASCII wants to feel printed, not smooth */
+    last=t; draw(t);
+  }
+  grow();
+  addEventListener("resize",()=>{grow();draw(performance.now());});
+  if(reduced){draw(0);} else requestAnimationFrame(loop);
+})();
+
 /* ============ scroll choreography ============ */
 let lenis=null;
 function initLenis(){

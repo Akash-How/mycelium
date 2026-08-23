@@ -1333,6 +1333,16 @@ scene.fog=new THREE.FogExp2(0x060708,0.03);
 const camera=new THREE.PerspectiveCamera(34,1,0.1,100);
 camera.position.set(0,0.7,11.6);
 
+/* The hero words occupy the left third, and the organism was sitting under
+   MINUTE. Offsetting the camera and its look-at target by the same amount
+   translates the whole scene right -- labels included, since they are scene
+   objects -- rather than rotating the view. Only on screens wide enough for
+   the words and the graph to sit side by side. */
+let CAM_X = 0;
+const setCamX = () => { CAM_X = innerWidth > 900 ? -1.25 : 0; };
+setCamX();
+addEventListener("resize", setCamX);
+
 scene.add(new THREE.AmbientLight(0xffffff,0.25));
 const key=new THREE.PointLight(0xffffff,40,50);key.position.set(5,7,7);scene.add(key);
 const coreLight=new THREE.PointLight(0xffffff,12,14);scene.add(coreLight);
@@ -1671,7 +1681,7 @@ function frame(t){
   const tt=t*0.001;
   world.rotation.y=Math.sin(tt*0.1)*0.14;
   world.rotation.x+=(targetRX-world.rotation.x)*.028;
-  camera.position.x=0;camera.position.z=11.6;camera.lookAt(0,0,0);
+  camera.position.x=CAM_X;camera.position.z=11.6;camera.lookAt(CAM_X,0,0);
   /* shape cycle: hold 4.4s, morph 1.8s, eased */
   {
     const P=6.2,M=1.8,ph=tt%P,ci=Math.floor(tt/P)%SHAPES.length;

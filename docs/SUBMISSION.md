@@ -6,6 +6,8 @@
 platform, repairs its own scrapers when the sites change, and tells you
 the moment a new program launches — because the first submission wins.
 
+**Submission form:** https://forms.gle/iQf2SjHQViSJaRAv7
+
 **Repository:** https://github.com/Akash-How/mycelium
 
 **Live dashboard:** https://mycelium-lime.vercel.app
@@ -40,6 +42,12 @@ so a broken scraper can never manufacture a fake "new program".
 Certified at submission: **six platforms** — Bugcrowd, YesWeHack,
 Intigriti, HackenProof, HackerOne and Google BugHunters — **380 programs
 under continuous watch, 567 verified rows serving.**
+
+**Long tail, not pre-built:** none of these six targets exist in Bright
+Data's 800+ pre-built scraper library — that library is e-commerce,
+social and jobs. Bug bounty directories are exactly the long tail the
+brief asks for: high-value, frequently-changing, and nobody has built
+them for you.
 
 **Why these targets prove the platform:** bug bounty directories are the
 hardest pages we hit. HackerOne and Bugcrowd sit behind Cloudflare and

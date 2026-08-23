@@ -9,3 +9,6 @@ data/*.log
 
 .vercel
 .env*
+
+# planning notes — local only
+docs/

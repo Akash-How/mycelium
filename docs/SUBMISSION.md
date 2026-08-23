@@ -8,6 +8,8 @@ the moment a new program launches — because the first submission wins.
 
 **Repository:** https://github.com/Akash-How/mycelium
 
+**Live dashboard:** https://mycelium-lime.vercel.app
+
 **Demo video:** _(add YouTube unlisted link after recording)_
 
 **Description (long):**
@@ -35,8 +37,9 @@ panel. Two rules keep the alert honest: the first sweep seeds silently
 (day one isn't news), and only sentinel-healthy runs can raise an alert —
 so a broken scraper can never manufacture a fake "new program".
 
-Certified at submission: **Bugcrowd (200 programs), YesWeHack (42),
-Intigriti (24)** — 266 programs under continuous watch.
+Certified at submission: **six platforms** — Bugcrowd, YesWeHack,
+Intigriti, HackenProof, HackerOne and Google BugHunters — **380 programs
+under continuous watch, 567 verified rows serving.**
 
 **Why these targets prove the platform:** bug bounty directories are the
 hardest pages we hit. HackerOne and Bugcrowd sit behind Cloudflare and

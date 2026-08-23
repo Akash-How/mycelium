@@ -1,5 +1,8 @@
 # Mycelium 🍄
 
+**Live dashboard:** https://mycelium-lime.vercel.app
+**Collector IDs (proof of working scrapers):** see [`fleet.json`](fleet.json) — `c_mt4r56otf8phmeqn9`, `c_mt4r58cw1mt6zqk977`, `c_mt4r55051pvpl2mlbn`, `c_mt4t6n8t1racao61iu`, `c_mt4tjsqn1rh9sw6gb8`, `c_mt4tjuiigedbryfoe`
+
 **You describe what you want to know. It grows the collection network to find out — and keeps it alive.**
 
 Built on [Bright Data Scraper Studio](https://docs.brightdata.com/datasets/scraper-studio/overview) for the [Into the Scrape-Verse](https://www.wemakedevs.org/hackathons/scrape-verse) hackathon (Aug 17–23, 2026).
@@ -53,7 +56,7 @@ Requires Node ≥ 22.5 (uses built-in `node:sqlite` — no native builds, no com
 
 ```bash
 npm install
-npm test                              # 38 tests: sentinel, gates, normalizer, watcher
+npm test                              # 41 tests: sentinel, gates, normalizer, watcher
 npx -p @brightdata/cli bdata login    # one-time browser auth
 npx tsx packages/orchestrator/src/seed.ts    # load fleet.json into SQLite
 npm run api                           # dashboard + API at http://localhost:4000
@@ -83,6 +86,22 @@ Scraper Studio scraper types used: **PDP** (directory + JSON endpoints) and **Di
 ## Cost
 
 Sweeps run 6×/day (first submission wins, so cadence matters), hard-capped at 400 page loads/day in config. At $1.50 per 1,000 loads, a week of continuous watching costs under $2 of the free tier.
+
+## Deploy (static snapshot)
+
+The engine is stateful — SQLite on disk, a heartbeat that sweeps on a
+schedule — so it cannot run on serverless. Every route the dashboard calls
+is a GET totalling ~530 KB, so `npm run snapshot` bakes all twelve routes
+to `apps/api/public/data/` and `vercel.json` rewrites the page's fetch URLs
+onto them. `index.html` is byte-identical between local and deployed.
+
+```bash
+npm run snapshot     # bake the current database to static JSON
+git push             # Vercel rebuilds from main automatically
+```
+
+The deployed page detects it has no server (`/live` 404s) and labels itself
+`SNAPSHOT · <date>` rather than claiming a live fleet.
 
 ## License
 

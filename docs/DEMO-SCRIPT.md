@@ -86,7 +86,7 @@ gate-verified rows."
 
 **Say:** "One more thing: this entire vertical was swapped in today. The
 engine didn't change — not one line of the sentinel, the gates, or the
-heal loop. Only the target list. We didn't write a scraper. We wrote the
+heal loop. Only the target list. I didn't write a scraper. I wrote the
 thing that keeps scrapers honest. github.com/Akash-How/mycelium."
 
 ---

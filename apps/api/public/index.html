@@ -256,12 +256,54 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
   box-shadow:0 0 6px rgba(255,30,45,.55)}
 .nw .pg{font-size:clamp(13px,1.2vw,16px);color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nw .pg b{color:var(--txt);font-weight:400}
-.nw .pg small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-left:8px}
+.nw .pg small{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-left:8px;
+  display:inline-flex;align-items:center;gap:6px}
+/* the platform mark appears on hover — it identifies the row without
+   competing with the program name the rest of the time */
+.nw .pico{width:0;height:13px;object-fit:contain;border-radius:3px;
+  opacity:0;filter:grayscale(1) brightness(1.6);
+  transition:width .28s var(--ease),opacity .28s var(--ease),filter .28s}
+.nw:hover .pico{width:13px;opacity:1;filter:none}
+/* platforms whose icon cannot be self-hosted get a letter mark instead */
+.nw .pmono{display:inline-block;width:0;overflow:hidden;font-family:var(--disp);
+  font-size:12px;font-style:normal;line-height:13px;color:var(--dim);
+  opacity:0;transition:width .28s var(--ease),opacity .28s var(--ease),color .28s}
+.nw:hover .pmono{width:11px;opacity:1;color:var(--txt)}
 .nw .amt{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--txt);white-space:nowrap}
 .nw .amt.none{color:var(--faint)}
 .nw:hover .pg{color:var(--txt)}
-.sig-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:8vh}
-.sig{background:var(--bg);padding:22px 20px}
+.sig-tiles{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:8vh}
+.sig{background:var(--bg);padding:22px 20px;position:relative;overflow:hidden;
+  opacity:0;transform:translateY(var(--ty,16px));
+  /* the pointer widens a tile and the rest yield — nothing leaves the row */
+  flex:var(--g,1) 1 0;min-width:0;
+  transition:opacity .7s var(--ease),transform .7s var(--ease),
+             flex-grow .5s var(--ease),background .3s;
+  transition-delay:calc(var(--i,0)*90ms)}
+.sig-tiles.in .sig{opacity:1;--ty:0px}
+/* once revealed the tile should answer the cursor immediately, not on the
+   staggered entrance delay */
+.sig-tiles.in .sig{transition-delay:0s}
+/* the raised tile casts, so the row gains depth rather than just size */
+.sig.lead{background:#0c0e12}
+/* a single red pass across each tile as it decodes */
+.sig::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,30,45,.20) 50%,transparent 80%);
+  transform:translateX(-110%)}
+.sig-tiles.in .sig::before{animation:sigwipe 1s cubic-bezier(.3,0,.2,1) forwards;
+  animation-delay:calc(var(--i,0)*90ms + 60ms)}
+@keyframes sigwipe{to{transform:translateX(110%)}}
+/* the digits sit slightly hot while they are still resolving */
+.sig .v.decoding{color:var(--pink);text-shadow:0 0 18px rgba(255,30,45,.45)}
+.sig .v{transition:color .5s,text-shadow .5s}
+/* the arrivals count is the live one — let it breathe */
+.sig.hot .v{animation:sigpulse 3.4s ease-in-out infinite}
+@keyframes sigpulse{0%,100%{opacity:1}50%{opacity:.62}}
+@media(prefers-reduced-motion:reduce){
+  .sig{opacity:1;--ty:0px;--g:1;transition:none}
+  .sig.hot .v{animation:none}
+  .sig-tiles.in .sig::before{animation:none}
+}
 .sig .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
 .sig .v{font-family:var(--disp);font-size:clamp(30px,3.4vw,52px);line-height:1.05;margin-top:10px;font-variant-numeric:tabular-nums}
 .sig.hot .v{color:var(--pink)}
@@ -449,6 +491,28 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 #menu .m-strip i:nth-child(3){background:var(--line)}
 html.menu-lock,html.menu-lock body{overflow:hidden}
 @media(max-width:760px){#menu .m-row .tag{display:none}}
+/* ============ breakdown: bars draw themselves ============ */
+.br{opacity:0;transform:translateY(8px);
+  transition:opacity .5s var(--ease),transform .5s var(--ease);
+  transition-delay:calc(var(--i,0)*70ms)}
+.br .bg i{transform:scaleX(0);transform-origin:left;
+  transition:transform .85s cubic-bezier(.2,.8,.2,1);
+  transition-delay:calc(var(--i,0)*70ms + 90ms)}
+.brk.in .br{opacity:1;transform:none}
+.brk.in .br .bg i{transform:scaleX(1)}
+.brk-col > .label{opacity:0;transform:translateY(6px);
+  transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.brk.in .brk-col > .label{opacity:1;transform:none}
+.pool{opacity:0;transform:translateY(10px);
+  transition:opacity .6s var(--ease) .35s,transform .6s var(--ease) .35s}
+.brk.in .pool{opacity:1;transform:none}
+/* the 12s poll rebuilds these rows; once the first pass is done they should
+   simply be there rather than replaying the draw every refresh */
+.brk.settled .br,.brk.settled .br .bg i,
+.brk.settled .brk-col > .label,.brk.settled .pool{transition:none}
+@media(prefers-reduced-motion:reduce){
+  .br,.br .bg i,.brk-col > .label,.pool{opacity:1;transform:none;transition:none}
+}
 </style>
 </head>
 <body>
@@ -729,6 +793,103 @@ railLinks.forEach((a,i)=>{
     i=(i+1)%ph.length; if(i===0)ph.forEach(p=>p.classList.remove("past"));
     ph[i].classList.add("on"); },2400); })();
 
+/* ============ breakdown reveal ============ */
+let BRK_DONE=false;
+function revealBreakdown(){
+  const brk=document.querySelector(".brk");
+  if(!brk)return;
+  if(BRK_DONE){brk.classList.add("in","settled");return;}
+  new IntersectionObserver((es,o)=>es.forEach((e)=>{
+    if(!e.isIntersecting)return;
+    o.disconnect();
+    BRK_DONE=true;
+    brk.classList.add("in");
+    /* lock it in once the longest bar has finished drawing */
+    setTimeout(()=>brk.classList.add("settled"),1600);
+  }),{threshold:0.25}).observe(brk);
+}
+
+/* ============ stat tiles: count up when they arrive ============ */
+/* The numbers are the point of this row, so they land rather than appear.
+   Runs once per page load, only when the row is actually on screen. */
+let TILES_DONE=false;
+function countTiles(){
+  const row=document.getElementById("sigTiles");
+  if(!row)return;
+  const fin=(el)=>{
+    const to=Number(el.dataset.to)||0;
+    el.textContent=(el.dataset.cash==="1"?"$":"")+Math.round(to).toLocaleString();
+  };
+  /* The 12s poll re-renders this row, which resets every number to its zero
+     placeholder. Counting up a second time would look like a glitch, so a
+     re-render after the first pass just writes the final values straight in. */
+  if(TILES_DONE){
+    row.classList.add("in");
+    row.querySelectorAll(".v").forEach(fin);
+    return;
+  }
+  const run=()=>{
+    TILES_DONE=true;
+    row.classList.add("in");
+    [...row.querySelectorAll(".v")].forEach((el,i)=>{
+      if(reduced){fin(el);return;}
+      /* Decode rather than count: every digit churns, then locks left to
+         right, so the number resolves the way the rest of the page reads. */
+      const to=Number(el.dataset.to)||0, cash=el.dataset.cash==="1";
+      const final=(cash?"$":"")+Math.round(to).toLocaleString();
+      const glyphs="0123456789";
+      const digits=[...final].filter((c)=>/\d/.test(c)).length || 1;
+      const dur=900, per=dur/digits, delay=i*90, t0=performance.now()+delay;
+      el.classList.add("decoding");
+      let seen=0;
+      const tick=(now)=>{
+        const t=now-t0;
+        if(t<0){requestAnimationFrame(tick);return;}
+        let out="", d=0;
+        for(const c of final){
+          if(!/\d/.test(c)){out+=c;continue;}
+          out += t>=per*(++d) ? c : glyphs[(Math.random()*10)|0];
+        }
+        el.textContent=out;
+        if(t<dur){requestAnimationFrame(tick);}
+        else{el.textContent=final;el.classList.remove("decoding");}
+      };
+      requestAnimationFrame(tick);
+    });
+  };
+  new IntersectionObserver((es,o)=>es.forEach((e)=>{
+    if(e.isIntersecting){run();o.disconnect();}
+  }),{threshold:0.3}).observe(row);
+  dockTiles(row);
+}
+
+/* Dock magnification: each tile scales by how close the pointer is to it, so
+   the row swells around the cursor instead of snapping on hover. */
+let DOCKED=false;
+function dockTiles(row){
+  if(DOCKED||reduced)return;
+  DOCKED=true;
+  let raf=null;
+  row.addEventListener("pointermove",(e)=>{
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{
+      raf=null;
+      for(const t of row.children){
+        const b=t.getBoundingClientRect();
+        const d=Math.abs(e.clientX-(b.left+b.width/2));
+        const f=Math.max(0,1-d/(b.width*1.6));      /* neighbours feel it too */
+        t.style.setProperty("--g",(1+f*f*0.85).toFixed(3));
+        t.classList.toggle("lead",f>0.6);
+      }
+    });
+  });
+  row.addEventListener("pointerleave",()=>{
+    for(const t of row.children){
+      t.style.removeProperty("--g");t.classList.remove("lead");
+    }
+  });
+}
+
 /* ============ snapshot vs live ============ */
 /* The deployed build is a set of baked JSON files with no server behind it.
    /live only answers when the Node API is actually running, so a 404 here
@@ -899,12 +1060,16 @@ async function load(){
       fetch("/newest?limit=18&per=3").then(r=>r.json())]);
     const money=(n)=>"$"+Number(n).toLocaleString();
     $("sigTiles").innerHTML=[
-      ["Programs tracked",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,""],
-      ["New this week",sig.new_this_week,"caught by the sweep diff","hot"],
-      ["Top reward",money(sig.top_bounty),"as published by the platform",""],
-      ["Paying programs",sig.paying_programs,`${sig.above_10k} pay $10k+`,""],
-      ["Median reward",money(sig.median_bounty),"of those that publish one",""],
-    ].map(([k,v,s2,cls])=>`<div class="sig ${cls}"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s2)}</div></div>`).join("");
+      ["Programs tracked",sig.total_programs,`across ${Object.keys(sig.platforms||{}).length} platforms`,"",0],
+      ["New this week",sig.new_this_week,"caught by the sweep diff","hot",0],
+      ["Top reward",sig.top_bounty,"as published by the platform","",1],
+      ["Paying programs",sig.paying_programs,`${sig.above_10k} pay $10k+`,"",0],
+      ["Median reward",sig.median_bounty,"of those that publish one","",1],
+    ].map(([k,v,s2,cls,cash],i)=>
+      `<div class="sig ${cls}" style="--i:${i}"><div class="k">${esc(k)}</div>`+
+      `<div class="v" data-to="${Number(v)||0}" data-cash="${cash}">${cash?"$0":"0"}</div>`+
+      `<div class="s">${esc(s2)}</div></div>`).join("");
+    countTiles();
 
     const fmtDate=(d)=>{ if(!d)return"—"; const t=String(d).replace(" ","T");
       const dt=new Date(t.endsWith("Z")||t.includes("+")?t:t+"Z");
@@ -918,23 +1083,24 @@ async function load(){
       const fresh=n.is_new&&when.getTime()>freshCut;
       const amt=n.bounty?money(n.bounty):(n.reward_text?esc(n.reward_text):(n.access?esc(String(n.access)):"—"));
       return `<div class="nw">
-        <span class="pg">${fresh?'<i class="nd" title="first seen this week"></i>':""}<b>${esc(String(n.program).slice(0,46))}</b><small>· ${esc(n.platform)}</small></span>
+        <span class="pg">${fresh?'<i class="nd" title="first seen this week"></i>':""}<b>${esc(String(n.program).slice(0,46))}</b><small><img class="pico" src="/icons/${esc(n.platform)}.ico" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'pmono',textContent:'${esc(n.platform[0].toUpperCase())}'}))">${esc(n.platform)}</small></span>
         <span class="amt ${n.bounty?"":"none"}">${amt}</span>
       </div>`;}).join(""):`<div class="empty">NO PROGRAMS YET.</div>`;
 
     /* breakdown panels */
-    const bar=(label,val,maxv,hi)=>`<div class="br ${hi?"hi":""}">
+    const bar=(label,val,maxv,hi,i)=>`<div class="br ${hi?"hi":""}" style="--i:${i||0}">
       <span class="bl">${esc(label)}</span>
       <span class="bg"><i style="width:${maxv?Math.max(2,Math.round(val/maxv*100)):0}%"></i></span>
       <span class="bv">${esc(val)}</span></div>`;
     const tiers=sig.tiers||[]; const tMax=Math.max(1,...tiers.map(t=>t.count));
-    $("tierRows").innerHTML=tiers.map(t=>bar(t.label,t.count,tMax,t.label==="$10k+")).join("");
+    $("tierRows").innerHTML=tiers.map((t,i)=>bar(t.label,t.count,tMax,t.label==="$10k+",i)).join("");
     const plats=Object.entries(sig.platforms||{}).sort((a,b)=>b[1]-a[1]);
     const pMax=Math.max(1,...plats.map(p=>p[1]));
-    $("platRows").innerHTML=plats.map(([k,v])=>bar(k.replace(".com","").replace(".ai","").replace("bughunters.google","google"),v,pMax)).join("");
+    $("platRows").innerHTML=plats.map(([k,v],i)=>bar(k.replace(".com","").replace(".ai","").replace("bughunters.google","google"),v,pMax,false,i)).join("");
     const acc=Object.entries(sig.access||{}).sort((a,b)=>b[1]-a[1]);
     const aMax=Math.max(1,...acc.map(a=>a[1]));
-    $("accRows").innerHTML=acc.length?acc.map(([k,v])=>bar(k,v,aMax,k==="public bounty")).join(""):`<div class="empty">NOT PUBLISHED</div>`;
+    $("accRows").innerHTML=acc.length?acc.map(([k,v],i)=>bar(k,v,aMax,k==="public bounty",i)).join(""):`<div class="empty">NOT PUBLISHED</div>`;
+    revealBreakdown();
     $("poolBox").innerHTML=`<div class="pk">Combined published rewards</div><div class="pv">${esc(money(sig.total_rewards_pool||0))}</div>`;
 
     const max=top.length?top[0].bounty:1;

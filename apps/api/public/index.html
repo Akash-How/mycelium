@@ -1274,16 +1274,27 @@ document.addEventListener("click",(e)=>{
 })();
 
 /* ============ demo mode (?demo=1) ============ */
-/* Runs the demo timeline unattended. Nothing external drives the page, so a
-   screen recording carries no cursor, no automation banner and no second
-   window. Off unless the query string asks for it. */
+/* Runs the demo timeline unattended so a screen recording carries no cursor,
+   no automation banner and no second window. Off unless asked for. */
 if(new URLSearchParams(location.search).has("demo")){
   document.documentElement.style.cursor="none";
   const hold=(ms)=>new Promise(r=>setTimeout(r,ms));
+  /* Lenis is created inside initFX, which only runs once the first data load
+     resolves. Scrolling before that threw and killed the whole sequence, so
+     wait for it and fall back to native scrolling if it never arrives. */
+  const ready=()=>typeof lenis!=="undefined" && lenis;
+  const scrollTo=(y,d)=>{
+    if(ready()) lenis.scrollTo(y,{duration:d});
+    else window.scrollTo({top:y,behavior:"smooth"});
+  };
   const to=(t,d)=>new Promise((r)=>{
     d=d||2.2;
-    if(typeof t==="number")lenis.scrollTo(t,{duration:d});
-    else lenis.scrollTo(document.querySelector(t),{offset:-70,duration:d});
+    let y=t;
+    if(typeof t!=="number"){
+      const el=document.querySelector(t);
+      y=el?el.getBoundingClientRect().top+scrollY-70:scrollY;
+    }
+    scrollTo(y,d);
     setTimeout(r,d*1000+250);
   });
   const openIt=(sel,match)=>{
@@ -1293,40 +1304,44 @@ if(new URLSearchParams(location.search).has("demo")){
   };
   const shut=(sel)=>document.querySelectorAll(sel).forEach(d=>d.open=false);
   (async()=>{
-    /* let the preloader play out — it is a good cold open */
-    while(document.getElementById("pre"))await hold(300);
-    await hold(1200); lenis.scrollTo(0,{immediate:true}); await hold(400);
+    try{
+      while(document.getElementById("pre"))await hold(200);      /* preloader out */
+      for(let i=0;i<50 && !ready();i++)await hold(200);            /* lenis ready   */
+      for(let i=0;i<40 && !document.querySelector(".fsrc");i++)await hold(200); /* data in */
+      scrollTo(0,0.3); await hold(600);
+      console.log("[demo] armed — starting in 5s");
+      await hold(5000);                                   /* lead-in you asked for */
 
-    await hold(6500);                                   /* 0:00 hero, at rest   */
-    await to(440,5.5); await hold(4500);                /*      parallax drift  */
+      await hold(6000);                                   /* 0:00 hero at rest    */
+      await to(440,5.5); await hold(4500);                /*      parallax drift  */
 
-    await to("#dashboard",2.4); await hold(7500);       /* 0:20 board + tiles   */
-    await to(document.querySelector("#newRows").getBoundingClientRect().top+scrollY-130,2.0);
-    await hold(9000);                                   /*      the feed        */
+      await to("#dashboard",2.4); await hold(7500);       /* 0:20 board + tiles   */
+      const feed=document.querySelector("#newRows");
+      if(feed)await to(feed.getBoundingClientRect().top+scrollY-130,2.0);
+      await hold(9000);
 
-    await to("#fleet",2.4); await hold(4500);           /* 0:45 sources         */
-    const bc=openIt(".fsrc","bugcrowd"); await hold(1200);
-    if(bc)await to(bc.getBoundingClientRect().top+scrollY-110,1.6);
-    await hold(13000);                                  /*      contract/runs   */
-    shut(".fsrc");
+      await to("#fleet",2.4); await hold(4500);           /* 0:45 sources         */
+      const bc=openIt(".fsrc","bugcrowd"); await hold(1200);
+      if(bc)await to(bc.getBoundingClientRect().top+scrollY-110,1.6);
+      await hold(13000); shut(".fsrc");
 
-    await to("#loop",2.4); await hold(3500);            /* 1:15 self-healing    */
-    const yw=openIt(".inc","yeswehack"); await hold(1200);
-    if(yw)await to(yw.getBoundingClientRect().top+scrollY-110,1.6);
-    await hold(17000);                                  /*      three columns   */
-    shut(".inc"); await hold(800);
-    const ig=openIt(".inc","intigriti"); await hold(1000);
-    if(ig)await to(ig.getBoundingClientRect().top+scrollY-110,1.6);
-    await hold(9000);
-    shut(".inc");
+      await to("#loop",2.4); await hold(3500);            /* 1:15 self-healing    */
+      const yw=openIt(".inc","yeswehack"); await hold(1200);
+      if(yw)await to(yw.getBoundingClientRect().top+scrollY-110,1.6);
+      await hold(17000); shut(".inc"); await hold(800);
+      const ig=openIt(".inc","intigriti"); await hold(1000);
+      if(ig)await to(ig.getBoundingClientRect().top+scrollY-110,1.6);
+      await hold(9000); shut(".inc");
 
-    await to("#stats",2.4); await hold(11000);          /* 1:55 proof           */
-    await to("#story",2.6); await hold(11000);          /* 2:15 why it exists   */
-    await to("#finale",2.6); await hold(5000);          /* 2:35 wordmark        */
-    document.getElementById("asciiCv")?.click();        /*      burn it red     */
-    await hold(7000);
-    await to("#end",2.2); await hold(5000);
-    document.title="Mycelium — demo complete";
+      await to("#stats",2.4); await hold(11000);          /* 1:55 proof           */
+      await to("#story",2.6); await hold(11000);          /* 2:15 why it exists   */
+      await to("#finale",2.6); await hold(5000);          /* 2:35 wordmark        */
+      document.getElementById("asciiCv")?.click();
+      await hold(7000);
+      await to("#end",2.2); await hold(4000);
+      document.title="Mycelium — demo complete";
+      console.log("[demo] complete");
+    }catch(e){ console.error("[demo] stopped:",e); document.title="Mycelium — demo ERROR"; }
   })();
 }
 

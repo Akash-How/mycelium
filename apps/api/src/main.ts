@@ -1,13 +1,14 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { pathToFileURL } from "node:url";
 import { openDb } from "@mycelium/orchestrator/src/db.js";
 
 // Stage 06: the verified dataset leaves the system as a product. Read-only —
 // serving is only honest because Survive runs first.
 
 const db = openDb();
-const app = new Hono();
+export const app = new Hono();
 
 // ---- row shapes -----------------------------------------------------------
 // node:sqlite returns untyped records; each query narrows to the columns it
@@ -63,6 +64,9 @@ app.use("*", async (c, next) => {
 });
 
 app.get("/health", (c) => c.json({ ok: true }));
+
+// present only when a real server is answering; the static snapshot 404s here
+app.get("/live", (c) => c.json({ live: true, at: new Date().toISOString() }));
 
 // self-describing index so consumers can discover the surface
 app.get("/api", (c) =>
@@ -520,6 +524,10 @@ app.use("/*", async (c, next) => {
 });
 app.use("/*", serveStatic({ root: "./apps/api/public" }));
 
-const port = Number(process.env.PORT ?? 4000);
-serve({ fetch: app.fetch, port });
-console.log(`[api] listening on http://localhost:${port}`);
+// Only listen when run directly. The snapshot builder imports `app` to bake
+// responses, and must not leave a server behind when it exits.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const port = Number(process.env.PORT ?? 4000);
+  serve({ fetch: app.fetch, port });
+  console.log(`[api] listening on http://localhost:${port}`);
+}

@@ -413,7 +413,6 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 #menubar{position:fixed;top:0;left:0;right:0;z-index:130;display:flex;align-items:center;justify-content:space-between;padding:16px 5vw;pointer-events:none}
 #menubar .mb-brand{font-family:var(--disp);font-size:17px;letter-spacing:.05em;color:var(--txt);pointer-events:auto}
 #menubar .mb-brand:hover{color:var(--txt)}
-#menubar .mb-mid{position:absolute;left:50%;transform:translateX(-50%);transition:opacity .3s}
 #menuBtn{pointer-events:auto;font-family:var(--mono);font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--txt);background:none;border:0;cursor:pointer;padding:8px 0 8px 24px;display:flex;align-items:center;gap:12px;transition:color .25s}
 #menuBtn .dotgrid{display:grid;grid-template-columns:4px 4px;gap:3px}
 #menuBtn .dotgrid i{width:4px;height:4px;background:var(--pink);transition:transform .35s var(--ease)}
@@ -448,7 +447,7 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 #menu .m-strip i:nth-child(2){background:var(--txt)}
 #menu .m-strip i:nth-child(3){background:var(--line)}
 html.menu-lock,html.menu-lock body{overflow:hidden}
-@media(max-width:760px){#menubar .mb-mid{opacity:0}#menu .m-row .tag{display:none}}
+@media(max-width:760px){#menu .m-row .tag{display:none}}
 </style>
 </head>
 <body>
@@ -473,7 +472,6 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 
 <div id="menubar">
   <a class="mb-brand" href="#top">MYCELIUM</a>
-  <span class="label mb-mid">Built on Bright Data Scraper Studio</span>
   <button id="menuBtn" aria-expanded="false" aria-controls="menu"><span class="dotgrid"><i></i><i></i><i></i><i></i></span>MENU</button>
 </div>
 
@@ -730,9 +728,28 @@ railLinks.forEach((a,i)=>{
     i=(i+1)%ph.length; if(i===0)ph.forEach(p=>p.classList.remove("past"));
     ph[i].classList.add("on"); },2400); })();
 
+/* ============ snapshot vs live ============ */
+/* The deployed build is a set of baked JSON files with no server behind it.
+   /live only answers when the Node API is actually running, so a 404 here
+   means this page must stop calling itself live. */
+(async()=>{
+  try{ if((await fetch("/live",{cache:"no-store"})).ok) return; }catch(e){}
+  SNAPSHOT=true;
+  let when="";
+  try{
+    const m=await (await fetch("/data/meta.json",{cache:"no-store"})).json();
+    when=new Date(m.generated_at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+  }catch(e){}
+  const live=document.querySelector(".hm-live");
+  if(live)live.innerHTML='<i></i>SNAPSHOT'+(when?" · "+esc(when):"");
+  const foot=document.querySelector(".foot-status");
+  if(foot)foot.innerHTML='<i></i>SNAPSHOT'+(when?" · "+esc(when):"")+' · FLEET SWEEPS ON THE BUILD MACHINE';
+})();
+
 /* ============ data ============ */
 if($("copyEp"))$("copyEp").onclick=()=>{navigator.clipboard.writeText(location.origin+"/export.json");$("copyEp").textContent="COPIED ✓";setTimeout(()=>$("copyEp").textContent="GET /export.json ⧉",1200);};
 
+let SNAPSHOT=false;
 const TWEENED=new Set();
 function tweenText(el,target,{decimals=0,suffix=""}={}){
   const fmt=(v)=>v.toFixed(decimals)+suffix;
@@ -803,8 +820,8 @@ async function load(){
     fetch("/reliability").then(r=>r.json()), fetch("/sources").then(r=>r.json()),
     fetch("/incidents").then(r=>r.json()), fetch("/export.json").then(r=>r.json()),
     fetch("/runs?limit=200").then(r=>r.json()) ]);
-  }catch{ $("hm-time").textContent="RETRYING"; return; }
-  $("hm-time").textContent=new Date().toLocaleTimeString();
+  }catch{ if(!SNAPSHOT)$("hm-time").textContent="RETRYING"; return; }
+  if(!SNAPSHOT)$("hm-time").textContent=new Date().toLocaleTimeString();
 
   const uptime=rel.runs.total?(rel.runs.healthy/rel.runs.total)*100:0;
   const mttr=rel.heals.mean_recovery_s?Math.round(rel.heals.mean_recovery_s/60):null;

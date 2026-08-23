@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "orchestrate": "tsx packages/orchestrator/src/main.ts",
     "api": "tsx apps/api/src/main.ts",
-    "check": "tsc --noEmit && vitest run"
+    "check": "tsc --noEmit && vitest run",
+    "snapshot": "tsx scripts/snapshot.ts"
   },
   "engines": {
     "node": ">=22.5"

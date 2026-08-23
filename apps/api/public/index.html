@@ -1162,7 +1162,19 @@ function initFX(){
   gsap.from(".ascii-sub",{opacity:0,duration:1,delay:.4,
     scrollTrigger:{trigger:".ascii-stage",start:"top 70%",once:true}});
 }
-load().then(initFX); setInterval(load,12000);
+/* Triggers are built from the layout as it stands when they are created, but
+   the fleet, board and incident rows arrive over the network afterwards and
+   change the document height. Without a refresh every trigger keeps stale
+   start/end values -- the hero words sat 43% into their scrub while still at
+   scroll top. Refresh once the first render lands, again when webfonts settle
+   (they reflow the display type), and after each background poll. */
+const refreshFX = () => { if (window.ScrollTrigger) ScrollTrigger.refresh(); };
+load().then(() => {
+  initFX();
+  requestAnimationFrame(refreshFX);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshFX);
+});
+setInterval(() => load().then(refreshFX), 12000);
 
 
 /* ============ smooth expand for <details> ============ */

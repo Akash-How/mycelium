@@ -706,13 +706,21 @@ const SC={active:"var(--ok)",healthy:"var(--ok)",approved:"var(--ok)",degraded:"
 
 /* ============ rail highlight ============ */
 const railLinks=[...document.querySelectorAll(".section-rail a")];
-const railMap={top:0,dashboard:1,fleet:2,loop:3,stats:4,end:5};
-new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
-  const i=railMap[e.target.id]; if(i==null)return;
-  railLinks.forEach((a,j)=>a.classList.toggle("on",j===i)); }); },{rootMargin:"-40% 0px -50% 0px"})
-  .observe($("top")), ["dashboard","fleet","loop","stats","end"].forEach((id)=>{
-  new IntersectionObserver((es)=>{ es.forEach((e)=>{ if(!e.isIntersecting)return;
-    railLinks.forEach((a,j)=>a.classList.toggle("on",j===railMap[id])); }); },{rootMargin:"-40% 0px -50% 0px"}).observe($(id)); });
+/* Targets come from the rail's own hrefs. This used to be a hand-written
+   id -> index map, which silently drifted the moment a section was added:
+   the new link had no observer (the marker stranded on the one before it)
+   and every index after it pointed at the wrong link. */
+railLinks.forEach((a,i)=>{
+  const el=document.querySelector(a.getAttribute("href"));
+  if(!el)return;
+  /* The band sits 40-50% down the viewport. The footer is short and pinned to
+     the end of the document, so that band can never reach it — the last link
+     would light up never. It gets the rest of the viewport instead. */
+  const last=i===railLinks.length-1;
+  new IntersectionObserver((es)=>es.forEach((e)=>{ if(!e.isIntersecting)return;
+    railLinks.forEach((x,j)=>x.classList.toggle("on",j===i)); }),
+    {rootMargin:last?"-40% 0px 0px 0px":"-40% 0px -50% 0px"}).observe(el);
+});
 
 /* ============ phases: ambient cycle ============ */
 (function(){ const ph=[...document.querySelectorAll(".phase")]; let i=0;
@@ -820,7 +828,6 @@ async function load(){
   syncOrganism();
 
   const openSrc=new Set([...document.querySelectorAll(".fsrc[open]")].map((d)=>d.dataset.id));
-  const retiredCount=sources.filter((s)=>s.status==="retired").length;
   $("fleetRows").innerHTML=sources.filter((s)=>s.status!=="retired").map((s)=>{
     const hist=(runsBySource[s.id]??[]).slice(0,10);
     const ticks=[...hist].reverse().map((r)=>{ const c=SC[r.verdict]??"var(--line)";
@@ -862,7 +869,7 @@ async function load(){
         </div>
       </div>
     </details>`; }).join("")
-    + (retiredCount?`<div class="empty">+ ${retiredCount} retired collectors from the first vertical — their runs and incidents stay in the audit trail.</div>`:"");
+;
 
   LAST_INCIDENTS=incidents; renderIncidents();
 

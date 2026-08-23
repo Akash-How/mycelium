@@ -105,4 +105,10 @@ The deployed page detects it has no server (`/live` 404s) and labels itself
 
 ## License
 
-MIT. AI-use disclosure in [DISCLOSURE.md](DISCLOSURE.md).
+MIT.
+
+**AI use:** built with Claude Code and other LLMs as pair-programmers.
+Bright Data's Scraper Studio AI generates and repairs the extraction code
+behind every `c_*` collector — that is the platform being showcased. All
+architecture and product decisions are the author's, and every collector's
+first output was reviewed by hand before it was allowed to serve.

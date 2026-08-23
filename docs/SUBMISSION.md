@@ -93,6 +93,7 @@ Spider-Sense (Best Clean Code)
 
 **Team:** Akash Mohan (solo)
 
-**AI disclosure:** Built with Claude Code as pair-programmer; Scraper
-Studio AI generates/repairs extraction code. Full disclosure in
-DISCLOSURE.md.
+**AI disclosure:** Built with Claude Code and other LLMs as
+pair-programmers; Bright Data's Scraper Studio AI generates and repairs
+the extraction code. All architecture and product decisions are mine, and
+I reviewed every collector's first output by hand before it served.

@@ -1257,6 +1257,24 @@ function initLenis(){
   lenis.on("scroll",()=>window.ScrollTrigger&&ScrollTrigger.update());
   gsap.ticker.add((t)=>lenis.raf(t*1000));
   gsap.ticker.lagSmoothing(0);
+
+  /* ScrollTrigger only hears about scrolling through Lenis. Backgrounding the
+     tab stops rAF, which stops the GSAP ticker, which stops lenis.raf() -- and
+     Lenis can come back without re-emitting, leaving ScrollTrigger deaf and the
+     hero words frozen part-way through their scrub. Two safeguards: a native
+     scroll listener so ScrollTrigger always hears the real position, and a
+     resync when the tab becomes visible again. */
+  addEventListener("scroll",()=>{
+    if(window.ScrollTrigger)ScrollTrigger.update();
+  },{passive:true});
+
+  addEventListener("visibilitychange",()=>{
+    if(document.visibilityState!=="visible")return;
+    requestAnimationFrame(()=>{
+      lenis.resize();
+      if(window.ScrollTrigger){ScrollTrigger.update();ScrollTrigger.refresh();}
+    });
+  });
   /* anchor links glide through lenis */
   document.querySelectorAll('a[href^="#"]').forEach((a)=>a.addEventListener("click",(e)=>{
     const el=document.querySelector(a.getAttribute("href"));
@@ -1276,12 +1294,12 @@ function initFX(){
   gsap.from(".hw",{y:40,opacity:0,duration:1.1,stagger:.14,ease:"power3.out"});
   const heroScrub={trigger:".hero",start:"top top",end:"bottom top"};
   gsap.fromTo(".hw2",{x:0},{x:()=>innerWidth*.34,ease:"none",immediateRender:false,
-    scrollTrigger:{...heroScrub,scrub:.5}});
+    scrollTrigger:{...heroScrub,scrub:true}});
   gsap.fromTo(".hw3",{x:0},{x:()=>Math.max(0,innerWidth*.9-(document.querySelector(".hw3")?.offsetWidth??0)),
-    ease:"none",immediateRender:false,scrollTrigger:{...heroScrub,scrub:.65}});
+    ease:"none",immediateRender:false,scrollTrigger:{...heroScrub,scrub:true}});
   gsap.fromTo(".hw1",{yPercent:0},{yPercent:-16,ease:"none",immediateRender:false,
-    scrollTrigger:{...heroScrub,scrub:.4}});
-  gsap.to(".organism",{y:70,scale:.97,ease:"none",scrollTrigger:{...heroScrub,scrub:.8}});
+    scrollTrigger:{...heroScrub,scrub:true}});
+  gsap.to(".organism",{y:70,scale:.97,ease:"none",scrollTrigger:{...heroScrub,scrub:true}});
   gsap.from(".hero .strap",{opacity:0,y:24,duration:.9,ease:"power3.out",delay:.2});
 
   /* phases: draw in */

@@ -2,30 +2,80 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "apps/api/public",
   "rewrites": [
-    { "source": "/api", "destination": "/data/api.json" },
-    { "source": "/sources", "destination": "/data/sources.json" },
-    { "source": "/runs", "destination": "/data/runs.json" },
-    { "source": "/incidents", "destination": "/data/incidents.json" },
-    { "source": "/signals", "destination": "/data/signals.json" },
-    { "source": "/top", "destination": "/data/top.json" },
-    { "source": "/newest", "destination": "/data/newest.json" },
-    { "source": "/reliability", "destination": "/data/reliability.json" },
-    { "source": "/watchlist", "destination": "/data/watchlist.json" },
-    { "source": "/new", "destination": "/data/new.json" },
-    { "source": "/export.json", "destination": "/data/export.json" },
-    { "source": "/export.csv", "destination": "/data/export.csv" }
+    {
+      "source": "/api",
+      "destination": "/data/api.json"
+    },
+    {
+      "source": "/sources",
+      "destination": "/data/sources.json"
+    },
+    {
+      "source": "/runs",
+      "destination": "/data/runs.json"
+    },
+    {
+      "source": "/incidents",
+      "destination": "/data/incidents.json"
+    },
+    {
+      "source": "/signals",
+      "destination": "/data/signals.json"
+    },
+    {
+      "source": "/top",
+      "destination": "/data/top.json"
+    },
+    {
+      "source": "/newest",
+      "destination": "/data/newest.json"
+    },
+    {
+      "source": "/reliability",
+      "destination": "/data/reliability.json"
+    },
+    {
+      "source": "/watchlist",
+      "destination": "/data/watchlist.json"
+    },
+    {
+      "source": "/new",
+      "destination": "/data/new.json"
+    },
+    {
+      "source": "/export.json",
+      "destination": "/data/export.json"
+    },
+    {
+      "source": "/export.csv",
+      "destination": "/data/export.csv"
+    }
   ],
   "headers": [
     {
       "source": "/data/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
       "source": "/data/export.csv",
-      "headers": [{ "key": "Content-Type", "value": "text/csv; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/csv; charset=utf-8"
+        }
+      ]
     }
-  ]
+  ],
+  "framework": null,
+  "buildCommand": null,
+  "installCommand": null
 }

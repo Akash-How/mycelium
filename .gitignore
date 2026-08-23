@@ -6,3 +6,6 @@ data/*.sqlite
 data/*.sqlite-*
 data/raw/
 data/*.log
+
+.vercel
+.env*

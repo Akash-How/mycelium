@@ -510,6 +510,9 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
   .br,.br .bg i,.brk-col > .label,.pool{opacity:1;transform:none;transition:none}
 }
+/* stats parallax is written to --py by the scroll handler */
+.stat{transform:translateY(var(--py,0px))}
+@media(prefers-reduced-motion:reduce){.stat{transform:none}}
 </style>
 </head>
 <body>
@@ -1307,12 +1310,35 @@ function initFX(){
     scrollTrigger:{trigger:".phases",start:"top 88%",once:true}});
 
   /* stats: entrance + per-column parallax drift at different speeds */
-  document.querySelectorAll(".stat").forEach((el,i)=>{
-    gsap.from(el,{opacity:0,y:36,duration:.9,ease:"power3.out",
+  document.querySelectorAll(".stat").forEach((el)=>{
+    gsap.from(el,{opacity:0,duration:.9,ease:"power3.out",
       scrollTrigger:{trigger:el,start:"top 85%",once:true}});
-    gsap.to(el,{y:-(18+(i%3)*22),ease:"none",
-      scrollTrigger:{trigger:".stats",start:"top bottom",end:"bottom top",scrub:.8}});
   });
+
+  /* Parallax from live geometry instead of a scrubbed ScrollTrigger. This
+     section's cached start/end kept coming back stale once the canvases sized
+     themselves — measured at -90..2220 while the section actually sat at 4327,
+     which pinned every tile at progress 1 and killed the drift entirely.
+     Reading the rect each frame cannot go stale, and there is no tween to die
+     when the tab is backgrounded. */
+  (()=>{
+    const sec=document.querySelector(".stats");
+    if(!sec)return;
+    const tiles=[...sec.querySelectorAll(".stat")];
+    const depth=[-90,-210,-140,-260,-170];
+    let raf=null;
+    const apply=()=>{
+      raf=null;
+      const r=sec.getBoundingClientRect();
+      const span=r.height+innerHeight;
+      const p=Math.max(0,Math.min(1,(innerHeight-r.top)/span));  /* 0 entering, 1 leaving */
+      tiles.forEach((t,i)=>t.style.setProperty("--py",(depth[i%depth.length]*p).toFixed(1)+"px"));
+    };
+    const onScroll=()=>{ if(!raf)raf=requestAnimationFrame(apply); };
+    addEventListener("scroll",onScroll,{passive:true});
+    addEventListener("resize",onScroll);
+    apply();
+  })();
 
   /* rows: batched rises */
   for(const sel of [".frow",".inc",".ds"]){
@@ -1349,6 +1375,13 @@ load().then(() => {
   initFX();
   requestAnimationFrame(refreshFX);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshFX);
+  /* The canvases size themselves and the preloader unmounts after this point,
+     both of which move every section. Measuring once here caught the stats
+     triggers mid-settle and left them with start/end values from a much
+     shorter page, so their scrub sat pinned at progress 1. */
+  addEventListener("load", refreshFX, { once: true });
+  setTimeout(refreshFX, 1500);
+  setTimeout(refreshFX, 4000);
 });
 setInterval(() => load().then(refreshFX), 12000);
 

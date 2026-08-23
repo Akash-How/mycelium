@@ -249,9 +249,8 @@ table.matrix{border-collapse:collapse;width:100%;min-width:640px}
 .pool .pv{font-family:var(--disp);font-size:clamp(24px,2.6vw,38px);margin-top:8px}
 .dash-grid{grid-template-columns:1fr;gap:7vh}}
 .dash-col{min-width:0}
-.nw{display:grid;grid-template-columns:74px 1fr auto;gap:16px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line)}
-.nw .dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
-.nw .dt .nd{display:inline-block;width:5px;height:5px;border-radius:50%;
+.nw{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line)}
+.nw .pg .nd{display:inline-block;width:5px;height:5px;border-radius:50%;
   background:var(--pink);margin-right:7px;vertical-align:middle;
   box-shadow:0 0 6px rgba(255,30,45,.55)}
 .nw .pg{font-size:clamp(13px,1.2vw,16px);color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -894,8 +893,7 @@ async function load(){
       const fresh=n.is_new&&when.getTime()>freshCut;
       const amt=n.bounty?money(n.bounty):(n.reward_text?esc(n.reward_text):(n.access?esc(String(n.access)):"—"));
       return `<div class="nw">
-        <span class="dt">${fresh?'<i class="nd" title="first seen this week"></i>':""}${n.launched_at?esc(fmtDate(n.date)):"SEEN "+esc(fmtDate(n.date))}</span>
-        <span class="pg"><b>${esc(String(n.program).slice(0,46))}</b><small>· ${esc(n.platform)}</small></span>
+        <span class="pg">${fresh?'<i class="nd" title="first seen this week"></i>':""}<b>${esc(String(n.program).slice(0,46))}</b><small>· ${esc(n.platform)}</small></span>
         <span class="amt ${n.bounty?"":"none"}">${amt}</span>
       </div>`;}).join(""):`<div class="empty">NO PROGRAMS YET.</div>`;
 

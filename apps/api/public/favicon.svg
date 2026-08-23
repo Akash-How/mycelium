@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The same four-dot glyph the MENU button uses, so the tab icon and the
+       site share one mark. Four squares survive 16px; anything finer (a
+       mycelium strand, a letterform) turns to mush at favicon size. -->
+  <rect width="32" height="32" rx="7" fill="#060708"/>
+  <g fill="#ff1e2d">
+    <rect x="7" y="7" width="8" height="8"/>
+    <rect x="17" y="7" width="8" height="8"/>
+    <rect x="7" y="17" width="8" height="8"/>
+    <rect x="17" y="17" width="8" height="8" fill="#f2f3f4"/>
+  </g>
+</svg>

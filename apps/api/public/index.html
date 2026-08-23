@@ -166,9 +166,6 @@ a{color:var(--dim);text-decoration:none}a:hover{color:var(--txt)}
 .inc-toolbar{display:flex;gap:26px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:4px;flex-wrap:wrap}
 .inc-stats{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.08em;margin-right:auto}
 .inc-stats b{color:var(--dim);font-weight:500}
-.fbtn{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;background:none;border:0;color:var(--faint);cursor:pointer;padding:4px 0;border-bottom:1px solid transparent}
-.fbtn:hover{color:var(--dim)}
-.fbtn.on{color:var(--txt);border-color:var(--txt)}
 .inc{border-bottom:1px solid var(--line)}
 .inc>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:130px 1fr auto auto auto;gap:24px;align-items:center;padding:18px 0}
 .inc>summary::-webkit-details-marker{display:none}
@@ -655,10 +652,6 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
   <p class="incline" id="incHeadline"><span class="fire">LIVE RECORD</span>Every break this fleet has survived, <b>with the receipts.</b></p>
   <div class="inc-toolbar">
     <span class="inc-stats" id="incStats"></span>
-    <button class="fbtn on" data-f="all">All</button>
-    <button class="fbtn" data-f="approved">Approved</button>
-    <button class="fbtn" data-f="quarantined">Quarantined</button>
-    <button class="fbtn" data-f="rejected">Rejected</button>
   </div>
   <div id="incList"></div>
 </section>
@@ -925,9 +918,7 @@ function tweenText(el,target,{decimals=0,suffix=""}={}){
 let NODES=[];
 function syncOrganism(){ window.NODES=NODES; if(window.__net3d)window.__net3d.setNodes(NODES); }
 
-let LAST_INCIDENTS=[],INC_FILTER="all";
-document.querySelectorAll(".fbtn").forEach((b)=>b.onclick=()=>{ INC_FILTER=b.dataset.f;
-  document.querySelectorAll(".fbtn").forEach((x)=>x.classList.toggle("on",x===b)); renderIncidents(); });
+let LAST_INCIDENTS=[];
 const ago=(ts)=>{ if(!ts)return""; const s=(Date.now()-new Date(ts.replace(" ","T")+"Z").getTime())/1000;
   if(s<3600)return Math.max(1,Math.round(s/60))+"M AGO"; if(s<86400)return Math.round(s/3600)+"H AGO"; return Math.round(s/86400)+"D AGO"; };
 function copyPrompt(btn,txt){ navigator.clipboard.writeText(txt); btn.textContent="COPIED ✓"; setTimeout(()=>(btn.textContent="COPY PROMPT"),1200); }
@@ -935,7 +926,7 @@ function copyPrompt(btn,txt){ navigator.clipboard.writeText(txt); btn.textConten
 function renderIncidents(){
   const openIds=new Set([...document.querySelectorAll(".inc[open]")].map((d)=>d.dataset.id));
   const all=LAST_INCIDENTS;
-  const shown=INC_FILTER==="all"?all:all.filter((i)=>i.decision===INC_FILTER);
+  const shown=all;
   const approved=all.filter((i)=>i.decision==="approved").length;
   const quar=all.filter((i)=>i.decision==="quarantined").length;
   const mttrs=all.filter((i)=>i.time_to_recovery_s).map((i)=>i.time_to_recovery_s);
@@ -973,7 +964,7 @@ function renderIncidents(){
         ${note||pv?`<div class="case">${note}${pv}</div>`:""}
       </div>
     </details>`;
-  }).join(""):`<div class="empty">NO ${INC_FILTER==="all"?"":INC_FILTER.toUpperCase()+" "}INCIDENTS — THE FLEET IS SWEEPING ON SCHEDULE.</div>`;
+  }).join(""):`<div class="empty">NO INCIDENTS — THE FLEET IS SWEEPING ON SCHEDULE.</div>`;
 }
 
 async function load(){

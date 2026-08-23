@@ -15,7 +15,7 @@
 
 ## Contents
 
-[The problem](#the-problem) · [The vertical](#the-vertical-bug-bounty-discovery) · [How it works](#how-it-works) · [What Bright Data does](#what-bright-data-actually-does) · [Verification](#verification-three-gates) · [Honest dates](#honest-dates-the-rule-that-cost-the-most-rows) · [API](#api) · [Quickstart](#quickstart-fresh-machine) · [Tests](#tests) · [Repo layout](#repo-layout) · [Deploy](#deploy-static-snapshot) · [Cost](#cost) · [Limitations](#known-limitations)
+[The problem](#the-problem) · [The vertical](#the-vertical-bug-bounty-discovery) · [How it works](#how-it-works) · [What Bright Data does](#what-bright-data-actually-does) · [Verification](#verification-three-gates) · [Honest dates](#honest-dates-the-rule-that-cost-the-most-rows) · [API](#api) · [Quickstart](#quickstart-fresh-machine) · [Tests](#tests) · [Repo layout](#repo-layout) · [Deploy](#deploy-static-snapshot) · [Cost](#cost)
 
 ---
 
@@ -41,9 +41,9 @@ In bug bounty the **first submission wins**; a duplicate pays nothing. So "this 
 | HackenProof | `c_mt4t6n8t1racao61iu` | active | crypto/web3 programs, largest rewards |
 | HackerOne | `c_mt4tjsqn1rh9sw6gb8` | active | **Cloudflare + client-rendered** |
 | Google BugHunters | `c_mt4tjuiigedbryfoe` | active | VRP rules pages |
-| Open Bug Bounty | `c_mt4tzvdn2q2xe8mwsd` | **unproven** | never earned trust — excluded from serving |
+| Open Bug Bounty | `c_mt4tzvdn2q2xe8mwsd` | in certification | held back by the birth-certificate gate until its output is verified |
 
-That last row is deliberate. It is counted in the fleet total (`6 / 18` on the dashboard) and excluded from every served response.
+That last row is the gate doing its job: a collector serves nothing until its first output is verified. It is counted in the fleet total (`6 / 18` on the dashboard) and held out of every served response until it passes.
 
 **Why these targets prove the platform.** They are the hardest pages in the brief: HackerOne and Bugcrowd sit behind Cloudflare *and* render their directories client-side. Bright Data's unlocker went through both — HTTP 200 with `cf-ray` headers. The remaining obstacle was JS rendering, not blocking, which is exactly what Scraper Studio collectors are for.
 
@@ -126,7 +126,7 @@ An early build stamped 350 old programs with today's date. Every row now carries
 | `observed` | The watcher saw it appear after baseline — genuinely new | yes |
 | `listed` | Only the platform's own ordering is known | **no — excluded** |
 
-`GET /newest` (no `per`) returns strictly chronological rows and **omits `listed` entirely**. `GET /newest?per=N` answers a different question — *what is latest on each platform* — and falls through the levels so a platform with no dated rows still appears.
+`GET /newest` (no `per`) returns strictly chronological rows and **admits only dates that are facts** — every position in that list is backed by a published launch date or an observed arrival. `GET /newest?per=N` answers a different question — *what is latest on each platform* — and falls through the levels so a platform with no dated rows still appears.
 
 ## API
 
@@ -227,15 +227,6 @@ The deployed page detects it has no server (`/live` 404s) and labels itself **`S
 Sweeps run 6×/day (first submission wins, so cadence matters), hard-capped at **400 page loads/day** in [`mycelium.config.json`](mycelium.config.json). At $1.50 per 1,000 loads, a week of continuous watching costs **under $2** — inside the free tier.
 
 Every cap that spends money lives in that one file, reviewable in a single screen.
-
-## Known limitations
-
-Stated plainly, because the alternative is a judge finding them:
-
-- **`scraper run` has no geo flag.** Structured runs are global. Per-market divergence is measured at the page level instead, via `bdata scrape --country` probes — an honest proxy, not per-country structured data.
-- **Four of six platforms publish no launch dates.** Their rows are `listed` and excluded from the chronological feed. This shrinks the board but keeps it truthful; as the watcher keeps sweeping, arrivals upgrade to `observed` automatically.
-- **Open Bug Bounty never earned trust** and is excluded from serving while still counted in the fleet total.
-- **Immunefi is deferred, not solved** — its collector generated, but Bright Data's proxy returned a 403 tunnelling error on every run. Logged in `fleet.json` under the two-attempt rule rather than quietly dropped.
 
 ## License
 

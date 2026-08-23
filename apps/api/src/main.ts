@@ -172,8 +172,12 @@ app.get("/top", (c) => {
 });
 
 // the product's spine: programs newest-first with their reward.
-// Recency comes from the platform's own launch date when it publishes one
-// (Bugcrowd's started_at), otherwise from when our watcher first saw it.
+// A row only qualifies if its date is real: either the platform published a
+// launch date, or our watcher caught the program appearing after baseline
+// (first_seen is then a true “when it showed up”). Baseline-seeded rows with
+// no published date are excluded — their first_seen is just the day this
+// database started watching, and ranking eToro as “new” because we seeded
+// it yesterday would be fabrication.
 app.get("/newest", (c) => {
   const limit = Math.min(Number(c.req.query("limit") ?? 40), 300);
   const rows = db
@@ -190,10 +194,12 @@ app.get("/newest", (c) => {
   const EPOCH = "2012-01-01";
   const plausible = (d: unknown) =>
     typeof d === "string" && d >= EPOCH && d <= new Date(Date.now() + 864e5).toISOString();
-  const out = rows.map((r) => {
+  const out = rows.flatMap((r) => {
     const e = JSON.parse(r.payload_json ?? "{}") as Fields;
-    const launched = plausible(e.started_at) ? (e.started_at as string) : null;
-    return {
+    const launchedRaw = [e.started_at, e.listed_date].find(plausible);
+    const launched = launchedRaw ? (launchedRaw as string) : null;
+    if (!launched && r.seeded !== 0) return []; // no real date — not rankable
+    return [{
       program: programName(e) ?? r.entity_key,
       bounty: num(maxBounty(e)),
       reward_text: e.reward_range ?? e.bounty_range ?? null,
@@ -206,7 +212,7 @@ app.get("/newest", (c) => {
       first_seen_at: r.first_seen_at,
       date: launched ?? r.first_seen_at,
       is_new: r.seeded === 0,
-    };
+    }];
   });
   // Strictly newest-first on the date the row actually displays. Earlier
   // versions preferred genuine arrivals, then entries carrying a launch
@@ -217,9 +223,10 @@ app.get("/newest", (c) => {
   const byRecency = (a: Entry, b: Entry) => stamp(b) - stamp(a);
   out.sort(byRecency);
 
-  // Only one platform publishes launch dates, so a global sort hands it the
-  // whole feed. `per` takes the N most recent from each platform instead, so
-  // every source a hunter watches is represented.
+  // One platform publishes far more launch dates than the rest, so a global
+  // sort hands it the whole feed. `per` takes the N most recent from each
+  // platform that has anything real to show — platforms with no dated rows
+  // simply don't appear, which is the truth.
   const per = Number(c.req.query("per") ?? 0);
   if (per > 0) {
     const groups = new Map<string, Entry[]>();

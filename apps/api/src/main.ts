@@ -13,7 +13,7 @@ const app = new Hono();
 // node:sqlite returns untyped records; each query narrows to the columns it
 // actually selects so property access stays checked.
 type DiscoveryRow = {
-  first_seen_at: string; entity_key: string; payload_json: string;
+  id: number; first_seen_at: string; entity_key: string; payload_json: string;
   domain: string; source_id: number; seeded: number;
 };
 type LatestRunRow = { rows_json: string | null; domain: string };
@@ -32,6 +32,8 @@ type IncidentRow = Record<string, unknown> & {
 };
 type GeoRow = Record<string, unknown> & { top_signals: string; currency_set: string };
 type Program = { program: unknown; bounty: number; platform: string; category: unknown };
+/** how much a row’s recency can be trusted, best first */
+type Recency = "published" | "observed" | "listed";
 
 // ---- field helpers --------------------------------------------------------
 // Every platform names its columns differently; the picker chains below are
@@ -76,7 +78,7 @@ app.get("/api", (c) =>
       "/runs?source=N&limit=M": "run log: verdicts and row counts",
       "/incidents": "every break: symptom, machine-written heal prompt, gates, decision",
       "/new?hours=N": "programs first seen since baseline — the first-submission signal",
-      "/newest?limit=N&per=M": "programs newest-first with their reward; per=M takes the M most recent from each platform",
+      "/newest?limit=N&per=M": "newest-first with reward; per=M gives the M latest from each platform. Each row carries recency: published (platform printed a date), observed (watcher saw it arrive), listed (platform order only). The global list omits listed rows.",
       "/top?limit=N&per=M": "highest-reward programs; per=M caps how many each platform contributes",
       "/signals": "aggregate vectors: top bounty, median, count above 10k, new this week",
       "/watchlist": "what each source tracks, and when its baseline was seeded",
@@ -182,9 +184,10 @@ app.get("/newest", (c) => {
   const limit = Math.min(Number(c.req.query("limit") ?? 40), 300);
   const rows = db
     .prepare(
-      `SELECT d.first_seen_at, d.entity_key, d.payload_json, d.seeded, s.domain
+      `SELECT d.id, d.first_seen_at, d.entity_key, d.payload_json, d.seeded, s.domain
        FROM discovery d JOIN source s ON s.id = d.source_id
-       WHERE s.status != 'retired'`,
+       WHERE s.status != 'retired'
+       ORDER BY d.id ASC`,
     )
     .all() as unknown as DiscoveryRow[];
   // Sanity-check published launch dates. Bug bounty platforms did not exist
@@ -194,12 +197,16 @@ app.get("/newest", (c) => {
   const EPOCH = "2012-01-01";
   const plausible = (d: unknown) =>
     typeof d === "string" && d >= EPOCH && d <= new Date(Date.now() + 864e5).toISOString();
-  const out = rows.flatMap((r) => {
+  const out = rows.map((r) => {
     const e = JSON.parse(r.payload_json ?? "{}") as Fields;
     const launchedRaw = [e.started_at, e.listed_date].find(plausible);
     const launched = launchedRaw ? (launchedRaw as string) : null;
-    if (!launched && r.seeded !== 0) return []; // no real date — not rankable
-    return [{
+    // How much the recency of this row can be trusted:
+    //   published — the platform printed a launch date
+    //   observed  — the watcher saw it arrive after baseline, so it is new
+    //   listed    — neither; all we know is where the platform ranked it
+    const recency: Recency = launched ? "published" : r.seeded === 0 ? "observed" : "listed";
+    return {
       program: programName(e) ?? r.entity_key,
       bounty: num(maxBounty(e)),
       reward_text: e.reward_range ?? e.bounty_range ?? null,
@@ -212,7 +219,9 @@ app.get("/newest", (c) => {
       first_seen_at: r.first_seen_at,
       date: launched ?? r.first_seen_at,
       is_new: r.seeded === 0,
-    }];
+      recency,
+      listing_rank: r.id,
+    };
   });
   // Strictly newest-first on the date the row actually displays. Earlier
   // versions preferred genuine arrivals, then entries carrying a launch
@@ -221,23 +230,33 @@ app.get("/newest", (c) => {
   type Entry = (typeof out)[number];
   const stamp = (e: Entry) => new Date(String(e.date).replace(" ", "T")).getTime() || 0;
   const byRecency = (a: Entry, b: Entry) => stamp(b) - stamp(a);
-  out.sort(byRecency);
 
-  // One platform publishes far more launch dates than the rest, so a global
-  // sort hands it the whole feed. `per` takes the N most recent from each
-  // platform that has anything real to show — platforms with no dated rows
-  // simply don't appear, which is the truth.
+  // `per` answers a different question than the global list: not "what is
+  // newest overall" but "what is latest on each platform". Four of the six
+  // publish no dates at all, so within a platform we fall back through the
+  // signals we do have rather than dropping it from the board entirely.
   const per = Number(c.req.query("per") ?? 0);
   if (per > 0) {
+    const QUALITY = { published: 2, observed: 1, listed: 0 } as const;
     const groups = new Map<string, Entry[]>();
-    for (const e of out) {
-      const g = groups.get(e.platform) ?? [];
-      if (g.length < per) { g.push(e); groups.set(e.platform, g); }
-    }
-    const balanced = [...groups.values()].flat().sort(byRecency);
+    for (const e of out) groups.set(e.platform, [...(groups.get(e.platform) ?? []), e]);
+    const picked = [...groups.values()].map((g) =>
+      g
+        .sort((a, b) =>
+          QUALITY[b.recency] - QUALITY[a.recency] ||   // dated beats undated
+          stamp(b) - stamp(a) ||                        // then newest first
+          a.listing_rank - b.listing_rank)              // then the platform's own order
+        .slice(0, per),
+    );
+    // Round-robin so every platform is visible at the top of the board
+    // instead of the first one filling it.
+    const balanced: Entry[] = [];
+    for (let i = 0; i < per; i++) for (const g of picked) if (g[i]) balanced.push(g[i]);
     return c.json(balanced.slice(0, limit));
   }
-  return c.json(out.slice(0, limit));
+  // Global list: strictly chronological, so rows whose date is not a fact
+  // have no place in it.
+  return c.json(out.filter((e) => e.recency !== "listed").sort(byRecency).slice(0, limit));
 });
 
 // aggregate signals for the dashboard: the vectors that matter in bug

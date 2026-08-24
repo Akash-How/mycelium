@@ -879,8 +879,13 @@ railLinks.forEach((a,i)=>{
   };
 
   document.addEventListener("pointerover",(e)=>{
-    const row=e.target.closest?.(".fsrc");
-    if(!row)return;
+    /* Only the collapsed header line summons the card. Matching the whole
+       <details> meant every mouse move inside an expanded row re-raised it,
+       right on top of the panel the click was meant to reveal. */
+    const sum=e.target.closest?.(".fsrc > summary");
+    if(!sum)return;
+    const row=sum.parentElement;
+    if(row.open){ live=false; card.classList.remove("on"); return; }
     const h=row.dataset.host||"";
     host.textContent=h;
     cid.textContent=row.dataset.cid||"no collector";
@@ -905,8 +910,8 @@ railLinks.forEach((a,i)=>{
     if(e.target.closest?.(".fsrc")){ live=false; card.classList.remove("on"); }
   },true);
   document.addEventListener("pointerout",(e)=>{
-    if(!e.target.closest?.(".fsrc"))return;
-    if(e.relatedTarget?.closest?.(".fsrc"))return;   /* moving within the list */
+    if(!e.target.closest?.(".fsrc > summary"))return;
+    if(e.relatedTarget?.closest?.(".fsrc > summary"))return;   /* header to header */
     live=false; card.classList.remove("on");
   });
 })();

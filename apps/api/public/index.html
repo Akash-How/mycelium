@@ -513,6 +513,53 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 /* stats parallax is written to --py by the scroll handler */
 .stat{transform:translateY(var(--py,0px))}
 @media(prefers-reduced-motion:reduce){.stat{transform:none}}
+/* ============ source peek card ============ */
+/* Brand red and near-square-cornered, so it lands on the black page like a
+   stamped card rather than another panel of the UI. */
+#srcPeek{position:fixed;top:0;left:0;z-index:140;width:222px;pointer-events:none;
+  padding:12px 13px;border-radius:3px;overflow:hidden;
+  background:var(--pink);border:1px solid #ff4a56;
+  box-shadow:0 26px 52px rgba(0,0,0,.7),0 0 34px rgba(255,30,45,.22);
+  /* translate is driven per-frame from JS; scale, blur and opacity are left to
+     the transition. They have to be real properties, not pieces of a transform
+     shorthand — a transform fed by custom properties cannot ease.
+     No rotation: fractional degrees re-rasterise the text every frame, which
+     reads as a tremble on a card that is following a jittery cursor. */
+  will-change:translate;backface-visibility:hidden;
+  translate:0 0;
+  opacity:0;scale:.94;filter:blur(8px);
+  transition:opacity .5s cubic-bezier(.16,1,.3,1),
+             scale .62s cubic-bezier(.16,1,.3,1),
+             filter .5s cubic-bezier(.16,1,.3,1)}
+#srcPeek.on{opacity:1;scale:1;filter:blur(0)}
+/* the platform initial, ghosted behind everything */
+#srcPeek .pk-wm{position:absolute;right:-8px;bottom:-26px;font-family:var(--disp);
+  font-size:92px;line-height:1;color:#0b0d11;opacity:.11;pointer-events:none}
+/* the mark keeps a light tile — the platform favicons are colour, and colour
+   on red is unreadable */
+#srcPeek .pk-badge{width:28px;height:28px;border-radius:2px;display:grid;place-items:center;
+  background:#f4f5f6;border:1px solid rgba(11,13,17,.14)}
+#srcPeek img{width:17px;height:17px;object-fit:contain}
+#srcPeek img[hidden],#srcPeek i[hidden]{display:none}
+#srcPeek i{font-family:var(--disp);font-style:normal;font-size:14px;color:#0b0d11}
+#srcPeek .pk-host{font-family:var(--disp);font-size:16px;letter-spacing:.005em;
+  color:#fff;margin-top:9px;line-height:1}
+/* a red rule that draws itself as the card settles */
+#srcPeek .pk-rule{display:block;height:2px;width:28px;background:#0b0d11;
+  margin-top:6px;transform:scaleX(0);transform-origin:left;
+  transition:transform .5s var(--ease) .1s}
+#srcPeek.on .pk-rule{transform:scaleX(1)}
+#srcPeek .pk-cid{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.84);
+  margin-top:7px;word-break:break-all;line-height:1.45}
+#srcPeek .pk-foot{display:flex;justify-content:space-between;align-items:center;
+  margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.3)}
+#srcPeek .pk-rows{font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;color:rgba(255,255,255,.74)}
+#srcPeek .pk-pill{font-family:var(--mono);font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:#f4f5f6;background:#0b0d11;
+  padding:3px 8px;border-radius:2px}
+@media(prefers-reduced-motion:reduce){#srcPeek{display:none}}
+@media(max-width:900px){#srcPeek{display:none}}
 </style>
 </head>
 <body>
@@ -534,6 +581,18 @@ html.menu-lock,html.menu-lock body{overflow:hidden}
 </div>
 
 <div id="topblur"></div>
+
+<div id="srcPeek" aria-hidden="true">
+  <b class="pk-wm" id="pkWm"></b>
+  <div class="pk-top"><span class="pk-badge"><img id="pkIcon" alt=""><i id="pkMono"></i></span></div>
+  <div class="pk-host" id="pkHost"></div>
+  <span class="pk-rule"></span>
+  <div class="pk-cid" id="pkCid"></div>
+  <div class="pk-foot">
+    <span class="pk-rows" id="pkRows"></span>
+    <span class="pk-pill" id="pkStatus"></span>
+  </div>
+</div>
 
 <div id="menubar">
   <a class="mb-brand" href="#top">MYCELIUM</a>
@@ -789,6 +848,69 @@ railLinks.forEach((a,i)=>{
     i=(i+1)%ph.length; if(i===0)ph.forEach(p=>p.classList.remove("past"));
     ph[i].classList.add("on"); },2400); })();
 
+/* ============ source peek: a card that trails the cursor ============ */
+/* Hovering a fleet row lifts its identity out of the table — the platform
+   mark, the collector it runs on, and what it is currently serving. The card
+   eases toward the pointer rather than sticking to it, which is what makes it
+   feel attached rather than glued. */
+(()=>{
+  const card=document.getElementById("srcPeek");
+  if(!card||reduced)return;
+  const icon=document.getElementById("pkIcon"), mono=document.getElementById("pkMono");
+  const host=document.getElementById("pkHost"), cid=document.getElementById("pkCid");
+  const rows=document.getElementById("pkRows"), status=document.getElementById("pkStatus");
+  const wm=document.getElementById("pkWm");
+  let tx=0,ty=0,cx=0,cy=0,raf=null,live=false;
+
+  const loop=()=>{
+    let dx=tx-cx, dy=ty-cy;
+    /* Snap through the last half pixel. Chasing an ever-shrinking remainder
+       keeps the card re-rendering at sub-pixel offsets, which looks like a
+       shiver rather than a settle. */
+    if(Math.abs(dx)<0.5&&Math.abs(dy)<0.5){ cx=tx; cy=ty; dx=dy=0; }
+    else { cx+=dx*0.11; cy+=dy*0.11; }
+    card.style.translate=Math.round(cx)+"px "+Math.round(cy)+"px";
+    raf=(live||dx||dy)?requestAnimationFrame(loop):null;
+  };
+  const place=(e)=>{
+    tx=Math.min(e.clientX+26,innerWidth-238);
+    ty=Math.min(e.clientY-30,innerHeight-158);
+    if(!raf)raf=requestAnimationFrame(loop);
+  };
+
+  document.addEventListener("pointerover",(e)=>{
+    const row=e.target.closest?.(".fsrc");
+    if(!row)return;
+    const h=row.dataset.host||"";
+    host.textContent=h;
+    cid.textContent=row.dataset.cid||"no collector";
+    rows.textContent=(row.dataset.rows||"0")+" rows";
+    status.textContent=row.dataset.status||"";
+    icon.hidden=false; mono.hidden=true;
+    icon.onerror=()=>{icon.hidden=true;mono.hidden=false;mono.textContent=(h[0]||"?").toUpperCase();};
+    icon.src="/icons/"+h+".ico";
+    wm.textContent=(h[0]||"").toUpperCase();
+    tx=Math.min(e.clientX+26,innerWidth-238);
+    ty=Math.min(e.clientY-30,innerHeight-158);
+    cx=tx-20; cy=ty+12;          /* start just off the mark and glide onto it */
+    card.style.translate=cx+"px "+cy+"px";
+    live=true; card.classList.add("on");
+    if(!raf)raf=requestAnimationFrame(loop);
+  });
+  document.addEventListener("pointermove",(e)=>{ if(live)place(e); });
+  /* Opening a row expands a full panel underneath the cursor; a card hovering
+     over that is just clutter, so it leaves and stays gone until the pointer
+     comes back to a row. */
+  document.addEventListener("click",(e)=>{
+    if(e.target.closest?.(".fsrc")){ live=false; card.classList.remove("on"); }
+  },true);
+  document.addEventListener("pointerout",(e)=>{
+    if(!e.target.closest?.(".fsrc"))return;
+    if(e.relatedTarget?.closest?.(".fsrc"))return;   /* moving within the list */
+    live=false; card.classList.remove("on");
+  });
+})();
+
 /* ============ breakdown reveal ============ */
 let BRK_DONE=false;
 function revealBreakdown(){
@@ -1023,7 +1145,8 @@ async function load(){
       `<div class="xrow"><span class="xn">${esc(r[nameF])}</span><span class="xv">${r[numF]??"—"}</span></div>`).join("")
       ??`<div class="empty">no verified rows yet</div>`;
 
-    return `<details class="fsrc" data-id="${s.id}" ${openSrc.has(String(s.id))?"open":""}>
+    const host=s.domain.replace(/^(www|api|app)\./,"");
+    return `<details class="fsrc" data-id="${s.id}" data-host="${esc(host)}" data-cid="${esc(s.collector_id||"")}" data-status="${esc(s.status)}" data-rows="${ex?.rows?.length??0}" ${openSrc.has(String(s.id))?"open":""}>
       <summary><div class="frow">
         <span class="dom">${esc(s.domain.replace("www.",""))}</span>
         <span class="cid">${s.collector_id?esc(s.collector_id)+" — live Bright Data endpoint":"no collector — "+esc(s.status)}</span>
@@ -1267,6 +1390,9 @@ function initLenis(){
      hero words frozen part-way through their scrub. Two safeguards: a native
      scroll listener so ScrollTrigger always hears the real position, and a
      resync when the tab becomes visible again. */
+  /* Native scroll does not fire while Lenis drives, so this only catches the
+     case where Lenis is absent or has been stopped. Lenis's own event above is
+     the real path. */
   addEventListener("scroll",()=>{
     if(window.ScrollTrigger)ScrollTrigger.update();
   },{passive:true});
@@ -1325,7 +1451,7 @@ function initFX(){
     const sec=document.querySelector(".stats");
     if(!sec)return;
     const tiles=[...sec.querySelectorAll(".stat")];
-    const depth=[-90,-210,-140,-260,-170];
+    const depth=[-160,-380,-250,-460,-300];
     let raf=null;
     const apply=()=>{
       raf=null;
@@ -1334,9 +1460,16 @@ function initFX(){
       const p=Math.max(0,Math.min(1,(innerHeight-r.top)/span));  /* 0 entering, 1 leaving */
       tiles.forEach((t,i)=>t.style.setProperty("--py",(depth[i%depth.length]*p).toFixed(1)+"px"));
     };
-    const onScroll=()=>{ if(!raf)raf=requestAnimationFrame(apply); };
-    addEventListener("scroll",onScroll,{passive:true});
-    addEventListener("resize",onScroll);
+    /* Lenis swallows native scroll events — window "scroll" never fires while
+       it is driving, which is why an event-based handler here did nothing.
+       The GSAP ticker runs every frame and already powers lenis.raf, so drive
+       it from there and cheap-out when the section is nowhere near view. */
+    gsap.ticker.add(()=>{
+      const r=sec.getBoundingClientRect();
+      if(r.bottom<-200||r.top>innerHeight+200)return;
+      if(!raf)raf=requestAnimationFrame(apply);
+    });
+    addEventListener("resize",()=>{ if(!raf)raf=requestAnimationFrame(apply); });
     apply();
   })();
 
